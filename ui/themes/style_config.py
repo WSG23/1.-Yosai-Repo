@@ -1,4 +1,4 @@
-# styles/style_config.py (UPDATED - Consistent background colors)
+# styles/style_config.py (FIXED - Moved enhanced definitions after base definitions)
 """
 Comprehensive style configuration with consistent background colors
 """
@@ -36,7 +36,7 @@ ANIMATIONS = {
     'slow': '0.5s'
 }
 
-# Typography
+# Typography (BASE DEFINITION - moved up)
 TYPOGRAPHY = {
     # Font sizes
     'text_xs': '0.75rem',
@@ -61,7 +61,7 @@ TYPOGRAPHY = {
     'leading_relaxed': '1.75',
 }
 
-# Spacing
+# Spacing (BASE DEFINITION - moved up)
 SPACING = {
     'xs': '0.25rem',
     'sm': '0.5rem',
@@ -83,7 +83,7 @@ BORDER_RADIUS = {
     'full': '9999px'
 }
 
-# Shadows
+# Shadows (BASE DEFINITION - moved up)
 SHADOWS = {
     'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
     'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -241,7 +241,6 @@ UI_VISIBILITY = {
     }
 }
 
-# UI components configuration
 # UI components configuration
 UI_COMPONENTS = {
     'upload': {
@@ -495,6 +494,8 @@ ENHANCED_COMPONENT_STYLES = {
     },
 }
 
+# Enhanced style generator functions
+
 def get_upload_style(state="initial"):
     """Return upload container style for a given state."""
     return {**UPLOAD_STYLES['base'], **UPLOAD_STYLES['states'].get(state, {})}
@@ -530,13 +531,15 @@ def get_enhanced_card_style(variant='default', interactive=False, loading=False)
     """Enhanced card style generator"""
     base_styles = {
         'default': COMPONENT_STYLES['card'],
-        'elevated': COMPONENT_STYLES['card_elevated'],
+        'elevated': COMPONENT_STYLES['card_elevated'], 
+
         'premium': ENHANCED_COMPONENT_STYLES['card_premium'],
         'floating': ENHANCED_COMPONENT_STYLES['card_floating'],
         'interactive': ENHANCED_COMPONENT_STYLES['card_interactive'],
     }
-
+    
     style = base_styles.get(variant, base_styles['default']).copy()
+    
 
     if interactive:
         style.update({
@@ -573,9 +576,10 @@ def get_enhanced_button_style(variant='primary', size='default', loading=False):
             'font-size': TYPOGRAPHY['text_lg'],
         }
     }
-
+    
     style = base_styles.get(variant, base_styles['primary']).copy()
     style.update(size_styles.get(size, {}))
+    
 
     if loading:
         style.update({
@@ -673,8 +677,9 @@ def get_disabled_style(base_style):
     disabled_style["pointerEvents"] = "none"
     return disabled_style
 
-# Export all configurations
+# Export all public variables and functions
 __all__ = [
+    # Base style constants
     'COLORS',
     'ANIMATIONS',
     'TYPOGRAPHY',
@@ -689,12 +694,13 @@ __all__ = [
     'UI_COMPONENTS',
     'LAYOUT_CONFIG',
     'CSS_ANIMATIONS',
-
+    
     # Enhanced style constants
     'ENHANCED_TYPOGRAPHY',
-    'ENHANCED_SPACING',
+    'ENHANCED_SPACING', 
     'ENHANCED_SHADOWS',
     'ENHANCED_COMPONENT_STYLES',
+    
 
     # Style generator functions
     'get_enhanced_card_style',
