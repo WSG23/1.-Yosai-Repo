@@ -100,12 +100,12 @@ ENHANCED_TYPOGRAPHY = {
     'text_display': '2.75rem',  # Display headers
     'text_subtitle': '1.375rem', # Subtitles
     'text_caption': '0.8125rem', # Captions
-    
+
     # Enhanced line heights for better readability
     'leading_hero': '1.1',
     'leading_display': '1.2',
     'leading_body': '1.6',
-    
+
     # Letter spacing for emphasis
     'tracking_wide': '0.025em',
     'tracking_wider': '0.05em',
@@ -131,7 +131,7 @@ ENHANCED_SHADOWS = {
     'xs': '0 1px 1px 0 rgba(0, 0, 0, 0.05)',
     '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     '3xl': '0 35px 60px -12px rgba(0, 0, 0, 0.35)',
-    
+
     # Colored shadows for accent elements
     'accent': '0 10px 25px -5px rgba(33, 150, 243, 0.25)',
     'success': '0 10px 25px -5px rgba(45, 190, 108, 0.25)',
@@ -435,7 +435,7 @@ CLASSIFICATION_STYLES = {
 # Enhanced Component Styles - Building on existing card styles
 ENHANCED_COMPONENT_STYLES = {
     **COMPONENT_STYLES,
-    
+
     # Enhanced Card Variants
     'card_premium': {
         'background-color': COLORS['surface_elevated'],
@@ -446,7 +446,7 @@ ENHANCED_COMPONENT_STYLES = {
         'backdrop-filter': 'blur(20px)',
         'transition': f'all {ANIMATIONS["normal"]}',
     },
-    
+
     'card_interactive': {
         'background-color': COLORS['surface'],
         'border': f"1px solid {COLORS['border']}",
@@ -456,7 +456,7 @@ ENHANCED_COMPONENT_STYLES = {
         'transition': f'all {ANIMATIONS["normal"]}',
         'cursor': 'pointer',
     },
-    
+
     'card_floating': {
         'background-color': COLORS['surface_elevated'],
         'border': 'none',
@@ -466,7 +466,7 @@ ENHANCED_COMPONENT_STYLES = {
         'transform': 'translateZ(0)',
         'transition': f'all {ANIMATIONS["normal"]}',
     },
-    
+
     # Enhanced Button Variants
     'button_premium': {
         'background': f'linear-gradient(135deg, {COLORS["accent"]}, {COLORS["accent_light"]})',
@@ -481,7 +481,7 @@ ENHANCED_COMPONENT_STYLES = {
         'box-shadow': ENHANCED_SHADOWS['accent'],
         'letter-spacing': ENHANCED_TYPOGRAPHY['tracking_wide'],
     },
-    
+
     'button_ghost': {
         'background-color': 'transparent',
         'color': COLORS['text_secondary'],
@@ -495,6 +495,7 @@ ENHANCED_COMPONENT_STYLES = {
 }
 
 # Enhanced style generator functions
+
 def get_upload_style(state="initial"):
     """Return upload container style for a given state."""
     return {**UPLOAD_STYLES['base'], **UPLOAD_STYLES['states'].get(state, {})}
@@ -531,6 +532,7 @@ def get_enhanced_card_style(variant='default', interactive=False, loading=False)
     base_styles = {
         'default': COMPONENT_STYLES['card'],
         'elevated': COMPONENT_STYLES['card_elevated'], 
+
         'premium': ENHANCED_COMPONENT_STYLES['card_premium'],
         'floating': ENHANCED_COMPONENT_STYLES['card_floating'],
         'interactive': ENHANCED_COMPONENT_STYLES['card_interactive'],
@@ -538,18 +540,19 @@ def get_enhanced_card_style(variant='default', interactive=False, loading=False)
     
     style = base_styles.get(variant, base_styles['default']).copy()
     
+
     if interactive:
         style.update({
             'cursor': 'pointer',
             'transition': f'all {ANIMATIONS["normal"]}',
         })
-    
+
     if loading:
         style.update({
             'position': 'relative',
             'overflow': 'hidden',
         })
-    
+
     return style
 
 def get_enhanced_button_style(variant='primary', size='default', loading=False):
@@ -561,7 +564,7 @@ def get_enhanced_button_style(variant='primary', size='default', loading=False):
         'premium': ENHANCED_COMPONENT_STYLES['button_premium'],
         'ghost': ENHANCED_COMPONENT_STYLES['button_ghost'],
     }
-    
+
     size_styles = {
         'small': {
             'padding': f"{SPACING['xs']} {SPACING['sm']}",
@@ -577,12 +580,13 @@ def get_enhanced_button_style(variant='primary', size='default', loading=False):
     style = base_styles.get(variant, base_styles['primary']).copy()
     style.update(size_styles.get(size, {}))
     
+
     if loading:
         style.update({
             'position': 'relative',
             'pointer-events': 'none',
         })
-    
+
     return style
 
 def get_loading_skeleton_style(width='100%', height='20px'):
@@ -677,7 +681,7 @@ def get_disabled_style(base_style):
 __all__ = [
     # Base style constants
     'COLORS',
-    'ANIMATIONS', 
+    'ANIMATIONS',
     'TYPOGRAPHY',
     'SPACING',
     'BORDER_RADIUS',
@@ -697,6 +701,7 @@ __all__ = [
     'ENHANCED_SHADOWS',
     'ENHANCED_COMPONENT_STYLES',
     
+
     # Style generator functions
     'get_enhanced_card_style',
     'get_enhanced_button_style',
