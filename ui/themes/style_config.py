@@ -1,4 +1,4 @@
-# styles/style_config.py (UPDATED - Consistent background colors)
+# styles/style_config.py (FIXED - Moved enhanced definitions after base definitions)
 """
 Comprehensive style configuration with consistent background colors
 """
@@ -36,7 +36,7 @@ ANIMATIONS = {
     'slow': '0.5s'
 }
 
-# Typography
+# Typography (BASE DEFINITION - moved up)
 TYPOGRAPHY = {
     # Font sizes
     'text_xs': '0.75rem',
@@ -61,7 +61,7 @@ TYPOGRAPHY = {
     'leading_relaxed': '1.75',
 }
 
-# Spacing
+# Spacing (BASE DEFINITION - moved up)
 SPACING = {
     'xs': '0.25rem',
     'sm': '0.5rem',
@@ -83,7 +83,7 @@ BORDER_RADIUS = {
     'full': '9999px'
 }
 
-# Shadows
+# Shadows (BASE DEFINITION - moved up)
 SHADOWS = {
     'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
     'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -91,6 +91,52 @@ SHADOWS = {
     'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
     'outline': '0 0 0 3px rgba(33, 150, 243, 0.5)'  # Focus outline
+}
+
+# Enhanced Typography - Building on existing
+ENHANCED_TYPOGRAPHY = {
+    **TYPOGRAPHY,
+    'text_hero': '3.5rem',      # Hero text
+    'text_display': '2.75rem',  # Display headers
+    'text_subtitle': '1.375rem', # Subtitles
+    'text_caption': '0.8125rem', # Captions
+    
+    # Enhanced line heights for better readability
+    'leading_hero': '1.1',
+    'leading_display': '1.2',
+    'leading_body': '1.6',
+    
+    # Letter spacing for emphasis
+    'tracking_wide': '0.025em',
+    'tracking_wider': '0.05em',
+    'tracking_widest': '0.1em',
+}
+
+# Enhanced Spacing System - Building on existing
+ENHANCED_SPACING = {
+    **SPACING,
+    # Micro spacing for fine control
+    'xxs': '0.125rem',   # 2px
+    'micro': '0.1875rem', # 3px
+    # Larger spacing for sections
+    '4xl': '5rem',       # 80px
+    '5xl': '6rem',       # 96px
+    '6xl': '8rem',       # 128px
+}
+
+# Enhanced Shadows with more depth options
+ENHANCED_SHADOWS = {
+    **SHADOWS,
+    # Additional shadow layers for depth
+    'xs': '0 1px 1px 0 rgba(0, 0, 0, 0.05)',
+    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    '3xl': '0 35px 60px -12px rgba(0, 0, 0, 0.35)',
+    
+    # Colored shadows for accent elements
+    'accent': '0 10px 25px -5px rgba(33, 150, 243, 0.25)',
+    'success': '0 10px 25px -5px rgba(45, 190, 108, 0.25)',
+    'warning': '0 10px 25px -5px rgba(255, 176, 32, 0.25)',
+    'critical': '0 10px 25px -5px rgba(224, 32, 32, 0.25)',
 }
 
 # Component styles - UPDATED with new color scheme
@@ -195,7 +241,6 @@ UI_VISIBILITY = {
     }
 }
 
-# UI components configuration
 # UI components configuration
 UI_COMPONENTS = {
     'upload': {
@@ -387,6 +432,69 @@ CLASSIFICATION_STYLES = {
     }
 }
 
+# Enhanced Component Styles - Building on existing card styles
+ENHANCED_COMPONENT_STYLES = {
+    **COMPONENT_STYLES,
+    
+    # Enhanced Card Variants
+    'card_premium': {
+        'background-color': COLORS['surface_elevated'],
+        'border': f"1px solid {COLORS['border']}",
+        'border-radius': BORDER_RADIUS['2xl'],
+        'box-shadow': ENHANCED_SHADOWS['2xl'],
+        'padding': ENHANCED_SPACING['2xl'],
+        'backdrop-filter': 'blur(20px)',
+        'transition': f'all {ANIMATIONS["normal"]}',
+    },
+    
+    'card_interactive': {
+        'background-color': COLORS['surface'],
+        'border': f"1px solid {COLORS['border']}",
+        'border-radius': BORDER_RADIUS['xl'],
+        'box-shadow': SHADOWS['lg'],
+        'padding': SPACING['xl'],
+        'transition': f'all {ANIMATIONS["normal"]}',
+        'cursor': 'pointer',
+    },
+    
+    'card_floating': {
+        'background-color': COLORS['surface_elevated'],
+        'border': 'none',
+        'border-radius': BORDER_RADIUS['2xl'],
+        'box-shadow': ENHANCED_SHADOWS['xl'],
+        'padding': ENHANCED_SPACING['2xl'],
+        'transform': 'translateZ(0)',
+        'transition': f'all {ANIMATIONS["normal"]}',
+    },
+    
+    # Enhanced Button Variants
+    'button_premium': {
+        'background': f'linear-gradient(135deg, {COLORS["accent"]}, {COLORS["accent_light"]})',
+        'color': COLORS['text_on_accent'],
+        'border': 'none',
+        'padding': f"{ENHANCED_SPACING['md']} {ENHANCED_SPACING['2xl']}",
+        'border-radius': BORDER_RADIUS['xl'],
+        'font-weight': TYPOGRAPHY['font_semibold'],
+        'font-size': TYPOGRAPHY['text_lg'],
+        'cursor': 'pointer',
+        'transition': f'all {ANIMATIONS["normal"]}',
+        'box-shadow': ENHANCED_SHADOWS['accent'],
+        'letter-spacing': ENHANCED_TYPOGRAPHY['tracking_wide'],
+    },
+    
+    'button_ghost': {
+        'background-color': 'transparent',
+        'color': COLORS['text_secondary'],
+        'border': f"1px solid transparent",
+        'padding': f"{SPACING['sm']} {SPACING['lg']}",
+        'border-radius': BORDER_RADIUS['lg'],
+        'font-weight': TYPOGRAPHY['font_medium'],
+        'cursor': 'pointer',
+        'transition': f'all {ANIMATIONS["fast"]}',
+    },
+}
+
+# Enhanced style generator functions
 def get_upload_style(state="initial"):
     """Return upload container style for a given state."""
     return {**UPLOAD_STYLES['base'], **UPLOAD_STYLES['states'].get(state, {})}
@@ -416,6 +524,76 @@ def get_validation_message_style(status="info"):
         'color': color_map[status],
         'fontSize': '0.85rem',
         'textAlign': 'center'
+    }
+
+def get_enhanced_card_style(variant='default', interactive=False, loading=False):
+    """Enhanced card style generator"""
+    base_styles = {
+        'default': COMPONENT_STYLES['card'],
+        'elevated': COMPONENT_STYLES['card_elevated'], 
+        'premium': ENHANCED_COMPONENT_STYLES['card_premium'],
+        'floating': ENHANCED_COMPONENT_STYLES['card_floating'],
+        'interactive': ENHANCED_COMPONENT_STYLES['card_interactive'],
+    }
+    
+    style = base_styles.get(variant, base_styles['default']).copy()
+    
+    if interactive:
+        style.update({
+            'cursor': 'pointer',
+            'transition': f'all {ANIMATIONS["normal"]}',
+        })
+    
+    if loading:
+        style.update({
+            'position': 'relative',
+            'overflow': 'hidden',
+        })
+    
+    return style
+
+def get_enhanced_button_style(variant='primary', size='default', loading=False):
+    """Enhanced button style generator"""
+    base_styles = {
+        'primary': COMPONENT_STYLES['button_primary'],
+        'secondary': COMPONENT_STYLES['button_secondary'],
+        'success': COMPONENT_STYLES['button_success'],
+        'premium': ENHANCED_COMPONENT_STYLES['button_premium'],
+        'ghost': ENHANCED_COMPONENT_STYLES['button_ghost'],
+    }
+    
+    size_styles = {
+        'small': {
+            'padding': f"{SPACING['xs']} {SPACING['sm']}",
+            'font-size': TYPOGRAPHY['text_sm'],
+        },
+        'default': {},
+        'large': {
+            'padding': f"{ENHANCED_SPACING['md']} {ENHANCED_SPACING['2xl']}",
+            'font-size': TYPOGRAPHY['text_lg'],
+        }
+    }
+    
+    style = base_styles.get(variant, base_styles['primary']).copy()
+    style.update(size_styles.get(size, {}))
+    
+    if loading:
+        style.update({
+            'position': 'relative',
+            'pointer-events': 'none',
+        })
+    
+    return style
+
+def get_loading_skeleton_style(width='100%', height='20px'):
+    """Generate skeleton loading style"""
+    return {
+        'background': f'linear-gradient(90deg, {COLORS["surface"]} 25%, {COLORS["border"]} 50%, {COLORS["surface"]} 75%)',
+        'background-size': '200% 100%',
+        'animation': 'shimmer 1.5s infinite',
+        'border-radius': BORDER_RADIUS['md'],
+        'width': width,
+        'height': height,
     }
 
 # CSS Animations (can be added to CSS file)
@@ -495,8 +673,9 @@ def get_disabled_style(base_style):
     disabled_style["pointerEvents"] = "none"
     return disabled_style
 
-# Export all configurations
+# Export all public variables and functions
 __all__ = [
+    # Base style constants
     'COLORS',
     'ANIMATIONS', 
     'TYPOGRAPHY',
@@ -511,6 +690,17 @@ __all__ = [
     'UI_COMPONENTS',
     'LAYOUT_CONFIG',
     'CSS_ANIMATIONS',
+    
+    # Enhanced style constants
+    'ENHANCED_TYPOGRAPHY',
+    'ENHANCED_SPACING', 
+    'ENHANCED_SHADOWS',
+    'ENHANCED_COMPONENT_STYLES',
+    
+    # Style generator functions
+    'get_enhanced_card_style',
+    'get_enhanced_button_style',
+    'get_loading_skeleton_style',
     'get_upload_style',
     'get_interactive_setup_style',
     'get_validation_message_style',
