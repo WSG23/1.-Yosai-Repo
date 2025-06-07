@@ -13,11 +13,11 @@ FIXES:
 - ✅ Preserved current design and styling
 - ✅ All helper functions included
 """
+import sys
+import os
 import dash
 from dash import Input, Output, State, html, dcc, no_update, callback, ALL
 import dash_bootstrap_components as dbc
-import sys
-import os
 import json
 import traceback
 import pandas as pd
@@ -30,7 +30,6 @@ from datetime import datetime
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Import styling and config
 from ui.themes.style_config import (
     UI_VISIBILITY,
     COMPONENT_STYLES,
@@ -115,6 +114,8 @@ except ImportError as e:
 # Main layout
 try:
     from ui.pages.main_page import create_main_layout
+    from ui.pages.main_page import create_main_layout
+from ui.themes.style_config import get_enhanced_card_style, get_enhanced_button_style
     components_available['main_layout'] = True
     print(">> Main layout imported")
 except ImportError as e:

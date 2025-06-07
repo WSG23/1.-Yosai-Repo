@@ -9,7 +9,12 @@ from dash import html, dcc
 import dash_cytoscape as cyto
 from ui.components.classification import create_classification_component
 
-from ui.themes.style_config import COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS
+from styles import (
+    COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS, ANIMATIONS,
+    ENHANCED_TYPOGRAPHY, ENHANCED_SPACING, ENHANCED_SHADOWS,
+    get_enhanced_card_style, get_enhanced_button_style, get_loading_skeleton_style
+)
+
 from ui.themes.helpers import (
     get_button_style,
     get_card_style,
@@ -74,85 +79,133 @@ def create_main_layout(app_instance, main_logo_path, icon_upload_default):
     return layout
 
 def create_main_header(main_logo_path):
-    """Creates the main header bar"""
-    header_style = get_card_style()
+    """Enhanced header with better visual hierarchy and accessibility"""
+    header_style = get_enhanced_card_style('floating')
     header_style.update({
         'display': 'flex',
         'alignItems': 'center',
         'justifyContent': 'center',
-        'padding': f"{SPACING['md']} {SPACING['xl']}",
-        'marginBottom': SPACING['xl'],
+        'padding': f"{ENHANCED_SPACING['lg']} {ENHANCED_SPACING['2xl']}",
+        'marginBottom': ENHANCED_SPACING['2xl'],
+        'position': 'relative',
+        'overflow': 'hidden',
     })
-    return html.Div(
+    
+    return html.Header(
         style=header_style,
+        className='enhanced-card-hover',  # ADD this class
         children=[
-            html.Img(src=main_logo_path, style={'height': '40px', 'marginRight': SPACING['base']}),
+            html.Img(
+                src=main_logo_path, 
+                alt="Application Logo",  # ADD accessibility
+                style={
+                    'height': '48px', 
+                    'marginRight': ENHANCED_SPACING['lg'],
+                    'transition': f'all {ANIMATIONS["normal"]}',
+                    'filter': 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }
+            ),
             html.H1(
                 "Enhanced Analytics Dashboard",
                 style={
-                    'fontSize': TYPOGRAPHY['text_3xl'],
+                    'fontSize': ENHANCED_TYPOGRAPHY['text_display'],  # ENHANCED
                     'margin': '0',
                     'color': COLORS['text_primary'],
-                    'fontWeight': TYPOGRAPHY['font_semibold']
+                    'fontWeight': TYPOGRAPHY['font_semibold'],
+                    'letterSpacing': ENHANCED_TYPOGRAPHY['tracking_wide'],  # ENHANCED
+                    'lineHeight': ENHANCED_TYPOGRAPHY['leading_display'],    # ENHANCED
                 }
             )
-        ]
+        ],
+        # FIXED: Use proper HTML attributes
+        **{
+            "role": "banner",
+            "aria-label": "Main navigation header"
+        }
     )
 
 def create_upload_section(icon_upload_default):
-    """Upload section - SIMPLIFIED"""
-    return html.Div([
-        dcc.Upload(
-            id='upload-data',
-            children=html.Div([
-                html.Img(
-                    id='upload-icon',
-                    src=icon_upload_default,
-                    style={
-                        'width': '96px',
-                        'height': '96px',
-                        'marginBottom': SPACING['base'],
-                        'opacity': '0.8'
-                    }
-                ),
-                html.H3(
-                    "Drop your CSV or JSON file here",
-                    style={
-                        'margin': '0',
-                        'fontSize': '1.2rem',
-                        'fontWeight': TYPOGRAPHY['font_semibold'],
-                        'color': COLORS['text_primary'],
-                        'marginBottom': SPACING['xs']
-                    }
-                ),
-                html.P(
-                    "or click to browse",
-                    style={
-                        'margin': '0',
-                        'fontSize': '0.9rem',
-                        'color': COLORS['text_secondary'],
-                    }
-                ),
-            ], style={'textAlign': 'center', 'padding': SPACING['md']}),
-            style={
-                'width': '70%',
-                'maxWidth': '600px',
-                'minHeight': '180px',
-                'borderRadius': BORDER_RADIUS['xl'],
-                'textAlign': 'center',
-                'margin': f"0 auto {SPACING['xl']} auto",
-                'display': 'flex',
-                'alignItems': 'center',
-                'justifyContent': 'center',
-                'cursor': 'pointer',
-                'transition': 'all 0.3s ease',
-                'border': f'2px dashed {COLORS["border"]}',
-                'backgroundColor': COLORS['surface'],
-            },
-            multiple=False,
-            accept='.csv,.json'
-        )
-    ])
+    """Enhanced upload section with better loading states and visual feedback"""
+    return html.Section(
+        children=[
+            dcc.Upload(
+                id='upload-data',
+                children=html.Div([
+                    # Enhanced upload icon
+                    html.Div(
+                        id='upload-icon-container',
+                        style={
+                            'position': 'relative',
+                            'display': 'inline-block',
+                            'marginBottom': ENHANCED_SPACING['lg'],
+                        },
+                        children=[
+                            html.Img(
+                                id='upload-icon',
+                                src=icon_upload_default,
+                                alt="Upload file icon",  # ADD accessibility
+                                style={
+                                    'width': '120px',
+                                    'height': '120px',
+                                    'opacity': '0.8',
+                                    'transition': f'all {ANIMATIONS["normal"]}',
+                                    'filter': 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
+                                }
+                            )
+                        ]
+                    ),
+                    
+                    # Enhanced upload text
+                    html.H3(
+                        "Drop your CSV or JSON file here",
+                        style={
+                            'margin': '0',
+                            'fontSize': ENHANCED_TYPOGRAPHY['text_subtitle'],  # ENHANCED
+                            'fontWeight': TYPOGRAPHY['font_semibold'],
+                            'color': COLORS['text_primary'],
+                            'marginBottom': ENHANCED_SPACING['sm'],
+                            'lineHeight': ENHANCED_TYPOGRAPHY['leading_tight'],  # ENHANCED
+                        }
+                    ),
+                    
+                    html.P(
+                        "or click to browse files",
+                        style={
+                            'margin': '0',
+                            'fontSize': TYPOGRAPHY['text_base'],
+                            'color': COLORS['text_secondary'],
+                            'fontWeight': TYPOGRAPHY['font_medium'],
+                        }
+                    )
+                ]),
+                
+                # Enhanced upload container styling  
+                style={
+                    'width': '70%',
+                    'maxWidth': '700px',
+                    'minHeight': '240px',
+                    'borderRadius': BORDER_RADIUS['2xl'],  # ENHANCED
+                    'textAlign': 'center',
+                    'margin': f"{ENHANCED_SPACING['xl']} auto",  # ENHANCED
+                    'display': 'flex',
+                    'alignItems': 'center',
+                    'justifyContent': 'center',
+                    'cursor': 'pointer',
+                    'transition': f'all {ANIMATIONS["normal"]}',
+                    'border': f'3px dashed {COLORS["border"]}',  # ENHANCED thickness
+                    'backgroundColor': COLORS['surface'],
+                    'boxShadow': ENHANCED_SHADOWS['lg'],  # ENHANCED shadow
+                },
+                className='enhanced-card-hover enhanced-focus',  # ADD classes
+                
+                # FIXED: Use proper dcc.Upload attributes
+                **{
+                    "aria-label": "File upload area"
+                }
+            )
+        ],
+        **{"aria-label": "File upload section"}  # ADD accessibility
+    )
 
 def create_interactive_setup_container():
     """Interactive setup container - SIMPLIFIED"""
@@ -170,7 +223,7 @@ def create_interactive_setup_container():
             html.Button(
                 'Confirm Selections & Generate Analysis',
                 id='confirm-and-generate-button',
-                n_clicks=0,
+                n_clicks=0,  # FIXED: Use integer instead of string
                 style={
                     **get_button_style(),
                     'width': '100%',
@@ -210,10 +263,10 @@ def create_mapping_section():
             html.Button(
                 'Confirm Header Mapping',
                 id='confirm-header-map-button',
-                n_clicks=0,
+                n_clicks=0,  # FIXED: Use integer instead of string
+                hidden=True,  # FIXED: Use boolean instead of style display
                 style={
                     **get_button_style('success'),
-                    'display': 'none',  # Hidden until dropdowns are created
                     'margin': f"{SPACING['md']} auto"
                 }
             )
