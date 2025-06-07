@@ -12,6 +12,11 @@ from ui.themes.style_config import (
     SHADOWS,
     TYPOGRAPHY,
     CLASSIFICATION_STYLES,
+    ENHANCED_TYPOGRAPHY,
+    ENHANCED_SPACING,
+    ENHANCED_SHADOWS,
+    get_enhanced_card_style,
+    get_enhanced_button_style,
 )
 
 
@@ -49,70 +54,125 @@ class ClassificationComponent:
         )
     
     def create_facility_setup_card(self):
-        """Creates Step 2: Facility Setup card with modern slider and simplified toggle"""
+        """Enhanced facility setup with modern visual design"""
+        card_style = get_enhanced_card_style('premium', interactive=True)
+
         return html.Div([
-            html.H4("Step 2: Facility Setup", 
-                   style={'color': COLORS['text_primary'], 'textAlign': 'center', 'marginBottom': '16px'}),
-            
-            # Floors Slider Row
+            # Enhanced step indicator
+            html.Div(
+                style={
+                    'display': 'flex',
+                    'alignItems': 'center',
+                    'justifyContent': 'center',
+                    'marginBottom': ENHANCED_SPACING['xl'],
+                },
+                children=[
+                    html.Div(
+                        "2",
+                        style={
+                            'width': '40px',
+                            'height': '40px',
+                            'borderRadius': '50%',
+                            'backgroundColor': COLORS['accent'],
+                            'color': COLORS['text_on_accent'],
+                            'display': 'flex',
+                            'alignItems': 'center',
+                            'justifyContent': 'center',
+                            'fontSize': TYPOGRAPHY['text_lg'],
+                            'fontWeight': TYPOGRAPHY['font_bold'],
+                            'marginRight': ENHANCED_SPACING['md'],
+                            'boxShadow': ENHANCED_SHADOWS['accent'],
+                        }
+                    ),
+                    html.H4(
+                        "Facility Setup",
+                        style={
+                            'color': COLORS['text_primary'],
+                            'fontSize': ENHANCED_TYPOGRAPHY['text_xl'],
+                            'fontWeight': TYPOGRAPHY['font_semibold'],
+                            'margin': '0',
+                            'letterSpacing': ENHANCED_TYPOGRAPHY['tracking_wide'],
+                        }
+                    )
+                ]
+            ),
+
+            # Your existing floors slider and toggle sections
             self.create_floors_slider_row(),
-            
-            # Simplified Toggle Row (no Bootstrap switch)
             self.create_simplified_toggle_row()
-            
-        ], style=CLASSIFICATION_STYLES['setup_card'])
+
+        ], style=card_style, className='enhanced-card-hover enhanced-focus')
     
     def create_floors_slider_row(self):
-        """Creates the modern floors slider"""
+        """Enhanced floors slider with better visual design"""
         return html.Div([
+            # Enhanced label
             html.Label(
-                "How many floors are in the facility?", 
+                "How many floors are in the facility?",
                 style={
                     'color': COLORS['text_primary'],
-                    'fontWeight': TYPOGRAPHY['font_bold'],
-                    'fontSize': '1rem',
-                    'marginBottom': '8px',
-                    'textAlign': 'center',
-                    'display': 'block'
-                }
-            ),
-            
-            # Modern Slider (0-100 floors)
-            dcc.Slider(
-                id="num-floors-input",
-                min=0,
-                max=100,
-                step=5,
-                value=4,
-                marks={i: str(i) for i in range(0, 101, 5)},
-                tooltip={"always_visible": False, "placement": "bottom"},
-                updatemode="drag",
-                className="modern-floor-slider"
-            ),
-            
-            # Live display of slider value
-            html.Div(
-                id="num-floors-display",
-                children="4 floors",  # Default text
-                style={
-                    "fontSize": "0.9rem",
-                    "color": COLORS['text_secondary'],
-                    "marginTop": "6px",
-                    "textAlign": "center",
-                    "fontWeight": "600"
-                }
-            ),
-            
-            # Helper text
-            html.Small(
-                "Count floors above ground including mezzanines and secure zones.", 
-                style={
-                    'color': COLORS['text_tertiary'],
-                    'fontSize': '0.8rem',
+                    'fontWeight': TYPOGRAPHY['font_semibold'],
+                    'fontSize': TYPOGRAPHY['text_lg'],
+                    'marginBottom': ENHANCED_SPACING['md'],
                     'textAlign': 'center',
                     'display': 'block',
-                    'marginTop': '4px',
-                    'marginBottom': '24px'
+                }
+            ),
+
+            # Enhanced slider container
+            html.Div(
+                style={
+                    'backgroundColor': COLORS['surface_elevated'],
+                    'borderRadius': BORDER_RADIUS['xl'],
+                    'padding': ENHANCED_SPACING['lg'],
+                    'border': f"1px solid {COLORS['border']}",
+                    'boxShadow': SHADOWS['inner'],
+                    'marginBottom': ENHANCED_SPACING['xl'],
+                },
+                children=[
+                    # Your existing slider code
+                    dcc.Slider(
+                        id="num-floors-input",
+                        min=0,
+                        max=100,
+                        step=5,
+                        value=4,
+                        marks={i: str(i) for i in range(0, 101, 5)},
+                        tooltip={"always_visible": False, "placement": "bottom"},
+                        updatemode="drag",
+                        className="enhanced-floor-slider"  # ADD enhanced class
+                    ),
+
+                    # Enhanced live display
+                    html.Div(
+                        id="num-floors-display",
+                        children="4 floors",
+                        style={
+                            "fontSize": TYPOGRAPHY['text_lg'],
+                            "color": COLORS['accent'],
+                            "marginTop": ENHANCED_SPACING['md'],
+                            "textAlign": "center",
+                            "fontWeight": TYPOGRAPHY['font_semibold'],
+                            "padding": ENHANCED_SPACING['sm'],
+                            "backgroundColor": f"{COLORS['accent']}10",
+                            "borderRadius": BORDER_RADIUS['lg'],
+                            "border": f"1px solid {COLORS['accent']}30",
+                        }
+                    )
+                ]
+            ),
+
+            # Enhanced helper text
+            html.Small(
+                "Count floors above ground including mezzanines and secure zones.",
+                style={
+                    'color': COLORS['text_tertiary'],
+                    'fontSize': TYPOGRAPHY['text_sm'],
+                    'textAlign': 'center',
+                    'display': 'block',
+                    'marginTop': ENHANCED_SPACING['md'],
+                    'fontStyle': 'italic',
+                    'lineHeight': ENHANCED_TYPOGRAPHY['leading_relaxed'],
                 }
             )
         ])

@@ -114,8 +114,10 @@ except ImportError as e:
 # Main layout
 try:
     from ui.pages.main_page import create_main_layout
-    from ui.pages.main_page import create_main_layout
-from ui.themes.style_config import get_enhanced_card_style, get_enhanced_button_style
+    from ui.themes.style_config import (
+        get_enhanced_card_style,
+        get_enhanced_button_style,
+    )
     components_available['main_layout'] = True
     print(">> Main layout imported")
 except ImportError as e:
