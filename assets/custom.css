@@ -1,0 +1,996 @@
+/* ---------------------------------------------
+   PROFESSIONAL DASHBOARD CSS - Enhanced Styling
+   --------------------------------------------- */
+
+:root {
+  /* Enhanced color palette */
+  --color-primary: #1B2A47;
+  --color-accent: #2196F3;
+  --color-accent-hover: #42A5F5;
+  --color-success: #2DBE6C;
+  --color-warning: #FFB020;
+  --color-critical: #E02020;
+  --color-info: #2196F3;
+  
+  /* Professional background system */
+  --color-background: #0F1419;
+  --color-surface: #1A2332;
+  --color-surface-elevated: #1E2936;
+  --color-border: #2D3748;
+
+  
+  /* Professional text hierarchy */
+  --color-text-primary: #F7FAFC;
+  --color-text-secondary: #E2E8F0;
+  --color-text-tertiary: #A0AEC0;
+  --color-text-on-accent: #FFFFFF;
+  
+  
+  /* Enhanced spacing system */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-base: 1rem;
+  --spacing-md: 1.25rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Professional typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  
+  /* Enhanced shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Border radius system */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+  
+  /* Animation system */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   GLOBAL STYLES - Professional Foundation
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   LAYOUT STRUCTURE - Professional Grid System
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.app-container {
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   PROFESSIONAL HEADER
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.professional-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1e3a5f 100%);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-lg);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.header-logo {
+  height: 32px;
+  width: auto;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-on-accent);
+  letter-spacing: -0.025em;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: rgba(247, 250, 252, 0.8);
+  font-weight: 400;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.status-display {
+  background-color: rgba(26, 35, 50, 0.8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 200px;
+  text-align: center;
+}
+
+.header-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--color-text-on-accent);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.header-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   SECTION STYLES - Professional Content Areas
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: var(--spacing-2xl) 0 var(--spacing-xl) 0;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+.section-title:first-of-type {
+  margin-top: var(--spacing-xl);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   SETUP SECTION - Professional Setup Flow
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.setup-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 3px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  margin: 0 auto var(--spacing-xl) auto;
+  max-width: 600px;
+  padding: var(--spacing-2xl);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.upload-area:hover {
+  border-color: var(--color-accent);
+  background-color: rgba(33, 150, 243, 0.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.upload-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.8;
+  transition: all var(--transition-normal);
+}
+
+.upload-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.upload-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.setup-container {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  margin: var(--spacing-xl) auto;
+  max-width: 800px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   STEP SECTIONS - Professional Setup Steps
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.step-section {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.step-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-accent);
+  margin: 0 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.step-description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.6;
+}
+
+.required-text {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.step-btn {
+  background-color: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-text-on-accent);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  display: block;
+  margin: var(--spacing-xl) auto 0 auto;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+}
+
+.step-btn:hover {
+  background-color: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.generate-btn {
+  background: linear-gradient(135deg, var(--color-success) 0%, #2DBE6C 100%);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-text-on-accent);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  cursor: pointer;
+  display: block;
+  margin: var(--spacing-2xl) auto 0 auto;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   MAPPING STYLES
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.mapping-area {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.mapping-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.mapping-label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.mapping-dropdown .Select-control {
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Fix dropdown text visibility */
+.mapping-dropdown .Select-control {
+    background-color: #1A2332 !important;
+    color: #F7FAFC !important;
+    border-color: #2D3748 !important;
+}
+
+.mapping-dropdown .Select-menu-outer {
+    background-color: #1A2332 !important;
+    border-color: #2D3748 !important;
+}
+
+.mapping-dropdown .Select-option {
+    background-color: #1A2332 !important;
+    color: #F7FAFC !important;
+}
+
+.mapping-dropdown .Select-option:hover {
+    background-color: #2196F3 !important;
+    color: white !important;
+}
+
+.mapping-dropdown .Select-placeholder {
+    color: #A0AEC0 !important;
+}
+
+.mapping-dropdown .Select-value-label {
+    color: #F7FAFC !important;
+}
+/* ─────────────────────────────────────────────────────────────────────────────────
+   CONFIGURATION STYLES
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.config-group {
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.config-label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  display: block;
+}
+
+.floor-slider {
+  margin: var(--spacing-lg) 0;
+}
+
+.slider-value {
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-top: var(--spacing-md);
+}
+
+.toggle-options {
+  display: flex;
+  gap: var(--spacing-lg);
+  justify-content: center;
+}
+
+.toggle-options label {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-md) var(--spacing-xl);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.toggle-options input[type="radio"]:checked + label,
+.toggle-options label:has(input[type="radio"]:checked) {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.classification-container {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   SUMMARY DASHBOARD - Professional Metrics Display
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.summary-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.summary-card {
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-success));
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-accent);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.card-icon {
+  font-size: var(--font-size-2xl);
+  opacity: 0.8;
+}
+
+.card-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.primary-metric {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-accent);
+  line-height: 1.2;
+}
+
+.secondary-metric {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   DETAILED ANALYTICS - Professional Details Grid
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.analytics-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.detail-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+}
+
+.detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+.detail-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-accent);
+  margin: 0 0 var(--spacing-lg) 0;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.detail-metric {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  line-height: 1.5;
+}
+
+.detail-metric:last-child {
+  margin-bottom: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   VISUALIZATION SECTION - Professional Charts
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.visualization-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.visualization-content {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.chart-label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.chart-selector {
+  min-width: 200px;
+}
+
+.chart-container {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+}
+
+.main-chart {
+  height: 400px;
+}
+
+.secondary-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.chart-item {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+}
+
+.secondary-chart {
+  height: 300px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   GRAPH SECTION - Professional Network Visualization
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.graph-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.graph-content {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.security-graph {
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-background);
+  margin-bottom: var(--spacing-lg);
+}
+
+.graph-info {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-family: 'Fira Code', 'Consolas', monospace;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   EXPORT SECTION - Professional Tools
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.export-section {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.export-buttons {
+  display: flex;
+  gap: var(--spacing-lg);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-xl);
+}
+
+.export-btn {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.export-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.export-status {
+  text-align: center;
+  font-size: var(--font-size-base);
+  color: var(--color-success);
+  font-weight: 500;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   TABLE STYLES - Professional Data Display
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.table-container {
+  margin-top: var(--spacing-lg);
+}
+
+.table-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.devices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table-header {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  padding: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-border);
+  text-align: left;
+}
+
+.table-body td {
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.device-name {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.event-count {
+  color: var(--color-accent);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   SECURITY ITEMS - Professional Security Display
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.security-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+}
+
+.security-item.green {
+  background-color: rgba(45, 190, 108, 0.1);
+  border-left: 4px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.security-item.yellow {
+  background-color: rgba(255, 176, 32, 0.1);
+  border-left: 4px solid var(--color-warning);
+  color: var(--color-warning);
+}
+
+.security-item.red {
+  background-color: rgba(224, 32, 32, 0.1);
+  border-left: 4px solid var(--color-critical);
+  color: var(--color-critical);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE DESIGN - Professional Mobile Support
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    text-align: center;
+  }
+  
+  .summary-grid,
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .secondary-charts {
+    grid-template-columns: 1fr;
+  }
+  
+  .export-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .export-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .main-content {
+    padding: 0 var(--spacing-base);
+  }
+  
+  .setup-container {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .section-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .upload-area {
+    min-height: 160px;
+    padding: var(--spacing-lg);
+  }
+  
+  .upload-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .summary-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .primary-metric {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   ANIMATIONS - Professional Motion
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.7; 
+  }
+}
+
+.summary-section,
+.analytics-section,
+.visualization-section,
+.export-section {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.summary-card {
+  animation: slideUp 0.4s ease-out;
+}
+
+.summary-card:nth-child(2) { animation-delay: 0.1s; }
+.summary-card:nth-child(3) { animation-delay: 0.2s; }
+.summary-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* ─────────────────────────────────────────────────────────────────────────────────
+   UTILITY CLASSES - Professional Helpers
+   ───────────────────────────────────────────────────────────────────────────────── */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+.hidden { display: none; }
+.visible { display: block; }
+
+/* Professional loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  yosai-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yosai-intel-dashboard
+    restart: unless-stopped
+    ports:
+      - "8050:8050"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8050
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    command: ["python", "app.py"]
+
+  yosai-db:
+    image: postgres:15-alpine
+    container_name: yosai-database
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=yosai_dev
+      - POSTGRES_USER=yosai_dev_user
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: yosai-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
