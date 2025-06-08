@@ -20,6 +20,7 @@ class EnhancedStatsHandlers:
     def register_callbacks(self):
         """Register all enhanced stats callbacks"""
         self._register_stats_update_callback()
+        self._register_enhanced_metrics_display_callback()
         self._register_chart_update_callbacks()
         self._register_export_callbacks()
         
@@ -73,6 +74,91 @@ class EnhancedStatsHandlers:
                     
             except Exception as e:
                 return "Error", "Error", "--", {}, "Error", {}
+
+    def _register_enhanced_metrics_display_callback(self):
+        """Register callback to display ALL enhanced metrics"""
+        @self.app.callback(
+            [
+                # User Analytics outputs
+                Output('stats-unique-users', 'children'),
+                Output('stats-avg-events-per-user', 'children'),
+                Output('stats-most-active-user', 'children'),
+                Output('stats-devices-per-user', 'children'),
+                Output('stats-peak-hour', 'children'),
+
+                # Device Analytics outputs
+                Output('device-total-count', 'children'),
+                Output('device-entrance-count', 'children'),
+                Output('device-high-security-count', 'children'),
+                Output('device-busiest-floor', 'children'),
+
+                # Advanced Insights outputs
+                Output('insight-traffic-pattern', 'children'),
+                Output('insight-security-score', 'children'),
+                Output('insight-efficiency-score', 'children'),
+                Output('insight-anomaly-count', 'children'),
+
+                # Additional Activity Analysis
+                Output('avg-events-per-day', 'children'),
+                Output('peak-activity-day', 'children'),
+            ],
+            [
+                Input('enhanced-metrics-store', 'data'),
+                Input('stats-refresh-interval', 'n_intervals'),
+            ],
+            prevent_initial_call=True
+        )
+        def update_all_enhanced_metrics(enhanced_metrics, n_intervals):
+            """Update ALL enhanced metrics displays"""
+            if not enhanced_metrics:
+                # Return default values for all outputs
+                return (
+                    "0 users", "N/A", "N/A", "N/A", "N/A",
+                    "0 devices", "0 entrances", "0 high security", "N/A",
+                    "No Data", "N/A", "N/A", "0 detected",
+                    "N/A", "N/A"
+                )
+
+            try:
+                # User Analytics
+                unique_users = f"{enhanced_metrics.get('unique_users', 0)} users"
+                avg_events_per_user = enhanced_metrics.get('avg_events_per_user', 'N/A')
+                most_active_user = enhanced_metrics.get('most_active_user', 'N/A')
+                devices_per_user = enhanced_metrics.get('avg_users_per_device', 'N/A')
+                peak_hour = enhanced_metrics.get('peak_hour', 'N/A')
+
+                # Device Analytics
+                total_devices = enhanced_metrics.get('total_devices_count', '0 devices')
+                entrance_devices = enhanced_metrics.get('entrance_devices_count', '0 entrances')
+                high_security_devices = enhanced_metrics.get('high_security_devices', '0 high security')
+                busiest_floor = enhanced_metrics.get('busiest_floor', 'N/A')
+
+                # Advanced Insights
+                traffic_pattern = enhanced_metrics.get('traffic_pattern', 'No Data')
+                security_score = enhanced_metrics.get('security_score', 'N/A')
+                efficiency_score = enhanced_metrics.get('efficiency_score', 'N/A')
+                anomaly_count = f"{enhanced_metrics.get('anomaly_count', 0)} detected"
+
+                # Additional Activity Analysis
+                avg_events_per_day = enhanced_metrics.get('avg_events_per_day', 'N/A')
+                peak_activity_day = enhanced_metrics.get('peak_activity_day', 'N/A')
+
+                return (
+                    unique_users, avg_events_per_user, most_active_user, devices_per_user, peak_hour,
+                    total_devices, entrance_devices, high_security_devices, busiest_floor,
+                    traffic_pattern, security_score, efficiency_score, anomaly_count,
+                    avg_events_per_day, peak_activity_day
+                )
+
+            except Exception as e:
+                print(f"Error updating enhanced metrics display: {e}")
+                # Return error values for all outputs
+                return (
+                    "Error", "Error", "Error", "Error", "Error",
+                    "Error", "Error", "Error", "Error",
+                    "Error", "Error", "Error", "Error",
+                    "Error", "Error"
+                )
                 
     def _register_chart_update_callbacks(self):
         """Register chart update callbacks"""
