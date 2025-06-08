@@ -37,14 +37,14 @@ class EnhancedStatsHandlers:
             [
                 Input('stats-refresh-interval', 'n_intervals'),
                 Input('refresh-stats-btn', 'n_clicks'),
+                Input('enhanced-metrics-store', 'data')
             ],
             [
                 State('processed-data-store', 'data'),
-                State('enhanced-metrics-store', 'data'),
             ],
             prevent_initial_call=True
         )
-        def update_enhanced_stats(n_intervals, refresh_clicks, processed_data, enhanced_metrics):
+        def update_enhanced_stats(n_intervals, refresh_clicks, enhanced_metrics, processed_data):
             """Update enhanced statistics display"""
             try:
                 if enhanced_metrics:
@@ -84,10 +84,13 @@ class EnhancedStatsHandlers:
                 Input('chart-security-btn', 'n_clicks'),
                 Input('chart-devices-btn', 'n_clicks'),
             ],
-            State('enhanced-stats-data-store', 'data'),
+            [
+                State('enhanced-stats-data-store', 'data'),
+                State('processed-data-store', 'data')
+            ],
             prevent_initial_call=True
         )
-        def update_main_chart(hourly_clicks, daily_clicks, security_clicks, devices_clicks, stats_data):
+        def update_main_chart(hourly_clicks, daily_clicks, security_clicks, devices_clicks, stats_data, processed_data):
             """Update main analytics chart based on button clicks"""
             from dash import ctx
             
@@ -96,15 +99,21 @@ class EnhancedStatsHandlers:
                 
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             
-            # Mock data for demonstration
+            df = None
+            if processed_data and isinstance(processed_data, dict) and processed_data.get('dataframe'):
+                try:
+                    df = pd.DataFrame(processed_data['dataframe'])
+                except Exception:
+                    df = None
+
             if button_id == 'chart-hourly-btn':
-                return self.component.create_hourly_activity_chart(None)  # Would pass real data
+                return self.component.create_hourly_activity_chart(df)
             elif button_id == 'chart-daily-btn':
-                return self.component.create_daily_trends_chart(None)
+                return self.component.create_daily_trends_chart(df)
             elif button_id == 'chart-security-btn':
-                return self.component.create_security_distribution_chart(None)
+                return self.component.create_security_distribution_chart(df)
             elif button_id == 'chart-devices-btn':
-                return self.component.create_device_usage_chart(None)
+                return self.component.create_device_usage_chart(df)
             else:
                 return self.component._create_empty_chart("Unknown chart type")
                 
