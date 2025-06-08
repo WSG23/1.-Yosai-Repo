@@ -1050,7 +1050,13 @@ try:
         html.Div(id="avg-events-per-day", children="No data"),
         html.Div(id="peak-activity-day", children="No data"),
         dcc.Store(id="enhanced-stats-data-store"),
-        html.Div(id="stats-refresh-interval", children="refresh", style={'display': 'none'})
+        dcc.Interval(
+            id="stats-refresh-interval",
+            interval=30 * 1000,  # 30 seconds
+            n_intervals=0,
+            disabled=True,
+            style={'display': 'none'}
+        )
     ], style={'position': 'absolute', 'top': '-9999px'})
 
     # Combine with existing layout
