@@ -615,7 +615,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
         # Data stores
         dcc.Store(id='uploaded-file-store'),
         dcc.Store(id='csv-headers-store', storage_type='session'),
-        dcc.Store(id='processed-data-store', storage_type='session'),
+        dcc.Store(id='processed-data-store', storage_type='memory'),
         dcc.Store(id='enhanced-metrics-store', storage_type='session'),
         dcc.Store(id='all-doors-from-csv-store', storage_type='session'),
         dcc.Store(id='column-mapping-store', storage_type='local'),
