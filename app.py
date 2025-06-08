@@ -1,6 +1,7 @@
 # app.py - COMPLETE FIXED VERSION - All helper functions included
 # ============================================================================
 # FIXED: All callback outputs now have corresponding layout elements
+# FIXED: Missing function arguments for create_main_layout
 # ============================================================================
 """
 Yōsai Enhanced Analytics Dashboard - COMPLETE FIXED VERSION
@@ -12,6 +13,7 @@ FIXES:
 - ✅ Maintained existing layout consistency
 - ✅ Preserved current design and styling
 - ✅ All helper functions included
+- ✅ FIXED: Added missing function arguments for create_main_layout
 """
 import sys
 import os
@@ -561,7 +563,8 @@ def create_fixed_layout_with_required_elements(app_instance, main_logo_path, ico
     base_layout = None
     if components_available['main_layout'] and create_main_layout:
         try:
-            base_layout = create_main_layout(app_instance)
+            # FIXED: Pass all required arguments to create_main_layout
+            base_layout = create_main_layout(app_instance, main_logo_path, icon_upload_default)
             print(">> Base main layout loaded successfully")
         except Exception as e:
             print(f"!! Error loading main layout: {e}")
@@ -757,11 +760,51 @@ print(">> COMPLETE FIXED layout created successfully with all required callback 
         Output('upload-data', 'style'),
         Output('processed-data-store', 'data'),
         Output('upload-icon', 'src'),
+        Output('stats-panels-container', 'style'),
+        Output('advanced-analytics-panels-container', 'style'),
+        Output('enhanced-stats-header', 'style'),
+        Output('advanced-view-button', 'children')
     ],
     Input('upload-data', 'contents'),
     State('upload-data', 'filename'),
+     Input('advanced-view-button', 'n_clicks'),
     prevent_initial_call=True
 )
+
+def toggle_advanced_view(n_clicks):
+    """Toggle between basic and enhanced analytics view"""
+    
+    if not n_clicks:
+        # Basic view (default)
+        return (
+            {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},  # Basic stats
+            {'display': 'none'},  # Hide advanced panels
+            {'display': 'none'},  # Hide enhanced header
+            "Advanced View"
+        )
+    # Advanced view mode
+    if n_clicks % 2 == 1:  # Odd clicks = Advanced view
+        return (
+            {'display': 'none'},  # Hide basic stats
+            {'display': 'flex', 'justifyContent': 'space-around', 'marginBottom': '30px'},  # Show advanced
+            {'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'},  # Show enhanced header
+            "Basic View"
+        )
+    else:  # Even clicks = Basic view
+        return (
+            {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},  # Basic stats
+            {'display': 'none'},  # Hide advanced panels
+            {'display': 'none'},  # Hide enhanced header
+            "Advanced View"
+        )
+# Also make sure the enhanced stats component is properly instantiated
+if components_available.get('enhanced_stats'):
+    print("✅ Enhanced stats component is available")
+    # Make sure it's properly added to the layout
+else:
+    print("❌ Enhanced stats component not available - check imports")
+    # Fallback to basic stats only
+
 def enhanced_file_upload(contents, filename):
     """Enhanced upload callback"""
     print(f">> Upload callback triggered: {filename}")
@@ -1088,6 +1131,7 @@ if __name__ == "__main__":
     print("   • All callback outputs now have corresponding layout elements")
     print("   • Maintained existing layout consistency")
     print("   • Preserved current design and styling")
+    print("   • FIXED: Added missing function arguments for create_main_layout")
     
     try:
         app.run(
