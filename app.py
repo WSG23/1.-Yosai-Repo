@@ -1118,9 +1118,9 @@ def generate_enhanced_analysis(n_clicks, file_data, processed_data, device_class
         stats_style = {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'}
 
         # ACTUALLY PROCESS THE DATA instead of using mock data
-        if processed_data and 'data' in processed_data:
+        if processed_data and 'dataframe' in processed_data:
             # Convert processed data back to DataFrame
-            df = pd.DataFrame(processed_data['data'])
+            df = pd.DataFrame(processed_data['dataframe'])
 
             # Convert timestamp column to datetime if it exists
             timestamp_col = 'Timestamp (Event Time)'
@@ -1299,8 +1299,8 @@ def update_debug_info(metrics_data, processed_data):
         metrics_keys = "Keys: None"
         calculation_status = "Advanced metrics: Not calculated"
 
-    if processed_data and 'data' in processed_data:
-        data_rows = len(processed_data['data'])
+    if processed_data and 'dataframe' in processed_data:
+        data_rows = len(processed_data['dataframe'])
         processed_info = f"Processed: {data_rows} rows available"
     else:
         processed_info = "Processed: No data"
