@@ -372,9 +372,9 @@ UPLOAD_STYLES = {
 MAPPING_STYLES = {
     'section': {
         'display': 'block',
-        'width': '70%',
-        'maxWidth': '600px',
-        'margin': '0 auto',
+        'width': UPLOAD_STYLES['base']['width'],
+        'maxWidth': UPLOAD_STYLES['base']['maxWidth'],
+        'margin': f"{SPACING['base']} auto",
         'padding': '1.2rem',
         'backgroundColor': COLORS['surface'],
         'borderRadius': BORDER_RADIUS['md'],
