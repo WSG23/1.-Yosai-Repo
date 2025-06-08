@@ -248,9 +248,9 @@ UI_COMPONENTS = {
         'accept_types': ['.csv'],
         'max_file_size': '10MB',
         'multiple_files': False,
-        'icon_size': '120px',  # NEW: Larger icon size
-        'container_width': '70%',  # NEW: Wider container
-        'border_thickness': '3px'  # NEW: Thicker border
+        'icon_size': '60px',  # Adjusted for smaller container
+        'container_width': '35%',  # Half the previous width
+        'border_thickness': '3px'
     },
     'mapping': {
         'enabled': True,
@@ -313,24 +313,25 @@ LAYOUT_CONFIG = {
 # Centralized style definitions for UI components
 UPLOAD_STYLES = {
     'icon': {
-        'width': '120px',
-        'height': '120px',
+        'width': '60px',
+        'height': '60px',
         'marginBottom': SPACING['base'],
         'opacity': '0.8',
         'transition': f'all {ANIMATIONS["normal"]}'
     },
     'content': {
         'display': 'flex',
-        'flexDirection': 'column',
+        'flexDirection': 'row',
         'alignItems': 'center',
-        'justifyContent': 'center',
+        'justifyContent': 'space-around',
         'height': '100%',
-        'padding': SPACING['base']
+        'padding': SPACING['base'],
+        'gap': SPACING['md']
     },
     'base': {
         'width': UI_COMPONENTS['upload']['container_width'],
-        'maxWidth': '600px',
-        'minHeight': '180px',
+        'maxWidth': '300px',
+        'minHeight': '90px',
         'borderRadius': BORDER_RADIUS['lg'],
         'textAlign': 'center',
         'margin': f"{SPACING['base']} auto",
