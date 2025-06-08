@@ -1056,7 +1056,6 @@ try:
         html.Div(id="anomaly-insight", children="Alerts: 0"),
         html.Div(id="events-trend-indicator", children="--"),
         html.Div(id="avg-events-per-day", children="No data"),
-        html.Div(id="peak-activity-day", children="No data"),
         dcc.Store(id="enhanced-stats-data-store"),
         dcc.Interval(
             id="stats-refresh-interval",
