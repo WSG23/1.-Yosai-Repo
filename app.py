@@ -30,6 +30,8 @@ import io
 from datetime import datetime
 import dash_cytoscape as cyto
 from datetime import datetime
+from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
+
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -61,7 +63,7 @@ print("🔍 Detecting available components...")
 
 # Enhanced stats component
 try:
-    from ui.components.enhanced_stats import (
+    from ui.components.enhanced_stats_backup import (
         create_enhanced_stats_component,
         EnhancedStatsComponent,
     )
@@ -151,8 +153,12 @@ app = dash.Dash(
     ]
 )
 
-server = app.server
-app.title = "Yōsai Enhanced Analytics Dashboard"
+def setup_enhanced_stats_callbacks(app):
+    """Setup enhanced statistics callbacks"""
+    stats_handlers = EnhancedStatsHandlers(app)
+    stats_handlers.register_callbacks()
+    server = app.server
+    app.title = "Yōsai Enhanced Analytics Dashboard"
 
 # Asset paths - FIXED: Define these before using them
 ICON_UPLOAD_DEFAULT = app.get_asset_url('upload_file_csv_icon.png')
