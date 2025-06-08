@@ -79,7 +79,7 @@ def create_main_header(main_logo_path):
     header_style.update({
         'display': 'flex',
         'alignItems': 'center',
-        'justifyContent': 'center',
+        'justifyContent': 'flex-start',
         'padding': f"{SPACING['md']} {SPACING['xl']}",
         'marginBottom': SPACING['xl'],
     })
@@ -88,9 +88,9 @@ def create_main_header(main_logo_path):
         children=[
             html.Img(src=main_logo_path, style={'height': '40px', 'marginRight': SPACING['base']}),
             html.H1(
-                "Enhanced Analytics Dashboard",
+                "Yōsai Intel Enhanced Analytics Dashboard",
                 style={
-                    'fontSize': TYPOGRAPHY['text_3xl'],
+                    'fontSize': TYPOGRAPHY['text_4xl'],
                     'margin': '0',
                     'color': COLORS['text_primary'],
                     'fontWeight': TYPOGRAPHY['font_semibold']
