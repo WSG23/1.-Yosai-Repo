@@ -1058,10 +1058,11 @@ def update_floor_display(value):
         # Basic outputs (all have corresponding elements now)
         Output('yosai-custom-header', 'style'),
         Output('stats-panels-container', 'style', allow_duplicate=True),
-        Output('total-access-events-H1', 'children'),
-        Output('event-date-range-P', 'children'),
+        Output('enhanced-total-access-events-H1', 'children'),
+        Output('enhanced-event-date-range-P', 'children'),
         Output('processing-status', 'children', allow_duplicate=True),
-        Output('enhanced-metrics-store', 'data')
+        Output('enhanced-metrics-store', 'data'),
+        Output('enhanced-stats-data-store', 'data')
     ],
     Input('confirm-and-generate-button', 'n_clicks'),
     [
@@ -1082,7 +1083,8 @@ def generate_basic_analysis(n_clicks, file_data, processed_data):
             '0',         # total events
             'No data',   # date range
             "Click generate to start analysis",  # status
-            None         # metrics store
+            None,        # metrics store
+            None
         )
     
     try:
@@ -1104,6 +1106,7 @@ def generate_basic_analysis(n_clicks, file_data, processed_data):
             f"{enhanced_metrics['total_events']:,}",
             enhanced_metrics['date_range'],
             "🎉 Basic analysis complete!",
+            enhanced_metrics,
             enhanced_metrics
         )
         
@@ -1115,6 +1118,7 @@ def generate_basic_analysis(n_clicks, file_data, processed_data):
             'Error',
             'Error',
             f"❌ Analysis Error: {str(e)}",
+            None,
             None
         )
 
