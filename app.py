@@ -1136,9 +1136,15 @@ def generate_enhanced_analysis(n_clicks, file_data, processed_data, device_class
 
             # CREATE THE ENHANCED STATS COMPONENT AND CALCULATE REAL METRICS
             if component_instances['enhanced_stats']:
-                enhanced_metrics = component_instances['enhanced_stats'].calculate_enhanced_metrics(
-                    df, device_attrs
-                )
+                stats_component = component_instances['enhanced_stats']
+                if hasattr(stats_component, 'process_enhanced_stats'):
+                    enhanced_metrics = stats_component.process_enhanced_stats(
+                        df, device_attrs
+                    )
+                else:
+                    enhanced_metrics = stats_component.calculate_enhanced_metrics(
+                        df, device_attrs
+                    )
             else:
                 # Fallback calculation if component not available
                 enhanced_metrics = calculate_basic_metrics(df)
