@@ -385,6 +385,26 @@ def _add_missing_callback_elements(base_children, existing_ids):
             
             base_children.append(element)
 
+def create_debug_panel():
+    """Create debug panel to monitor Enhanced Analytics data flow"""
+    return html.Div([
+        html.H4("DEBUG: Enhanced Analytics", style={'color': '#fff', 'margin': '0 0 10px 0'}),
+        html.P(id="debug-metrics-count", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-metrics-keys", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-processed-data", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-calculation-status", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+    ], style={
+        'position': 'fixed',
+        'top': '10px',
+        'right': '10px',
+        'backgroundColor': '#333',
+        'padding': '15px',
+        'borderRadius': '8px',
+        'zIndex': '9999',
+        'maxWidth': '300px',
+        'border': '1px solid #555'
+    })
+
 def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_default):
     """Create complete layout from scratch with all required elements"""
     
@@ -588,6 +608,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                 _create_fallback_export_section(),
                 _create_fallback_graph_container(),
                 _create_mini_graph_container(),
+                create_debug_panel(),
             ]
         ),
         
@@ -766,6 +787,7 @@ def _add_missing_elements_to_existing_layout(base_layout, main_logo_path, icon_u
             'export-section': _create_fallback_export_section(),
             'graph-output-container': _create_fallback_graph_container(),
             'mini-graph-container': _create_mini_graph_container(),
+            'debug-panel': create_debug_panel(),
             'onion-graph': None,  # Will be added to graph-output-container
             'mini-onion-graph': None,  # Will be added to mini-graph-container
         }
@@ -1245,9 +1267,45 @@ def display_node_data(data):
             details.append("📱 Access Point")
         
         return " | ".join(details)
-        
+
     except Exception as e:
         return f"Node information unavailable: {str(e)}"
+
+@app.callback(
+    [
+        Output('debug-metrics-count', 'children'),
+        Output('debug-metrics-keys', 'children'),
+        Output('debug-processed-data', 'children'),
+        Output('debug-calculation-status', 'children')
+    ],
+    [
+        Input('enhanced-metrics-store', 'data'),
+        Input('processed-data-store', 'data')
+    ],
+    prevent_initial_call=True
+)
+def update_debug_info(metrics_data, processed_data):
+    """Update debug information to track data flow"""
+
+    if metrics_data:
+        metrics_count = f"[OK] Metrics: {len(metrics_data)} items calculated"
+        keys = list(metrics_data.keys())[:6]
+        metrics_keys = f"Keys: {', '.join(keys)}..."
+        advanced_keys = ['traffic_pattern', 'security_score', 'avg_events_per_user', 'most_active_user']
+        has_advanced = any(key in metrics_data for key in advanced_keys)
+        calculation_status = f"Advanced metrics: {'YES' if has_advanced else 'MISSING'}"
+    else:
+        metrics_count = "[ERROR] Metrics: No data"
+        metrics_keys = "Keys: None"
+        calculation_status = "Advanced metrics: Not calculated"
+
+    if processed_data and 'data' in processed_data:
+        data_rows = len(processed_data['data'])
+        processed_info = f"Processed: {data_rows} rows available"
+    else:
+        processed_info = "Processed: No data"
+
+    return metrics_count, metrics_keys, processed_info, calculation_status
 
 print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
 
