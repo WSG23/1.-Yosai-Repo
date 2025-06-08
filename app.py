@@ -59,7 +59,10 @@ print("🔍 Detecting available components...")
 
 # Enhanced stats component
 try:
-    from ui.components.stats import create_enhanced_stats_component, EnhancedStatsComponent
+    from ui.components.enhanced_stats import (
+        create_enhanced_stats_component,
+        EnhancedStatsComponent,
+    )
     components_available['enhanced_stats'] = True
     component_instances['enhanced_stats'] = create_enhanced_stats_component()
     print(">> Enhanced stats component imported and instantiated")
@@ -251,6 +254,41 @@ def _create_fallback_export_section():
         ]
     )
 
+def _create_fallback_enhanced_header():
+    """Create fallback header for enhanced stats"""
+    return html.Div(
+        id='enhanced-stats-header',
+        style={'display': 'none'},
+        children=[
+            html.H3('Enhanced Stats'),
+            html.Div(
+                [
+                    html.Button('Export', id='export-stats-btn'),
+                    html.Button('Refresh', id='refresh-stats-btn'),
+                    dcc.Checklist(
+                        id='real-time-toggle',
+                        options=[{'label': 'Real-time', 'value': 'on'}],
+                        value=[],
+                        style={'display': 'inline-block', 'marginLeft': '10px'}
+                    )
+                ],
+                style={'display': 'flex', 'gap': '10px'}
+            )
+        ]
+    )
+
+def _create_fallback_advanced_panels():
+    """Create fallback advanced analytics panels container"""
+    return html.Div(
+        id='advanced-analytics-panels-container',
+        style={'display': 'none'},
+        children=[
+            html.Div('Advanced metrics will appear here', style={'flex': '1'}),
+            html.Div('Charts will appear here', style={'flex': '1'}),
+            html.Div('Additional insights', style={'flex': '1'})
+        ],
+    )
+
 def _create_fallback_graph_container():
     """Create fallback graph container"""
     graph_element = html.Div("Graph placeholder") 
@@ -306,7 +344,8 @@ def _add_missing_callback_elements(base_children, existing_ids):
         'floor-slider-value', 'manual-map-toggle', 'door-classification-table-container',
         'door-classification-table', 'floor-slider', 'interactive-setup-container',
         'mapping-ui-section', 'entrance-verification-ui-section', 'processing-status',
-        'upload-icon'
+        'upload-icon',
+        'enhanced-stats-header', 'advanced-analytics-panels-container'
     ]
     
     # Add missing elements as hidden placeholders
@@ -343,6 +382,15 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
     
     print(">> Creating complete layout from scratch with all required elements")
     
+    # Choose enhanced stats implementation if available
+    if components_available.get('enhanced_stats') and component_instances.get('enhanced_stats'):
+        enhanced_stats_layout = [component_instances['enhanced_stats'].create_enhanced_stats_container()]
+    else:
+        enhanced_stats_layout = [
+            _create_fallback_enhanced_header(),
+            _create_fallback_advanced_panels(),
+        ]
+
     return html.Div([
         # FIXED: yosai-custom-header (required by callbacks)
         html.Div(
@@ -525,8 +573,9 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
             id="tab-content",
             children=[
                 # All required elements for callbacks (initially hidden)
+                *enhanced_stats_layout,
                 _create_fallback_stats_container(),
-                _create_fallback_analytics_section(), 
+                _create_fallback_analytics_section(),
                 _create_fallback_charts_section(),
                 _create_fallback_export_section(),
                 _create_fallback_graph_container(),
@@ -701,7 +750,9 @@ def _add_missing_elements_to_existing_layout(base_layout, main_logo_path, icon_u
         
         # FIXED: Add other required elements that might be missing
         required_elements = {
+            'enhanced-stats-header': _create_fallback_enhanced_header(),
             'stats-panels-container': _create_fallback_stats_container(),
+            'advanced-analytics-panels-container': _create_fallback_advanced_panels(),
             'analytics-section': _create_fallback_analytics_section(),
             'charts-section': _create_fallback_charts_section(),
             'export-section': _create_fallback_export_section(),
@@ -759,52 +810,12 @@ print(">> COMPLETE FIXED layout created successfully with all required callback 
         Output('interactive-setup-container', 'style'),
         Output('upload-data', 'style'),
         Output('processed-data-store', 'data'),
-        Output('upload-icon', 'src'),
-        Output('stats-panels-container', 'style'),
-        Output('advanced-analytics-panels-container', 'style'),
-        Output('enhanced-stats-header', 'style'),
-        Output('advanced-view-button', 'children')
+        Output('upload-icon', 'src')
     ],
     Input('upload-data', 'contents'),
     State('upload-data', 'filename'),
-     Input('advanced-view-button', 'n_clicks'),
     prevent_initial_call=True
 )
-
-def toggle_advanced_view(n_clicks):
-    """Toggle between basic and enhanced analytics view"""
-    
-    if not n_clicks:
-        # Basic view (default)
-        return (
-            {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},  # Basic stats
-            {'display': 'none'},  # Hide advanced panels
-            {'display': 'none'},  # Hide enhanced header
-            "Advanced View"
-        )
-    # Advanced view mode
-    if n_clicks % 2 == 1:  # Odd clicks = Advanced view
-        return (
-            {'display': 'none'},  # Hide basic stats
-            {'display': 'flex', 'justifyContent': 'space-around', 'marginBottom': '30px'},  # Show advanced
-            {'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'},  # Show enhanced header
-            "Basic View"
-        )
-    else:  # Even clicks = Basic view
-        return (
-            {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},  # Basic stats
-            {'display': 'none'},  # Hide advanced panels
-            {'display': 'none'},  # Hide enhanced header
-            "Advanced View"
-        )
-# Also make sure the enhanced stats component is properly instantiated
-if components_available.get('enhanced_stats'):
-    print("✅ Enhanced stats component is available")
-    # Make sure it's properly added to the layout
-else:
-    print("❌ Enhanced stats component not available - check imports")
-    # Fallback to basic stats only
-
 def enhanced_file_upload(contents, filename):
     """Enhanced upload callback"""
     print(f">> Upload callback triggered: {filename}")
@@ -867,6 +878,43 @@ def enhanced_file_upload(contents, filename):
             f"[ERROR] Error processing {filename}: {str(e)}",
             None, {'display': 'none'}, {}, None, ICON_UPLOAD_FAIL
         )
+
+# Advanced view toggle callback
+@app.callback(
+    [
+        Output('stats-panels-container', 'style'),
+        Output('advanced-analytics-panels-container', 'style'),
+        Output('enhanced-stats-header', 'style'),
+        Output('advanced-view-button', 'children')
+    ],
+    Input('advanced-view-button', 'n_clicks'),
+    prevent_initial_call=True
+)
+def toggle_advanced_view(n_clicks):
+    """Toggle between basic and advanced analytics view"""
+
+    if not n_clicks:
+        return (
+            {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},
+            {'display': 'none'},
+            {'display': 'none'},
+            'Advanced View'
+        )
+
+    if n_clicks % 2 == 1:
+        return (
+            {'display': 'none'},
+            {'display': 'flex', 'justifyContent': 'space-around', 'marginBottom': '30px'},
+            {'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'},
+            'Basic View'
+        )
+
+    return (
+        {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'},
+        {'display': 'none'},
+        {'display': 'none'},
+        'Advanced View'
+    )
 
 # Mapping dropdowns callback (unchanged)
 @app.callback(
