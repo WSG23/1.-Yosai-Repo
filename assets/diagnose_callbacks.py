@@ -90,7 +90,10 @@ def suggest_fixes(findings):
     callback_files = []
     for file_path, matches in findings.items():
         for match in matches:
-            if '@app.callback' in match['content'] or '@.*\.callback' in match['content']:
+            if (
+                '@app.callback' in match['content']
+                or re.search(r'@.*\.callback', match['content'])
+            ):
                 callback_files.append(file_path)
     
     callback_files = list(set(callback_files))  # Remove duplicates
