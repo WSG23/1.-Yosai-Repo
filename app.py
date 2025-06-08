@@ -333,6 +333,26 @@ def _create_mini_graph_container():
         children=[mini_graph]
     )
 
+def create_debug_panel():
+    """Create debug panel to monitor Enhanced Analytics data flow"""
+    return html.Div([
+        html.H4("\ud83d\udd0d Enhanced Analytics Debug", style={'color': '#fff', 'margin': '0 0 10px 0'}),
+        html.P(id="debug-metrics-count", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-metrics-keys", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-processed-data", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+        html.P(id="debug-calculation-status", style={'color': '#ccc', 'fontSize': '0.8rem', 'margin': '2px 0'}),
+    ], style={
+        'position': 'fixed',
+        'top': '10px',
+        'right': '10px',
+        'backgroundColor': '#333',
+        'padding': '15px',
+        'borderRadius': '8px',
+        'zIndex': '9999',
+        'maxWidth': '300px',
+        'border': '1px solid #555'
+    })
+
 def _add_missing_callback_elements(base_children, existing_ids):
     """Add any remaining missing callback target elements"""
     
@@ -590,7 +610,9 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                 _create_mini_graph_container(),
             ]
         ),
-        
+
+        create_debug_panel(),
+
         # Data stores
         dcc.Store(id='uploaded-file-store'),
         dcc.Store(id='csv-headers-store', storage_type='session'),
@@ -780,12 +802,15 @@ def _add_missing_elements_to_existing_layout(base_layout, main_logo_path, icon_u
             if element_id not in existing_ids and element_creator:
                 print(f">> Adding missing element: {element_id}")
                 base_children.append(element_creator)
-        
+
         # FIXED: Ensure all required callback target elements exist
         _add_missing_callback_elements(base_children, existing_ids)
-        
+
+        # Add debug panel to layout
+        base_children.append(create_debug_panel())
+
         print(">> Successfully added all missing elements to existing layout")
-        
+
         return html.Div(
             base_children,
             style=base_layout.style if hasattr(base_layout, 'style') else {
@@ -1248,6 +1273,49 @@ def display_node_data(data):
         
     except Exception as e:
         return f"Node information unavailable: {str(e)}"
+
+@app.callback(
+    [
+        Output('debug-metrics-count', 'children'),
+        Output('debug-metrics-keys', 'children'),
+        Output('debug-processed-data', 'children'),
+        Output('debug-calculation-status', 'children')
+    ],
+    [
+        Input('enhanced-metrics-store', 'data'),
+        Input('processed-data-store', 'data')
+    ],
+    prevent_initial_call=True
+)
+def update_debug_info(metrics_data, processed_data):
+    """Update debug information to track data flow"""
+
+    # Check metrics data
+    if metrics_data:
+        metrics_count = f"✅ Metrics: {len(metrics_data)} items calculated"
+
+        # Show first few keys to verify content
+        keys = list(metrics_data.keys())[:6]
+        metrics_keys = f"📊 Keys: {', '.join(keys)}..."
+
+        # Check if we have advanced metrics (not just basic ones)
+        advanced_keys = ['traffic_pattern', 'security_score', 'avg_events_per_user', 'most_active_user']
+        has_advanced = any(key in metrics_data for key in advanced_keys)
+        calculation_status = f"🎯 Advanced metrics: {'✅ YES' if has_advanced else '❌ MISSING'}"
+
+    else:
+        metrics_count = "❌ Metrics: No data"
+        metrics_keys = "📊 Keys: None"
+        calculation_status = "🎯 Advanced metrics: Not calculated"
+
+    # Check processed data
+    if processed_data and 'data' in processed_data:
+        data_rows = len(processed_data['data'])
+        processed_info = f"📁 Processed: {data_rows} rows available"
+    else:
+        processed_info = "📁 Processed: No data"
+
+    return metrics_count, metrics_keys, processed_info, calculation_status
 
 print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
 
