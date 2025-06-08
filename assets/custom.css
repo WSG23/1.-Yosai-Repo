@@ -366,6 +366,38 @@ body {
   color: var(--color-text-primary);
 }
 
+/* ---------------------------------------------------------------------------
+   GLOBAL DROPDOWN STYLES
+   Ensures dropdown text is visible against the background. This applies to all
+   dcc.Dropdown components and fixes issues where text appeared white on a white
+   background. Individual dropdowns can still override these rules.
+   --------------------------------------------------------------------------- */
+.Select-control {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.Select-menu-outer {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+.Select-option {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.Select-option:hover {
+  background-color: var(--color-accent) !important;
+  color: var(--color-text-on-accent) !important;
+}
+
+.Select-placeholder,
+.Select-value-label {
+  color: var(--color-text-tertiary) !important;
+}
+
 .mapping-dropdown .Select-control {
   background-color: var(--color-background) !important;
   border-color: var(--color-border) !important;
