@@ -393,11 +393,13 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
     # Choose enhanced stats implementation if available
     if components_available.get('enhanced_stats') and component_instances.get('enhanced_stats'):
         enhanced_stats_layout = [component_instances['enhanced_stats'].create_enhanced_stats_container()]
+        include_fallback_stats = False
     else:
         enhanced_stats_layout = [
             _create_fallback_enhanced_header(),
             _create_fallback_advanced_panels(),
         ]
+        include_fallback_stats = True
 
     return html.Div([
         # FIXED: yosai-custom-header (required by callbacks)
@@ -582,7 +584,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
             children=[
                 # All required elements for callbacks (initially hidden)
                 *enhanced_stats_layout,
-                _create_fallback_stats_container(),
+                *([_create_fallback_stats_container()] if include_fallback_stats else []),
                 _create_fallback_analytics_section(),
                 _create_fallback_charts_section(),
                 _create_fallback_export_section(),

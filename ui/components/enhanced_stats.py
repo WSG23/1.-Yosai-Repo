@@ -116,7 +116,9 @@ class EnhancedStatsComponent:
                     n_intervals=0,
                     disabled=True,  # Enable when real-time mode is active
                 ),
-            ]
+            ],
+            id="stats-panels-container",
+            style={"display": "none"},
         )
 
     def create_custom_header(self):
