@@ -1152,7 +1152,7 @@ def enhanced_file_upload(contents, filename):
 # Advanced view toggle callback
 @app.callback(
     [
-        Output("stats-panels-container", "style"),
+        Output("stats-panels-container", "style", allow_duplicate=True),
         Output("advanced-analytics-panels-container", "style"),
         Output("enhanced-stats-header", "style"),
         Output("advanced-view-button", "children"),
@@ -1359,11 +1359,11 @@ def update_floor_display(value):
         # Basic outputs (all have corresponding elements now)
         Output("yosai-custom-header", "style"),
         Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("enhanced-total-access-events-H1", "children"),
-        Output("enhanced-event-date-range-P", "children"),
+        Output("enhanced-total-access-events-H1", "children", allow_duplicate=True),
+        Output("enhanced-event-date-range-P", "children", allow_duplicate=True),
         Output("processing-status", "children", allow_duplicate=True),
         Output("enhanced-metrics-store", "data"),
-        Output("enhanced-stats-data-store", "data"),
+        Output("enhanced-stats-data-store", "data", allow_duplicate=True),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
     [
