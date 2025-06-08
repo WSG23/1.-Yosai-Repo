@@ -87,7 +87,7 @@ class GraphComponent:
         return html.Pre(
             id='tap-node-data-output',
             style=tap_node_data_centered_style,
-            children="Upload CSV, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
+            children="Upload a file, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
         )
     
     def create_graph_controls(self):
@@ -273,7 +273,7 @@ class GraphComponent:
     def format_node_details(self, node_data):
         """Formats node data for display"""
         if not node_data or node_data.get('is_layer_parent'):
-            return "Upload CSV, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
+            return "Upload a file, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
         
         details = [f"Tapped: {node_data.get('label', node_data.get('id'))}"]
         

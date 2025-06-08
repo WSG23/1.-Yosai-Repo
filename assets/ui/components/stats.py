@@ -258,7 +258,7 @@ class EnhancedStatsComponent:
                     "📊 Export Stats CSV",
                     id='export-stats-csv',
                     className='btn-secondary',
-                    style=self.get_export_button_style()
+                    style={**self.get_export_button_style(), 'padding': '4px 8px', 'fontSize': '0.75rem'}
                 ),
                 html.Button(
                     "📈 Download Charts",

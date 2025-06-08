@@ -127,7 +127,7 @@ class ClassificationHandlers:
             if not all_doors_from_store_data:
                 logger.info("DEBUG: No doors available for classification table yet.")
                 return [html.P(
-                    "Upload and map CSV headers first to see door classification options.",
+                    "Upload and map file headers first to see door classification options.",
                     style={'textAlign': 'center', 'color': COLORS['text_tertiary'], 'padding': '20px'}
                 )]
                 

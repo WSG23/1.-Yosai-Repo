@@ -394,7 +394,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                             id="upload-data",
                             children=[
                                 html.Img(id="upload-icon", src=icon_upload_default),
-                                html.P("Drop your CSV file here or click to browse")
+                                html.P("Drop your CSV or JSON file here or click to browse")
                             ],
                             className="upload-area"
                         )
@@ -426,7 +426,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
         html.Div(
             id="processing-status",
             className="status-message",
-            children="Upload a CSV file to begin analysis"
+            children="Upload a CSV or JSON file to begin analysis"
         ),
         
         # Interactive setup container
@@ -439,13 +439,13 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                     id="mapping-ui-section",
                     style={'display': 'none'},
                     children=[
-                        html.H4("Step 1: Map CSV Headers", style={
+                        html.H4("Step 1: Map File Headers", style={
                             'color': COLORS['text_primary'], 
                             'textAlign': 'center', 
                             'marginBottom': '20px'
                         }),
                         html.P([
-                            "Map your CSV columns to the required fields. ",
+                            "Map your file columns to the required fields. ",
                             html.Strong("All four fields are required", style={'color': COLORS['accent']}),
                             " for analysis."
                         ], style={
@@ -647,13 +647,13 @@ def _add_missing_elements_to_existing_layout(base_layout, main_logo_path, icon_u
                         print(">> Adding missing dropdown-mapping-area to mapping-ui-section")
                         # Add the missing dropdown-mapping-area
                         section_children.extend([
-                            html.H4("Step 1: Map CSV Headers", style={
+                            html.H4("Step 1: Map File Headers", style={
                                 'color': COLORS['text_primary'], 
                                 'textAlign': 'center', 
                                 'marginBottom': '20px'
                             }),
                             html.P([
-                                "Map your CSV columns to the required fields. ",
+                            "Map your file columns to the required fields. ",
                                 html.Strong("All four fields are required", style={'color': COLORS['accent']}),
                                 " for analysis."
                             ], style={
@@ -1055,7 +1055,7 @@ def handle_export_actions(csv_clicks, png_clicks, pdf_clicks, refresh_clicks):
 def display_node_data(data):
     """Display node information when tapped"""
     if not data:
-        return "Upload CSV and generate analysis. Tap any node for details."
+        return "Upload a file and generate analysis. Tap any node for details."
     
     try:
         node_name = data.get('label', data.get('id', 'Unknown'))

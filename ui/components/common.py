@@ -622,7 +622,7 @@ def show_toast(message, type="info"):
 
 def create_workflow_stepper(current_step=1):
     """Create stepper for the main workflow"""
-    steps = ["Upload CSV", "Map Columns", "Classify Doors", "Generate Model"]
+    steps = ["Upload File", "Map Columns", "Classify Doors", "Generate Model"]
     return StepperComponent.create_stepper(steps, current_step)
 
 def create_no_data_state():
@@ -630,8 +630,8 @@ def create_no_data_state():
     return EmptyStateComponent.create_empty_state(
         "📊",
         "No Data Available",
-        "Upload a CSV file to get started with your security analysis.",
-        "Upload CSV File"
+        "Upload a CSV or JSON file to get started with your security analysis.",
+        "Upload Data File"
     )
 
 def create_loading_state():
