@@ -1052,7 +1052,7 @@ def update_floor_display(value):
     floors = int(value)
     return f"{floors} floor{'s' if floors != 1 else ''}"
 
-# Main analysis callback - TRUNCATED VERSION (same as before but all outputs have elements)
+# Main analysis callback using real processed data
 @app.callback(
     [
         # Basic outputs (all have corresponding elements now)
@@ -1068,15 +1068,16 @@ def update_floor_display(value):
     [
         State('uploaded-file-store', 'data'),
         State('processed-data-store', 'data'),
+        State('manual-door-classifications-store', 'data'),
     ],
     prevent_initial_call=True
 )
-def generate_basic_analysis(n_clicks, file_data, processed_data):
-    """Generate basic analysis - simplified version"""
+def generate_enhanced_analysis(n_clicks, file_data, processed_data, device_classifications):
+    """Generate REAL enhanced analysis with actual data processing"""
     if not n_clicks or not file_data:
         hide_style = {'display': 'none'}
         show_style = {'display': 'block'}
-        
+
         return (
             show_style,  # yosai-custom-header
             hide_style,  # stats-panels-container
@@ -1086,41 +1087,109 @@ def generate_basic_analysis(n_clicks, file_data, processed_data):
             None,        # metrics store
             None
         )
-    
+
     try:
-        print("🎉 Generating basic analysis...")
-        
+        print("🎉 Generating REAL enhanced analysis...")
+
         # Show header and stats
         show_style = {'display': 'block'}
         stats_style = {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'}
-        
-        # Basic mock data
-        enhanced_metrics = {
-            'total_events': 15847,
-            'date_range': 'Jan 1 - Dec 31, 2024'
-        }
-        
+
+        # ACTUALLY PROCESS THE DATA instead of using mock data
+        if processed_data and 'data' in processed_data:
+            # Convert processed data back to DataFrame
+            df = pd.DataFrame(processed_data['data'])
+
+            # Convert timestamp column to datetime if it exists
+            timestamp_col = 'Timestamp (Event Time)'
+            if timestamp_col in df.columns:
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col])
+
+            # Prepare device attributes DataFrame if available
+            device_attrs = None
+            if device_classifications and isinstance(device_classifications, dict):
+                device_attrs = pd.DataFrame.from_dict(device_classifications, orient='index')
+                device_attrs.reset_index(inplace=True)
+                device_attrs.rename(columns={'index': 'device_id'}, inplace=True)
+
+            # CREATE THE ENHANCED STATS COMPONENT AND CALCULATE REAL METRICS
+            if component_instances['enhanced_stats']:
+                enhanced_metrics = component_instances['enhanced_stats'].calculate_enhanced_metrics(
+                    df, device_attrs
+                )
+            else:
+                # Fallback calculation if component not available
+                enhanced_metrics = calculate_basic_metrics(df)
+
+            print(f"✅ Calculated enhanced metrics: {len(enhanced_metrics)} items")
+            print(f"📊 Sample metrics: {list(enhanced_metrics.keys())[:5]}")
+
+        else:
+            print("⚠️ No processed data available, using defaults")
+            enhanced_metrics = {
+                'total_events': 0,
+                'date_range': 'No data',
+                'unique_users': 0,
+                'unique_devices': 0,
+                'avg_events_per_day': 'N/A',
+                'peak_hour': 'N/A',
+                'peak_day': 'N/A',
+                'most_active_user': 'N/A'
+            }
+
         return (
-            show_style,
-            stats_style,
-            f"{enhanced_metrics['total_events']:,}",
-            enhanced_metrics['date_range'],
-            "🎉 Basic analysis complete!",
-            enhanced_metrics,
-            enhanced_metrics
+            show_style,  # header
+            stats_style,  # stats container
+            f"{enhanced_metrics.get('total_events', 0):,}",  # total events
+            enhanced_metrics.get('date_range', 'No data'),  # date range
+            "🎉 Enhanced analysis complete! All metrics calculated.",  # status
+            enhanced_metrics,  # metrics store - REAL DATA
+            enhanced_metrics   # stats data store - REAL DATA
         )
-        
+
     except Exception as e:
-        print(f"❌ Error in analysis: {e}")
+        print(f"❌ Error in enhanced analysis: {e}")
+        import traceback
+        traceback.print_exc()
+
         return (
-            {'display': 'block'},
-            {'display': 'none'},
-            'Error',
-            'Error',
-            f"❌ Analysis Error: {str(e)}",
-            None,
-            None
+            {'display': 'block'},  # header
+            {'display': 'none'},   # stats container
+            'Error',              # total events
+            'Error loading data', # date range
+            f"❌ Error: {str(e)}", # status
+            None,                 # metrics store
+            None                  # stats data store
         )
+
+def calculate_basic_metrics(df):
+    """Fallback function to calculate basic metrics if enhanced component fails"""
+    if df is None or df.empty:
+        return {
+            'total_events': 0,
+            'date_range': 'No data',
+            'unique_users': 0,
+            'unique_devices': 0
+        }
+
+    timestamp_col = 'Timestamp (Event Time)'
+    user_col = 'UserID (Person Identifier)'
+    door_col = 'DoorID (Device Name)'
+
+    metrics = {
+        'total_events': len(df),
+        'unique_users': df[user_col].nunique() if user_col in df.columns else 0,
+        'unique_devices': df[door_col].nunique() if door_col in df.columns else 0,
+    }
+
+    if timestamp_col in df.columns:
+        min_date = df[timestamp_col].min()
+        max_date = df[timestamp_col].max()
+        metrics['date_range'] = f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
+    else:
+        metrics['date_range'] = 'No date data'
+
+    return metrics
 
 # Export callback
 @app.callback(
