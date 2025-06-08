@@ -63,7 +63,7 @@ print("🔍 Detecting available components...")
 
 # Enhanced stats component
 try:
-    from ui.components.enhanced_stats_backup import (
+    from ui.components.enhanced_stats import (
         create_enhanced_stats_component,
         EnhancedStatsComponent,
     )
