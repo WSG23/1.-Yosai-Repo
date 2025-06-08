@@ -28,12 +28,12 @@ class EnhancedStatsHandlers:
         """Register main stats update callback"""
         @self.app.callback(
             [
-                Output('enhanced-total-access-events-H1', 'children'),
-                Output('enhanced-event-date-range-P', 'children'),
+                Output('enhanced-total-access-events-H1', 'children', allow_duplicate=True),
+                Output('enhanced-event-date-range-P', 'children', allow_duplicate=True),
                 Output('events-trend-indicator', 'children'),
                 Output('events-trend-indicator', 'style'),
-                Output('avg-events-per-day', 'children'),
-                Output('enhanced-stats-data-store', 'data'),
+                Output('avg-events-per-day', 'children', allow_duplicate=True),
+                Output('enhanced-stats-data-store', 'data', allow_duplicate=True),
             ],
             [
                 Input('stats-refresh-interval', 'n_intervals'),
@@ -99,7 +99,7 @@ class EnhancedStatsHandlers:
                 Output('anomaly-insight', 'children'),
 
                 # Additional Activity Analysis
-                Output('avg-events-per-day', 'children'),
+                Output('avg-events-per-day', 'children', allow_duplicate=True),
                 Output('peak-activity-day', 'children'),
             ],
             [
