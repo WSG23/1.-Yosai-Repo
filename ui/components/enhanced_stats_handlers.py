@@ -87,16 +87,16 @@ class EnhancedStatsHandlers:
                 Output('stats-peak-hour', 'children'),
 
                 # Device Analytics outputs
-                Output('device-total-count', 'children'),
-                Output('device-entrance-count', 'children'),
-                Output('device-high-security-count', 'children'),
-                Output('device-busiest-floor', 'children'),
+                Output('total-devices-count', 'children'),
+                Output('entrance-devices-count', 'children'),
+                Output('high-security-devices', 'children'),
+                Output('busiest-floor', 'children'),
 
                 # Advanced Insights outputs
-                Output('insight-traffic-pattern', 'children'),
-                Output('insight-security-score', 'children'),
-                Output('insight-efficiency-score', 'children'),
-                Output('insight-anomaly-count', 'children'),
+                Output('traffic-pattern-insight', 'children'),
+                Output('security-score-insight', 'children'),
+                Output('efficiency-insight', 'children'),
+                Output('anomaly-insight', 'children'),
 
                 # Additional Activity Analysis
                 Output('avg-events-per-day', 'children'),
