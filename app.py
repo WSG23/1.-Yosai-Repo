@@ -412,6 +412,7 @@ def _add_missing_callback_elements(base_children, existing_ids):
         "upload-icon",
         "enhanced-stats-header",
         "advanced-analytics-panels-container",
+        "stats-refresh-interval",
     ]
 
     # Add missing elements as hidden placeholders
@@ -439,6 +440,13 @@ def _add_missing_callback_elements(base_children, existing_ids):
             elif element_id == "upload-icon":
                 element = html.Img(
                     id=element_id, src=ICON_UPLOAD_DEFAULT, style={"display": "none"}
+                )
+            elif element_id == "stats-refresh-interval":
+                element = dcc.Interval(
+                    id=element_id,
+                    interval=30 * 1000,
+                    n_intervals=0,
+                    disabled=True,
                 )
             else:
                 element = html.Div(id=element_id, style={"display": "none"})
