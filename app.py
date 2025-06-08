@@ -1002,15 +1002,17 @@ print(
 # QUICK FIX FOR MISSING STATISTICS - ADD THIS RIGHT AFTER app.layout = ...
 # ============================================================================
 
-print("\ud83d\udd27 Applying quick fix for missing statistics...")
+print("Applying quick fix for missing statistics...")
+
 
 # 1. REGISTER THE MISSING CALLBACKS
 try:
     stats_handlers = EnhancedStatsHandlers(app)
     stats_handlers.register_callbacks()
-    print("\u2705 Enhanced Stats Handlers registered")
+    print("Enhanced Stats Handlers registered")
 except Exception as e:
-    print(f"\u274c Could not register handlers: {e}")
+    print(f"Could not register handlers: {e}")
+
 
 # 2. ADD MISSING ELEMENTS TO EXISTING LAYOUT
 try:
@@ -1043,12 +1045,12 @@ try:
         missing_stats_elements
     ])
 
-    print("\u2705 Missing elements added to layout")
+    print("Missing elements added to layout")
 
 except Exception as e:
-    print(f"\u274c Could not add missing elements: {e}")
+    print(f"Could not add missing elements: {e}")
 
-print("\ud83c\udf89 Quick fix applied - restart the app to see statistics!")
+print("Quick fix applied - restart the app to see statistics!")
 
 # ============================================================================
 # EXISTING CALLBACKS - Now all outputs have corresponding layout elements
