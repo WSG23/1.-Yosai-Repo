@@ -5,8 +5,10 @@ import os
 import logging
 from waitress import serve
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add repository root to path so we load real modules, not the asset copies
+current_dir = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.abspath(os.path.join(current_dir, os.pardir))
+sys.path.insert(0, repo_root)
 
 import dash_bootstrap_components as dbc
 
