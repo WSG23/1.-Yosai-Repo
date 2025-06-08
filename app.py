@@ -1118,9 +1118,9 @@ def generate_enhanced_analysis(n_clicks, file_data, processed_data, device_class
         stats_style = {'display': 'flex', 'gap': '20px', 'marginBottom': '30px'}
 
         # ACTUALLY PROCESS THE DATA instead of using mock data
-        if processed_data and 'data' in processed_data:
+        if processed_data and 'dataframe' in processed_data:
             # Convert processed data back to DataFrame
-            df = pd.DataFrame(processed_data['data'])
+            df = pd.DataFrame(processed_data['dataframe'])
 
             # Convert timestamp column to datetime if it exists
             timestamp_col = 'Timestamp (Event Time)'
@@ -1136,9 +1136,15 @@ def generate_enhanced_analysis(n_clicks, file_data, processed_data, device_class
 
             # CREATE THE ENHANCED STATS COMPONENT AND CALCULATE REAL METRICS
             if component_instances['enhanced_stats']:
-                enhanced_metrics = component_instances['enhanced_stats'].calculate_enhanced_metrics(
-                    df, device_attrs
-                )
+                stats_component = component_instances['enhanced_stats']
+                if hasattr(stats_component, 'process_enhanced_stats'):
+                    enhanced_metrics = stats_component.process_enhanced_stats(
+                        df, device_attrs
+                    )
+                else:
+                    enhanced_metrics = stats_component.calculate_enhanced_metrics(
+                        df, device_attrs
+                    )
             else:
                 # Fallback calculation if component not available
                 enhanced_metrics = calculate_basic_metrics(df)
@@ -1299,8 +1305,8 @@ def update_debug_info(metrics_data, processed_data):
         metrics_keys = "Keys: None"
         calculation_status = "Advanced metrics: Not calculated"
 
-    if processed_data and 'data' in processed_data:
-        data_rows = len(processed_data['data'])
+    if processed_data and 'dataframe' in processed_data:
+        data_rows = len(processed_data['dataframe'])
         processed_info = f"Processed: {data_rows} rows available"
     else:
         processed_info = "Processed: No data"
