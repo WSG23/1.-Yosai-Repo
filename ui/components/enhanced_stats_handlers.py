@@ -100,7 +100,7 @@ class EnhancedStatsHandlers:
 
                 # Additional Activity Analysis
                 Output('avg-events-per-day', 'children', allow_duplicate=True),
-                Output('peak-activity-day', 'children'),
+                Output('peak-day-display', 'children'),
             ],
             [
                 Input('enhanced-metrics-store', 'data'),
