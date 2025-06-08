@@ -1004,6 +1004,7 @@ print(
 
 print("Applying quick fix for missing statistics...")
 
+
 # 1. REGISTER THE MISSING CALLBACKS
 try:
     stats_handlers = EnhancedStatsHandlers(app)
@@ -1011,6 +1012,7 @@ try:
     print("Enhanced Stats Handlers registered")
 except Exception as e:
     print(f"Could not register handlers: {e}")
+
 
 # 2. ADD MISSING ELEMENTS TO EXISTING LAYOUT
 try:
