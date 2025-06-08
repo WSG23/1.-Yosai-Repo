@@ -999,6 +999,58 @@ print(
 )
 
 # ============================================================================
+# QUICK FIX FOR MISSING STATISTICS - ADD THIS RIGHT AFTER app.layout = ...
+# ============================================================================
+
+print("\ud83d\udd27 Applying quick fix for missing statistics...")
+
+# 1. REGISTER THE MISSING CALLBACKS
+try:
+    stats_handlers = EnhancedStatsHandlers(app)
+    stats_handlers.register_callbacks()
+    print("\u2705 Enhanced Stats Handlers registered")
+except Exception as e:
+    print(f"\u274c Could not register handlers: {e}")
+
+# 2. ADD MISSING ELEMENTS TO EXISTING LAYOUT
+try:
+    current_layout = app.layout
+
+    missing_stats_elements = html.Div([
+        html.Div(id="stats-unique-users", children="0 users"),
+        html.Div(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
+        html.Div(id="stats-most-active-user", children="No data"),
+        html.Div(id="stats-devices-per-user", children="Avg: 0 users/device"),
+        html.Div(id="stats-peak-hour", children="Peak: N/A"),
+        html.Div(id="total-devices-count", children="0 devices"),
+        html.Div(id="entrance-devices-count", children="0 entrances"),
+        html.Div(id="high-security-devices", children="0 high security"),
+        html.Div(id="busiest-floor", children="Floor: N/A"),
+        html.Div(id="traffic-pattern-insight", children="Pattern: N/A"),
+        html.Div(id="security-score-insight", children="Score: N/A"),
+        html.Div(id="efficiency-insight", children="Ratio: N/A"),
+        html.Div(id="anomaly-insight", children="Alerts: 0"),
+        html.Div(id="events-trend-indicator", children="--"),
+        html.Div(id="avg-events-per-day", children="No data"),
+        html.Div(id="peak-activity-day", children="No data"),
+        dcc.Store(id="enhanced-stats-data-store"),
+        html.Div(id="stats-refresh-interval", children="refresh", style={'display': 'none'})
+    ], style={'position': 'absolute', 'top': '-9999px'})
+
+    # Combine with existing layout
+    app.layout = html.Div([
+        current_layout,
+        missing_stats_elements
+    ])
+
+    print("\u2705 Missing elements added to layout")
+
+except Exception as e:
+    print(f"\u274c Could not add missing elements: {e}")
+
+print("\ud83c\udf89 Quick fix applied - restart the app to see statistics!")
+
+# ============================================================================
 # EXISTING CALLBACKS - Now all outputs have corresponding layout elements
 # ============================================================================
 
