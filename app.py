@@ -1005,13 +1005,27 @@ print(
 print("Applying quick fix for missing statistics...")
 
 
+# Ensure callbacks register only once even if app is reloaded
+CALLBACKS_REGISTERED = False
+
+
+def register_enhanced_callbacks_once(app):
+    """Register enhanced callbacks only once to avoid duplicates."""
+    global CALLBACKS_REGISTERED
+    if CALLBACKS_REGISTERED:
+        print("Callbacks already registered - skipping")
+        return
+    try:
+        stats_handlers = EnhancedStatsHandlers(app)
+        stats_handlers.register_callbacks()
+        CALLBACKS_REGISTERED = True
+        print("Enhanced Stats Handlers registered")
+    except Exception as e:
+        print(f"Could not register handlers: {e}")
+
+
 # 1. REGISTER THE MISSING CALLBACKS
-try:
-    stats_handlers = EnhancedStatsHandlers(app)
-    stats_handlers.register_callbacks()
-    print("Enhanced Stats Handlers registered")
-except Exception as e:
-    print(f"Could not register handlers: {e}")
+register_enhanced_callbacks_once(app)
 
 
 # 2. ADD MISSING ELEMENTS TO EXISTING LAYOUT
