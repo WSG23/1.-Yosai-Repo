@@ -1026,3 +1026,10 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ---- Global fail-safe against accidental page-wide scaling ---- */
+html, body {
+  font-size: 16px;           /* sets a sane base */
+  zoom: 1 !important;        /* neutralises any rogue zoom */
+  transform: none !important;
+}
