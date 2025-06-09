@@ -994,6 +994,30 @@ def _add_missing_elements_to_existing_layout(
 app.layout = create_fixed_layout_with_required_elements(
     app, MAIN_LOGO_PATH, ICON_UPLOAD_DEFAULT
 )
+
+# Save the current layout
+current_layout = create_fixed_layout_with_required_elements(
+    app, MAIN_LOGO_PATH, ICON_UPLOAD_DEFAULT
+)
+
+# Add required data stores
+app.layout = html.Div([
+    # Required data stores
+    dcc.Store(id='uploaded-file-store'),
+    dcc.Store(id='csv-headers-store'),
+    dcc.Store(id='column-mapping-store', storage_type='local'),
+    dcc.Store(id='all-doors-from-csv-store'),
+    dcc.Store(id='processed-data-store'),
+    dcc.Store(id='device-attrs-store'),
+    dcc.Store(id='manual-door-classifications-store', storage_type='local'),
+    dcc.Store(id='num-floors-store', data=1),
+    dcc.Store(id='stats-data-store'),
+    dcc.Store(id='enhanced-stats-data-store'),
+    dcc.Store(id='chart-data-store'),
+    
+    # Your existing layout
+    current_layout
+])
 print(
     ">> COMPLETE FIXED layout created successfully with all required callback elements"
 )
