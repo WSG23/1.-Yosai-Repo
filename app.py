@@ -27,6 +27,7 @@ import traceback
 import pandas as pd
 import base64
 import io
+import numpy as np
 from datetime import datetime
 import dash_cytoscape as cyto
 from datetime import datetime
@@ -360,96 +361,47 @@ def _create_mini_graph_container():
 
 
 def _add_missing_callback_elements(base_children, existing_ids):
-    """Add any remaining missing callback target elements"""
-
-    # List of all callback output IDs that must exist
-    required_callback_ids = [
-        "total-access-events-H1",
-        "event-date-range-P",
-        "most-active-devices-table-body",
-        "stats-unique-users",
-        "stats-avg-events-per-user",
-        "stats-most-active-user",
-        "stats-devices-per-user",
-        "stats-peak-hour",
-        "total-devices-count",
-        "entrance-devices-count",
-        "high-security-devices",
-        "traffic-pattern-insight",
-        "security-score-insight",
-        "efficiency-insight",
-        "anomaly-insight",
-        "peak-hour-display",
-        "peak-day-display",
-        "busiest-floor",
-        "entry-exit-ratio",
-        "weekend-vs-weekday",
-        "security-level-breakdown",
-        "compliance-score",
-        "anomaly-alerts",
-        "main-analytics-chart",
-        "security-pie-chart",
-        "heatmap-chart",
-        "tap-node-data-output",
-        "chart-type-selector",
-        "export-stats-csv",
-        "export-charts-png",
-        "generate-pdf-report",
-        "refresh-analytics",
-        "download-stats-csv",
-        "download-charts",
-        "download-report",
-        "export-status",
-        "floor-slider-value",
-        "manual-map-toggle",
-        "door-classification-table-container",
-        "door-classification-table",
-        "floor-slider",
-        "interactive-setup-container",
-        "mapping-ui-section",
-        "entrance-verification-ui-section",
-        "processing-status",
-        "upload-icon",
-        "enhanced-stats-header",
-        "advanced-analytics-panels-container",
-        "stats-refresh-interval",
+    """Add missing callback elements as hidden placeholders"""
+    callback_targets = [
+        'stats-unique-users', 'stats-avg-events-per-user', 'stats-most-active-user',
+        'stats-devices-per-user', 'stats-peak-hour', 'total-devices-count',
+        'entrance-devices-count', 'high-security-devices', 'traffic-pattern-insight',
+        'security-score-insight', 'efficiency-insight', 'anomaly-insight',
+        'peak-hour-display', 'peak-day-display', 'busiest-floor',
+        'entry-exit-ratio', 'weekend-vs-weekday', 'security-level-breakdown',
+        'compliance-score', 'anomaly-alerts', 'main-analytics-chart',
+        'security-pie-chart', 'heatmap-chart', 'chart-type-selector',
+        'export-stats-csv', 'export-charts-png', 'generate-pdf-report',
+        'refresh-analytics', 'download-stats-csv', 'download-charts',
+        'download-report', 'export-status', 'floor-slider-value',
+        'stats-refresh-interval'
     ]
-
-    # Add missing elements as hidden placeholders
-    for element_id in required_callback_ids:
+    
+    for element_id in callback_targets:
         if element_id not in existing_ids:
             print(f">> Adding hidden placeholder for callback target: {element_id}")
-
-            # Create appropriate element type based on ID
-            if "chart" in element_id:
-                element = dcc.Graph(id=element_id, style={"display": "none"})
-            elif "download" in element_id:
-                element = dcc.Download(id=element_id)
-            elif "selector" in element_id or "toggle" in element_id:
-                element = dcc.Dropdown(id=element_id, style={"display": "none"})
-            elif "slider" in element_id:
-                element = dcc.Slider(id=element_id, style={"display": "none"})
-            elif "button" in element_id:
-                element = html.Button(id=element_id, style={"display": "none"})
-            elif "container" in element_id or "section" in element_id:
-                element = html.Div(id=element_id, style={"display": "none"})
-            elif "table" in element_id:
-                element = html.Div(id=element_id, style={"display": "none"})
-            elif element_id == "processing-status":
-                element = html.Div(id=element_id, children="Ready")
-            elif element_id == "upload-icon":
-                element = html.Img(
-                    id=element_id, src=ICON_UPLOAD_DEFAULT, style={"display": "none"}
-                )
-            elif element_id == "stats-refresh-interval":
-                element = dcc.Interval(
-                    id=element_id,
-                    interval=30 * 1000,
-                    n_intervals=0,
-                    disabled=True,
-                )
-            else:
-                element = html.Div(id=element_id, style={"display": "none"})
+            
+            # Special handling for components that don't support style
+        if element_id == 'floor-slider-value':
+            element = html.Div(id=element_id, style={"display": "none"})  # Use Div instead
+        elif element_id == 'stats-refresh-interval':
+            element = dcc.Interval(id=element_id, disabled=True, interval=999999999)  # Disable instead
+        elif element_id in ['export-stats-csv', 'export-charts-png', 'generate-pdf-report', 'refresh-analytics']:
+            # These are buttons, not graphs
+            element = html.Button(id=element_id, style={"display": "none"})
+        elif element_id in ['main-analytics-chart', 'security-pie-chart', 'heatmap-chart']:
+            # These are actual charts
+            element = dcc.Graph(id=element_id, style={"display": "none"})
+        elif element_id in ['download-stats-csv', 'download-charts', 'download-report']:
+            # These are download components
+            element = dcc.Download(id=element_id)
+        elif 'store' in element_id:
+            element = dcc.Store(id=element_id)
+        elif 'chart-type-selector' in element_id:
+            # This is a dropdown
+            element = dcc.Dropdown(id=element_id, style={"display": "none"})
+        else:
+            element = html.Div(id=element_id, style={"display": "none"})
 
             base_children.append(element)
 
@@ -1390,30 +1342,55 @@ def toggle_classification(toggle_value):
         return {"display": "none"}
 
 
-# Floor display callback
+# Data bridge callback - connects analysis to enhanced stats
 @app.callback(
-    Output("floor-slider-value", "children"),
-    Input("floor-slider", "value"),
-    prevent_initial_call=True,
+    Output('enhanced-stats-data-store', 'data'),
+    Input('processing-status', 'children'),
+    State('processed-data-store', 'data'),
+    State('manual-door-classifications-store', 'data'),
+    prevent_initial_call=True
 )
-def update_floor_display(value):
-    """Update floor display"""
-    if value is None:
-        value = 4
-    floors = int(value)
-    return f"{floors} floor{'s' if floors != 1 else ''}"
+def update_enhanced_stats_store(status_message, processed_data, device_classifications):
+    """Update enhanced stats data store when analysis completes"""
+    if not status_message or "Analysis complete" not in str(status_message):
+        return no_update
+        
+    try:
+        if processed_data and "dataframe" in processed_data:
+            df = pd.DataFrame(processed_data["dataframe"])
+            
+            # Convert timestamp column to datetime if it exists
+            timestamp_col = "Timestamp (Event Time)"
+            if timestamp_col in df.columns:
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col])
 
+            # Prepare device attributes DataFrame if available
+            device_attrs = None
+            if device_classifications and isinstance(device_classifications, dict):
+                device_attrs = pd.DataFrame.from_dict(
+                    device_classifications, orient="index"
+                )
+                device_attrs.reset_index(inplace=True)
+                device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
 
-# Main analysis callback using real processed data
+            # Calculate enhanced metrics
+            enhanced_metrics = process_uploaded_data(df, device_attrs)
+            print(f"🔄 Enhanced stats store updated with {len(enhanced_metrics)} metrics")
+            
+            return enhanced_metrics
+        
+    except Exception as e:
+        print(f"❌ Error updating enhanced stats store: {e}")
+        
+    return no_update
+
+# Main analysis callback - MODIFIED to avoid conflicts
 @app.callback(
     [
-        # Basic outputs (all have corresponding elements now)
+        # Only handle visibility and status - let enhanced stats handlers manage the data
         Output("yosai-custom-header", "style"),
         Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("enhanced-total-access-events-H1", "children", allow_duplicate=True),
-        Output("enhanced-event-date-range-P", "children", allow_duplicate=True),
         Output("processing-status", "children", allow_duplicate=True),
-        Output("enhanced-stats-data-store", "data", allow_duplicate=True),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
     [
@@ -1423,32 +1400,28 @@ def update_floor_display(value):
     ],
     prevent_initial_call=True,
 )
+
 def generate_enhanced_analysis(
     n_clicks, file_data, processed_data, device_classifications
 ):
-    """Generate REAL enhanced analysis with actual data processing"""
+    """Generate analysis - handle visibility and status only"""
     if not n_clicks or not file_data:
         hide_style = {"display": "none"}
-        show_style = {"display": "block"}
-
         return (
-            show_style,  # yosai-custom-header
-            hide_style,  # stats-panels-container
-            "0",  # total events
-            "No data",  # date range
+            hide_style,  # yosai-custom-header
+            hide_style,  # stats-panels-container  
             "Click generate to start analysis",  # status
-            None,  # metrics store
-
         )
 
     try:
-        print("🎉 Generating REAL enhanced analysis...")
+        print("🎉 Generating enhanced analysis...")
 
-        # Show header and stats
+        # Show header and stats containers
         show_style = {"display": "block"}
         stats_style = {"display": "flex", "gap": "20px", "marginBottom": "30px"}
 
-        # ACTUALLY PROCESS THE DATA instead of using mock data
+       
+        # ACTUALLY PROCESS THE DATA and store it for enhanced stats handlers to use
         if processed_data and "dataframe" in processed_data:
             # Convert processed data back to DataFrame
             df = pd.DataFrame(processed_data["dataframe"])
@@ -1465,63 +1438,37 @@ def generate_enhanced_analysis(
                     device_classifications, orient="index"
                 )
                 device_attrs.reset_index(inplace=True)
-                device_attrs.rename(columns={"index": "device_id"}, inplace=True)
+                device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
 
-            # Calculate enhanced metrics using analytics processor
+            # Use your existing process_uploaded_data function
+            print("🔍 Calculating enhanced metrics...")
             enhanced_metrics = process_uploaded_data(df, device_attrs)
-
-            # Fallback to basic metrics if nothing returned
-            if not enhanced_metrics:
-                if component_instances.get("enhanced_stats"):
-                    stats_component = component_instances["enhanced_stats"]
-                    if hasattr(stats_component, "process_enhanced_stats"):
-                        enhanced_metrics = stats_component.process_enhanced_stats(df, device_attrs)
-                    else:
-                        enhanced_metrics = stats_component.calculate_enhanced_metrics(df, device_attrs)
-                else:
-                    enhanced_metrics = calculate_basic_metrics(df)
 
             print(f"✅ Calculated enhanced metrics: {len(enhanced_metrics)} items")
             print(f"📊 Sample metrics: {list(enhanced_metrics.keys())[:5]}")
 
+            return (
+                show_style,  # yosai-custom-header
+                stats_style,  # stats-panels-container
+                "✅ Analysis complete! Enhanced metrics calculated.",  # status
+            )
         else:
-            print("⚠️ No processed data available, using defaults")
-            enhanced_metrics = {
-                "total_events": 0,
-                "date_range": "No data",
-                "unique_users": 0,
-                "unique_devices": 0,
-                "avg_events_per_day": "N/A",
-                "peak_hour": "N/A",
-                "peak_day": "N/A",
-                "most_active_user": "N/A",
-            }
-
-        return (
-            show_style,  # header
-            stats_style,  # stats container
-            f"{enhanced_metrics.get('total_events', 0):,}",  # total events
-            enhanced_metrics.get("date_range", "No data"),  # date range
-            "🎉 Enhanced analysis complete! All metrics calculated.",  # status
-            enhanced_metrics,  # metrics store - REAL DATA
-        )
+            return (
+                show_style,  # yosai-custom-header
+                {"display": "none"},  # stats-panels-container
+                "❌ No processed data available",  # status
+            )
 
     except Exception as e:
         print(f"❌ Error in enhanced analysis: {e}")
         import traceback
-
         traceback.print_exc()
-
+            
         return (
-            {"display": "block"},  # header
-            {"display": "none"},  # stats container
-            "Error",  # total events
-            "Error loading data",  # date range
-            f"❌ Error: {str(e)}",  # status
-            None,  # metrics store
-            None,  # stats data store
+            {"display": "block"},  # yosai-custom-header
+            {"display": "none"},  # stats-panels-container
+            f"❌ Analysis failed: {str(e)}",  # status
         )
-
 
 def calculate_basic_metrics(df):
     """Fallback function to calculate basic metrics if enhanced component fails"""

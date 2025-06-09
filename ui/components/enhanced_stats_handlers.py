@@ -60,7 +60,7 @@ class EnhancedStatsHandlers:
                     trend_style = {
                         'color': COLORS['success'],
                         'fontSize': '1.2rem',
-                        'fontWeight': TYPOGRAPHY['font_bold']
+                        'fontWeight': 'bold'
                     }
                     
                     return (
