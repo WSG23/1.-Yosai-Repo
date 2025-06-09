@@ -720,14 +720,6 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                     create_debug_panel(),
                 ],
             ),
-            # Data stores
-            dcc.Store(id="uploaded-file-store"),
-            dcc.Store(id="csv-headers-store", storage_type="session"),
-            dcc.Store(id="processed-data-store", storage_type="memory"),
-            dcc.Store(id="enhanced-metrics-store", storage_type="session"),
-            dcc.Store(id="all-doors-from-csv-store", storage_type="session"),
-            dcc.Store(id="column-mapping-store", storage_type="local"),
-            dcc.Store(id="manual-door-classifications-store", storage_type="session"),
         ],
         style={
             "backgroundColor": COLORS["background"],
@@ -1066,8 +1058,17 @@ try:
         )
     ], style={'position': 'absolute', 'top': '-9999px'})
 
-    # Combine with existing layout
+    # Combine with existing layout and required data stores
     app.layout = html.Div([
+        # Data stores for cross-component communication
+        dcc.Store(id="enhanced-metrics-store", data={}),
+        dcc.Store(id="processed-data-store", data={}),
+        dcc.Store(id="stats-data-store", data={}),
+        dcc.Store(id="uploaded-file-store", data={}),
+        dcc.Store(id="csv-headers-store", data={}),
+        dcc.Store(id="column-mapping-store", data={}),
+        dcc.Store(id="device-attrs-store", data={}),
+
         current_layout,
         missing_stats_elements
     ])
@@ -1444,20 +1445,19 @@ def generate_enhanced_analysis(
                 device_attrs.reset_index(inplace=True)
                 device_attrs.rename(columns={"index": "device_id"}, inplace=True)
 
-            # CREATE THE ENHANCED STATS COMPONENT AND CALCULATE REAL METRICS
-            if component_instances["enhanced_stats"]:
-                stats_component = component_instances["enhanced_stats"]
-                if hasattr(stats_component, "process_enhanced_stats"):
-                    enhanced_metrics = stats_component.process_enhanced_stats(
-                        df, device_attrs
-                    )
+            # Calculate enhanced metrics using analytics processor
+            enhanced_metrics = process_uploaded_data(df, device_attrs)
+
+            # Fallback to basic metrics if nothing returned
+            if not enhanced_metrics:
+                if component_instances.get("enhanced_stats"):
+                    stats_component = component_instances["enhanced_stats"]
+                    if hasattr(stats_component, "process_enhanced_stats"):
+                        enhanced_metrics = stats_component.process_enhanced_stats(df, device_attrs)
+                    else:
+                        enhanced_metrics = stats_component.calculate_enhanced_metrics(df, device_attrs)
                 else:
-                    enhanced_metrics = stats_component.calculate_enhanced_metrics(
-                        df, device_attrs
-                    )
-            else:
-                # Fallback calculation if component not available
-                enhanced_metrics = calculate_basic_metrics(df)
+                    enhanced_metrics = calculate_basic_metrics(df)
 
             print(f"✅ Calculated enhanced metrics: {len(enhanced_metrics)} items")
             print(f"📊 Sample metrics: {list(enhanced_metrics.keys())[:5]}")
@@ -1532,6 +1532,45 @@ def calculate_basic_metrics(df):
         metrics["date_range"] = "No date data"
 
     return metrics
+
+
+def process_uploaded_data(df, device_attrs):
+    """Process uploaded data and compute enhanced metrics"""
+    try:
+        from utils.enhanced_analytics import EnhancedAnalyticsProcessor
+
+        analytics_processor = EnhancedAnalyticsProcessor()
+
+        basic_metrics = analytics_processor.process_basic_metrics(df)
+        user_behavior = analytics_processor.process_user_behavior(df)
+        device_analytics = analytics_processor.process_device_analytics(df, device_attrs)
+        security_metrics = analytics_processor.process_security_metrics(df, device_attrs)
+
+        enhanced_metrics = {
+            **basic_metrics,
+            **user_behavior,
+            **device_analytics,
+            **security_metrics,
+            'unique_users': user_behavior.get('total_unique_users', 0),
+            'avg_events_per_user': user_behavior.get('average_events_per_user', 0),
+            'most_active_user': user_behavior.get('most_active_user', 'N/A'),
+            'total_devices_count': device_analytics.get('total_devices', 0),
+            'entrance_devices_count': device_analytics.get('entrance_devices', 0),
+            'high_security_devices': security_metrics.get('high_security_count', 0),
+            'most_active_devices': device_analytics.get('top_devices', []),
+            'security_breakdown': security_metrics.get('security_breakdown', {}),
+            'security_score': security_metrics.get('security_score', 'N/A'),
+            'anomaly_count': security_metrics.get('anomaly_count', 0),
+            'peak_hour': basic_metrics.get('peak_hour', 'N/A'),
+            'peak_day': basic_metrics.get('peak_day', 'N/A'),
+            'busiest_floor': basic_metrics.get('busiest_floor', 'N/A'),
+        }
+
+        return enhanced_metrics
+
+    except Exception as e:
+        print(f"Error in enhanced analytics: {e}")
+        return {}
 
 
 # Export callback
@@ -1631,6 +1670,39 @@ def update_debug_info(metrics_data, processed_data):
         processed_info = "Processed: No data"
 
     return metrics_count, metrics_keys, processed_info, calculation_status
+
+
+@app.callback(
+    [
+        Output("core-row-with-sidebar", "children"),
+        Output("advanced_analytics-panel-container", "children"),
+    ],
+    Input("enhanced-metrics-store", "data"),
+    prevent_initial_call=True,
+)
+def sync_containers_with_stats(enhanced_metrics):
+    """Update sidebar and analytics containers with calculated metrics."""
+
+    if not enhanced_metrics:
+        return [html.P("No data available")], [html.P("No analytics available")]
+
+    sidebar_content = [
+        html.H5("Quick Stats"),
+        html.P(f"📊 {enhanced_metrics.get('total_events', 0):,} Events"),
+        html.P(f"👥 {enhanced_metrics.get('unique_users', 0)} Users"),
+        html.P(f"🚪 {enhanced_metrics.get('unique_devices', 0)} Devices"),
+        html.P(f"⏰ Peak: {enhanced_metrics.get('peak_hour', 'N/A')}")
+    ]
+
+    analytics_content = [
+        html.H5("Advanced Insights"),
+        html.P(f"🔒 Security: {enhanced_metrics.get('security_score', 'N/A')}") ,
+        html.P(f"📈 Pattern: {enhanced_metrics.get('traffic_pattern', 'N/A')}") ,
+        html.P(f"⚠️ Anomalies: {enhanced_metrics.get('anomaly_count', 0)}"),
+        html.P(f"🏢 Busiest Floor: {enhanced_metrics.get('busiest_floor', 'N/A')}")
+    ]
+
+    return sidebar_content, analytics_content
 
 
 print(
