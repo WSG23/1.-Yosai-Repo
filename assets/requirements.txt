@@ -1,0 +1,13 @@
+# Packages required for development and testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Data manipulation library required for tests
+pandas>=1.5.0
+dash>=2.15.0
+psutil>=5.9.0
+waitress>=2.1.2
+dash-bootstrap-components>=1.5.0
+dash-cytoscape>=0.3.0
+numpy>=1.25.2
