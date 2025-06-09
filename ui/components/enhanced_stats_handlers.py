@@ -3,7 +3,7 @@
 Enhanced Statistics handlers and callbacks
 """
 
-from dash import Input, Output, State, callback, no_update
+from dash import Input, Output, State, callback, no_update, html
 import pandas as pd
 import json
 from .enhanced_stats import create_enhanced_stats_component
@@ -20,6 +20,10 @@ class EnhancedStatsHandlers:
     def register_callbacks(self):
         """Register all enhanced stats callbacks"""
         self._register_stats_update_callback()
+        self._register_user_patterns_callback()
+        self._register_device_analytics_callback()
+        self._register_peak_activity_callback()
+        self._register_security_overview_callback()
         self._register_chart_update_callbacks()
         self._register_export_callbacks()
         
@@ -70,9 +74,157 @@ class EnhancedStatsHandlers:
                     )
                 else:
                     return "0", "No data", "--", {}, "No data", {}
-                    
+
             except Exception as e:
                 return "Error", "Error", "--", {}, "Error", {}
+
+    def _register_user_patterns_callback(self):
+        """Register User Patterns panel callback"""
+        @self.app.callback(
+            [
+                Output('stats-unique-users', 'children'),
+                Output('stats-avg-events-per-user', 'children'),
+                Output('stats-most-active-user', 'children'),
+                Output('stats-devices-per-user', 'children'),
+                Output('stats-peak-hour', 'children'),
+            ],
+            [
+                Input('enhanced-metrics-store', 'data'),
+                Input('stats-refresh-interval', 'n_intervals'),
+            ],
+            prevent_initial_call=True
+        )
+        def update_user_patterns(enhanced_metrics, n_intervals):
+            """Update User Patterns panel"""
+            try:
+                if enhanced_metrics:
+                    return (
+                        f"Unique Users: {enhanced_metrics.get('unique_users', 0):,}",
+                        f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.1f}",
+                        f"Most Active: {enhanced_metrics.get('most_active_user', 'N/A')}",
+                        f"Devices/User: {enhanced_metrics.get('avg_users_per_device', 0):.1f}",
+                        f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}"
+                    )
+                else:
+                    return "No data", "No data", "No data", "No data", "No data"
+            except Exception:
+                return "Error", "Error", "Error", "Error", "Error"
+
+    def _register_device_analytics_callback(self):
+        """Register Device Analytics panel callback"""
+        @self.app.callback(
+            [
+                Output('total-devices-count', 'children'),
+                Output('entrance-devices-count', 'children'),
+                Output('high-security-devices', 'children'),
+                Output('most-active-devices-table-body', 'children'),
+            ],
+            [
+                Input('enhanced-metrics-store', 'data'),
+                Input('stats-refresh-interval', 'n_intervals'),
+            ],
+            prevent_initial_call=True
+        )
+        def update_device_analytics(enhanced_metrics, n_intervals):
+            """Update Device Analytics panel"""
+            try:
+                if enhanced_metrics:
+                    table_rows = []
+                    most_active_devices = enhanced_metrics.get('most_active_devices', [])
+                    for device_info in most_active_devices[:5]:
+                        if isinstance(device_info, dict):
+                            device_name = device_info.get('device', 'Unknown')
+                            event_count = device_info.get('events', 0)
+                        else:
+                            device_name = str(device_info[0]) if len(device_info) > 0 else 'Unknown'
+                            event_count = device_info[1] if len(device_info) > 1 else 0
+
+                        table_rows.append(html.Tr([
+                            html.Td(device_name, style={'color': COLORS['text_primary']}),
+                            html.Td(f"{event_count:,}", style={'color': COLORS['text_secondary']})
+                        ]))
+
+                    return (
+                        f"Total Devices: {enhanced_metrics.get('total_devices_count', 0):,}",
+                        f"Entrance Devices: {enhanced_metrics.get('entrance_devices_count', 0):,}",
+                        f"High Security: {enhanced_metrics.get('high_security_devices', 0):,}",
+                        table_rows
+                    )
+                else:
+                    return "No data", "No data", "No data", []
+            except Exception:
+                return "Error", "Error", "Error", []
+
+    def _register_peak_activity_callback(self):
+        """Register Peak Activity panel callback"""
+        @self.app.callback(
+            [
+                Output('peak-hour-display', 'children'),
+                Output('peak-day-display', 'children'),
+                Output('busiest-floor', 'children'),
+                Output('entry-exit-ratio', 'children'),
+                Output('weekend-vs-weekday', 'children'),
+            ],
+            [
+                Input('enhanced-metrics-store', 'data'),
+                Input('stats-refresh-interval', 'n_intervals'),
+            ],
+            prevent_initial_call=True
+        )
+        def update_peak_activity(enhanced_metrics, n_intervals):
+            """Update Peak Activity panel"""
+            try:
+                if enhanced_metrics:
+                    return (
+                        f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}",
+                        f"Peak Day: {enhanced_metrics.get('peak_day', 'N/A')}",
+                        f"Busiest Floor: {enhanced_metrics.get('busiest_floor', 'N/A')}",
+                        f"Entry/Exit: {enhanced_metrics.get('entry_exit_ratio', 'N/A')}",
+                        f"Weekend vs Weekday: {enhanced_metrics.get('weekend_vs_weekday', 'N/A')}"
+                    )
+                else:
+                    return "No data", "No data", "No data", "No data", "No data"
+            except Exception:
+                return "Error", "Error", "Error", "Error", "Error"
+
+    def _register_security_overview_callback(self):
+        """Register Security Overview panel callback"""
+        @self.app.callback(
+            [
+                Output('security-level-breakdown', 'children'),
+                Output('compliance-score', 'children'),
+                Output('anomaly-alerts', 'children'),
+            ],
+            [
+                Input('enhanced-metrics-store', 'data'),
+                Input('stats-refresh-interval', 'n_intervals'),
+            ],
+            prevent_initial_call=True
+        )
+        def update_security_overview(enhanced_metrics, n_intervals):
+            """Update Security Overview panel"""
+            try:
+                if enhanced_metrics:
+                    security_breakdown = enhanced_metrics.get('security_breakdown', {})
+                    breakdown_elements = []
+                    for level, count in security_breakdown.items():
+                        breakdown_elements.append(
+                            html.P(f"{level.title()}: {count} devices",
+                                   style={'color': COLORS['text_secondary'], 'margin': '2px 0'})
+                        )
+
+                    if not breakdown_elements:
+                        breakdown_elements = [html.P("No security data", style={'color': COLORS['text_secondary']})]
+
+                    return (
+                        breakdown_elements,
+                        f"Security Score: {enhanced_metrics.get('security_score', 'N/A')}",
+                        f"Anomaly Alerts: {enhanced_metrics.get('anomaly_count', 0)} detected"
+                    )
+                else:
+                    return [html.P("No data", style={'color': COLORS['text_secondary']})], "No data", "No data"
+            except Exception:
+                return [html.P("Error", style={'color': COLORS['text_secondary']})], "Error", "Error"
                 
     def _register_chart_update_callbacks(self):
         """Register chart update callbacks"""
