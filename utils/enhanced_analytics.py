@@ -759,6 +759,20 @@ class EnhancedAnalyticsProcessor:
         self._processor = EnhancedDataProcessor()
 
     def process_basic_metrics(self, df: pd.DataFrame) -> Dict[str, Any]:
+
+    def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+    # ... existing debug code ...
+    
+         # ADD THIS DEBUG AT THE TOP:
+        print(f"🔍 ANALYTICS PROCESSOR - DataFrame columns: {list(df.columns)}")
+        print(f"🔍 Looking for timestamp column: 'Timestamp (Event Time)' - Found: {'Timestamp (Event Time)' in df.columns}")
+        print(f"🔍 Looking for user column: 'UserID (Person Identifier)' - Found: {'UserID (Person Identifier)' in df.columns}")
+        print(f"🔍 Looking for device column: 'DoorID (Device Name)' - Found: {'DoorID (Device Name)' in df.columns}")
+        print(f"🔍 Looking for access column: 'Access Result' - Found: {'Access Result' in df.columns}")
+        # END DEBUG
+    
+    # ... rest of function ...
+        
         """Return core temporal metrics from the data."""
         return self._processor.process_temporal_patterns(df)
 
