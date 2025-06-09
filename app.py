@@ -1413,7 +1413,7 @@ def update_floor_display(value):
         Output("enhanced-total-access-events-H1", "children", allow_duplicate=True),
         Output("enhanced-event-date-range-P", "children", allow_duplicate=True),
         Output("processing-status", "children", allow_duplicate=True),
-        Output("enhanced-metrics-store", "data"),
+        Output("enhanced-stats-data-store", "data"),
         Output("enhanced-stats-data-store", "data", allow_duplicate=True),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
@@ -1663,7 +1663,7 @@ def display_node_data(data):
         Output("debug-processed-data", "children"),
         Output("debug-calculation-status", "children"),
     ],
-    [Input("enhanced-metrics-store", "data"), Input("processed-data-store", "data")],
+    [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
     prevent_initial_call=True,
 )
 def update_debug_info(metrics_data, processed_data):
@@ -1700,7 +1700,7 @@ def update_debug_info(metrics_data, processed_data):
         Output("core-row-with-sidebar", "children"),
         Output("advanced_analytics-panel-container", "children"),
     ],
-    Input("enhanced-metrics-store", "data"),
+    Input("enhanced-stats-data-store", "data"),
     prevent_initial_call=True,
 )
 def sync_containers_with_stats(enhanced_metrics):

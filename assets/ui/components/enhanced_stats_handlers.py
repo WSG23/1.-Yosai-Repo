@@ -44,7 +44,7 @@ class EnhancedStatsHandlers:
             ],
             [
                 State('processed-data-store', 'data'),
-                State('enhanced-metrics-store', 'data'),
+                 State('enhanced-stats-data-store', 'data'),
             ],
             prevent_initial_call=True
         )
@@ -87,7 +87,7 @@ class EnhancedStatsHandlers:
                 Output('unique-users-today', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -115,7 +115,7 @@ class EnhancedStatsHandlers:
                 Output('enhanced-most-active-devices-table-body', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -160,7 +160,7 @@ class EnhancedStatsHandlers:
                 Output('weekend-vs-weekday', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -189,7 +189,7 @@ class EnhancedStatsHandlers:
                 Output('security-compliance-score', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
