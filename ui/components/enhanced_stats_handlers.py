@@ -82,11 +82,9 @@ class EnhancedStatsHandlers:
         """Register User Patterns panel callback"""
         @self.app.callback(
             [
-                Output('stats-unique-users', 'children'),
-                Output('stats-avg-events-per-user', 'children'),
-                Output('stats-most-active-user', 'children'),
-                Output('stats-devices-per-user', 'children'),
-                Output('stats-peak-hour', 'children'),
+                Output('most-active-user', 'children'),
+                Output('avg-user-activity', 'children'),
+                Output('unique-users-today', 'children'),
             ],
             [
                 Input('enhanced-metrics-store', 'data'),
@@ -99,25 +97,22 @@ class EnhancedStatsHandlers:
             try:
                 if enhanced_metrics:
                     return (
-                        f"Unique Users: {enhanced_metrics.get('unique_users', 0):,}",
-                        f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.1f}",
                         f"Most Active: {enhanced_metrics.get('most_active_user', 'N/A')}",
-                        f"Devices/User: {enhanced_metrics.get('avg_users_per_device', 0):.1f}",
-                        f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}"
+                        f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.1f}",
+                        f"Unique Users: {enhanced_metrics.get('unique_users', 0):,}"
                     )
                 else:
-                    return "No data", "No data", "No data", "No data", "No data"
+                    return "No data", "No data", "No data"
             except Exception:
-                return "Error", "Error", "Error", "Error", "Error"
+                return "Error", "Error", "Error"
 
     def _register_device_analytics_callback(self):
         """Register Device Analytics panel callback"""
         @self.app.callback(
             [
-                Output('total-devices-count', 'children'),
-                Output('entrance-devices-count', 'children'),
-                Output('high-security-devices', 'children'),
-                Output('most-active-devices-table-body', 'children'),
+                Output('total-devices-summary', 'children'),
+                Output('active-devices-today', 'children'),
+                Output('enhanced-most-active-devices-table-body', 'children'),
             ],
             [
                 Input('enhanced-metrics-store', 'data'),
@@ -146,14 +141,13 @@ class EnhancedStatsHandlers:
 
                     return (
                         f"Total Devices: {enhanced_metrics.get('total_devices_count', 0):,}",
-                        f"Entrance Devices: {enhanced_metrics.get('entrance_devices_count', 0):,}",
-                        f"High Security: {enhanced_metrics.get('high_security_devices', 0):,}",
+                        f"Active Today: {enhanced_metrics.get('devices_active_today', 0):,}",
                         table_rows
                     )
                 else:
-                    return "No data", "No data", "No data", []
+                    return "No data", "No data", []
             except Exception:
-                return "Error", "Error", "Error", []
+                return "Error", "Error", []
 
     def _register_peak_activity_callback(self):
         """Register Peak Activity panel callback"""
@@ -192,8 +186,7 @@ class EnhancedStatsHandlers:
         @self.app.callback(
             [
                 Output('security-level-breakdown', 'children'),
-                Output('compliance-score', 'children'),
-                Output('anomaly-alerts', 'children'),
+                Output('security-compliance-score', 'children'),
             ],
             [
                 Input('enhanced-metrics-store', 'data'),
@@ -218,13 +211,12 @@ class EnhancedStatsHandlers:
 
                     return (
                         breakdown_elements,
-                        f"Security Score: {enhanced_metrics.get('security_score', 'N/A')}",
-                        f"Anomaly Alerts: {enhanced_metrics.get('anomaly_count', 0)} detected"
+                        f"Security Score: {enhanced_metrics.get('security_score', 'N/A')}"
                     )
                 else:
-                    return [html.P("No data", style={'color': COLORS['text_secondary']})], "No data", "No data"
+                    return [html.P("No data", style={'color': COLORS['text_secondary']})], "No data"
             except Exception:
-                return [html.P("Error", style={'color': COLORS['text_secondary']})], "Error", "Error"
+                return [html.P("Error", style={'color': COLORS['text_secondary']})], "Error"
                 
     def _register_chart_update_callbacks(self):
         """Register chart update callbacks"""
