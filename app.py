@@ -1413,7 +1413,6 @@ def update_floor_display(value):
         Output("enhanced-total-access-events-H1", "children", allow_duplicate=True),
         Output("enhanced-event-date-range-P", "children", allow_duplicate=True),
         Output("processing-status", "children", allow_duplicate=True),
-        Output("enhanced-stats-data-store", "data"),
         Output("enhanced-stats-data-store", "data", allow_duplicate=True),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
@@ -1439,7 +1438,7 @@ def generate_enhanced_analysis(
             "No data",  # date range
             "Click generate to start analysis",  # status
             None,  # metrics store
-            None,
+
         )
 
     try:
@@ -1505,7 +1504,6 @@ def generate_enhanced_analysis(
             enhanced_metrics.get("date_range", "No data"),  # date range
             "🎉 Enhanced analysis complete! All metrics calculated.",  # status
             enhanced_metrics,  # metrics store - REAL DATA
-            enhanced_metrics,  # stats data store - REAL DATA
         )
 
     except Exception as e:
@@ -1698,7 +1696,7 @@ def update_debug_info(metrics_data, processed_data):
 @app.callback(
     [
         Output("core-row-with-sidebar", "children"),
-        Output("advanced_analytics-panel-container", "children"),
+        Output("advanced_analytics-panels-container", "children"),
     ],
     Input("enhanced-stats-data-store", "data"),
     prevent_initial_call=True,

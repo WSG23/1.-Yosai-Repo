@@ -36,7 +36,6 @@ class EnhancedStatsHandlers:
                 Output('events-trend-indicator', 'children'),
                 Output('events-trend-indicator', 'style'),
                 Output('avg-events-per-day', 'children'),
-                Output('enhanced-stats-data-store', 'data'),
             ],
             [
                 Input('stats-refresh-interval', 'n_intervals'),
