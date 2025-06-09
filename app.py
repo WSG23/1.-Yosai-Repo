@@ -709,92 +709,78 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
                 ],
             ),
             # Tab content
-            html.Div(
-                id="tab-content",
-                children=[
-                    # All required elements for callbacks (initially hidden)
-                    *enhanced_stats_layout,
-                    html.Div(
-                id="tab-content",
-                children=[
-                    # All required elements for callbacks (initially hidden)
-                    *enhanced_stats_layout,
-                    # REPLACE _create_fallback_stats_container(), WITH THIS:
-                    html.Div(
-                        id="stats-panels-container",
-                        style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
-                        children=[
-                            # Panel 1: Access Events
-                            html.Div(
-                                style={
-                                    "flex": "1",
-                                    "backgroundColor": COLORS["surface"],
-                                    "padding": "20px",
-                                    "borderRadius": "8px",
-                                    "textAlign": "center"
-                                },
-                                children=[
-                                    html.H3("Access Events"),
-                                    html.H1(id="total-access-events-H1", children="0"),
-                                    html.P(id="event-date-range-P", children="No data"),
-                                ]
-                            ),
-                            
-                            # Panel 2: User Stats  
-                            html.Div(
-                                style={
-                                    "flex": "1",
-                                    "backgroundColor": COLORS["surface"],
-                                    "padding": "20px",
-                                    "borderRadius": "8px",
-                                    "textAlign": "center"
-                                },
-                                children=[
-                                    html.H3("User Analytics"),
-                                    html.P(id="stats-unique-users", children="0 users"),
-                                    html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
-                                    html.P(id="stats-most-active-user", children="No data"),
-                                    html.P(id="total-devices-count", children="0 devices"),
-                                ]
-                            ),
-                            
-                            # Panel 3: Activity Insights
-                            html.Div(
-                                style={
-                                    "flex": "1", 
-                                    "backgroundColor": COLORS["surface"],
-                                    "padding": "20px",
-                                    "borderRadius": "8px",
-                                    "textAlign": "center"
-                                },
-                                children=[
-                                    html.H3("Activity Insights"),
-                                    html.P(id="peak-hour-display", children="Peak: N/A"),
-                                    html.P(id="busiest-floor", children="Floor: N/A"),
-                                    html.P(id="traffic-pattern-insight", children="Pattern: N/A"),
-                                    html.P(id="security-score-insight", children="Score: N/A"),
-                                    html.P(id="anomaly-insight", children="Alerts: 0"),
-                                ]
-                            ),
-                        ]
-                    ),
-                    # END REPLACEMENT
-                    _create_fallback_analytics_section(),
-                    _create_fallback_charts_section(),
-                    _create_fallback_export_section(),
-                    _create_fallback_graph_container(),
-                    _create_mini_graph_container(),
-                    create_debug_panel(),
-                ],
-            ),
-                    _create_fallback_analytics_section(),
-                    _create_fallback_charts_section(),
-                    _create_fallback_export_section(),
-                    _create_fallback_graph_container(),
-                    _create_mini_graph_container(),
-                    create_debug_panel(),
-                ],
-            ),
+html.Div(
+    id="tab-content",
+    children=[
+        # All required elements for callbacks (initially hidden)
+        *enhanced_stats_layout,
+        # Your 3 panels container
+        html.Div(
+            id="stats-panels-container",
+            style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
+            children=[
+                # Panel 1: Access Events
+                html.Div(
+                    style={
+                        "flex": "1",
+                        "backgroundColor": COLORS["surface"],
+                        "padding": "20px",
+                        "borderRadius": "8px",
+                        "textAlign": "center"
+                    },
+                    children=[
+                        html.H3("Access Events"),
+                        html.H1(id="total-access-events-H1", children="0"),
+                        html.P(id="event-date-range-P", children="No data"),
+                    ]
+                ),
+                
+                # Panel 2: User Stats  
+                html.Div(
+                    style={
+                        "flex": "1",
+                        "backgroundColor": COLORS["surface"],
+                        "padding": "20px",
+                        "borderRadius": "8px",
+                        "textAlign": "center"
+                    },
+                    children=[
+                        html.H3("User Analytics"),
+                        html.P(id="stats-unique-users", children="0 users"),
+                        html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
+                        html.P(id="stats-most-active-user", children="No data"),
+                        html.P(id="total-devices-count", children="0 devices"),
+                    ]
+                ),
+                
+                # Panel 3: Activity Insights
+                html.Div(
+                    style={
+                        "flex": "1", 
+                        "backgroundColor": COLORS["surface"],
+                        "padding": "20px",
+                        "borderRadius": "8px",
+                        "textAlign": "center"
+                    },
+                    children=[
+                        html.H3("Activity Insights"),
+                        html.P(id="peak-hour-display", children="Peak: N/A"),
+                        html.P(id="busiest-floor", children="Floor: N/A"),
+                        html.P(id="traffic-pattern-insight", children="Pattern: N/A"),
+                        html.P(id="security-score-insight", children="Score: N/A"),
+                        html.P(id="anomaly-insight", children="Alerts: 0"),
+                    ]
+                ),
+            ]
+        ),
+        _create_fallback_analytics_section(),
+        _create_fallback_charts_section(),
+        _create_fallback_export_section(),
+        _create_fallback_graph_container(),
+        _create_mini_graph_container(),
+        create_debug_panel(),
+    ],
+),
         ],
         style={
             "backgroundColor": COLORS["background"],
@@ -814,6 +800,9 @@ def create_fixed_layout_with_required_elements(
     """Create layout that maintains current design but includes all required callback elements"""
 
     print(">> Creating FIXED layout with all required elements...")
+    print(">> Creating FIXED layout with all required elements...")
+    print(">> FORCING use of complete fixed layout")  # ADD THIS LINE
+    return _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_default)  # ADD THIS LINE
 
     # First try to use the main layout if available
     base_layout = None
