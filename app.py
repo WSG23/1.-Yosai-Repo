@@ -1061,7 +1061,6 @@ try:
     # Combine with existing layout and required data stores
     app.layout = html.Div([
         # Data stores for cross-component communication
-        dcc.Store(id="enhanced-metrics-store", data={}),
         dcc.Store(id="processed-data-store", data={}),
         dcc.Store(id="stats-data-store", data={}),
         dcc.Store(id="uploaded-file-store", data={}),
