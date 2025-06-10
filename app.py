@@ -1452,40 +1452,16 @@ def update_debug_info(metrics_data: Any, processed_data: Any) -> Tuple[str, str,
     Input("enhanced-stats-data-store", "data"),
     prevent_initial_call=True,
 )
-def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[List[Any], List[Any]]:
-    """Update containers with metrics - COMPLETELY TYPE-SAFE"""
+def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
+    """Keep container layouts stable when stats update."""
 
     metrics_dict = safe_dict_access(enhanced_metrics)
     if not metrics_dict:
-        return [html.P("No data available")], [html.P("No analytics available")]
+        return dash.no_update, dash.no_update
 
-    def safe_format_value(key: str, default: Any = "N/A") -> str:
-        """Safely format metric values"""
-        try:
-            value = metrics_dict.get(key, default)
-            if isinstance(value, (int, float)) and key in ['total_events', 'unique_users', 'unique_devices']:
-                return f"{value:,}" if isinstance(value, int) else f"{value:.1f}"
-            return str(value) if value is not None else str(default)
-        except (AttributeError, TypeError, ValueError):
-            return str(default)
-
-    sidebar_content = [
-        html.H5("Quick Stats"),
-        html.P(f"📊 {safe_format_value('total_events', 0)} Events"),
-        html.P(f"👥 {safe_format_value('unique_users', 0)} Users"),
-        html.P(f"🚪 {safe_format_value('unique_devices', 0)} Devices"),
-        html.P(f"⏰ Peak: {safe_format_value('peak_hour')}")
-    ]
-
-    analytics_content = [
-        html.H5("Advanced Insights"),
-        html.P(f"🔒 Security: {safe_format_value('security_score')}"),
-        html.P(f"📈 Pattern: {safe_format_value('traffic_pattern')}"),
-        html.P(f"⚠️ Anomalies: {safe_format_value('anomaly_count', 0)}"),
-        html.P(f"🏢 Busiest Floor: {safe_format_value('busiest_floor')}")
-    ]
-
-    return sidebar_content, analytics_content
+    # Leave the existing layout untouched so that elements like
+    # `peak-day-display` remain present for other callbacks.
+    return dash.no_update, dash.no_update
 
 # FIXED: Enhanced stats store callback with complete validation
 @app.callback(
