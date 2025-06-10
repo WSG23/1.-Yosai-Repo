@@ -432,17 +432,8 @@ class ClassificationDataProcessor:
             else:
                 distribution['regular'] += 1
         
+
         return distribution
-def _register_debug_toggle_handler(self):
-    """Debug callback to see what's happening with the toggle"""
-    @self.app.callback(
-        Output('processing-status', 'children', allow_duplicate=True),
-        Input('manual-map-toggle', 'value'),
-        prevent_initial_call='initial_duplicate'
-    )
-    def debug_toggle_change(value):
-        logger.info(f"DEBUG: Toggle changed to: {value}")
-        return f"Debug: Toggle is now '{value}'"
 
 # Factory functions for easy handler creation
 def create_classification_handlers(app, classification_component=None):
