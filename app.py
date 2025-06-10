@@ -177,6 +177,18 @@ except ImportError as e:
     print(f"!! Classification component not available: {e}")
     create_classification_component = None
 
+# Handler factories
+try:
+    from ui.components.upload_handlers import create_upload_handlers
+    from ui.components.mapping_handlers import create_mapping_handlers
+    from ui.components.classification_handlers import create_classification_handlers
+    print(">> Handler factories imported")
+except ImportError as e:
+    print(f"!! Handler factories not available: {e}")
+    create_upload_handlers = None
+    create_mapping_handlers = None
+    create_classification_handlers = None
+
 # Cytoscape for graphs
 try:
     import dash_cytoscape as cyto
@@ -1129,6 +1141,27 @@ print(
     ">> COMPLETE FIXED layout created successfully with all required callback elements"
 )
 
+# Register core handler callbacks
+if create_upload_handlers:
+    upload_component = create_enhanced_upload_component() if create_enhanced_upload_component else None
+    upload_handlers = create_upload_handlers(
+        app,
+        upload_component,
+        {
+            "default": ICON_UPLOAD_DEFAULT,
+            "success": ICON_UPLOAD_SUCCESS,
+            "fail": ICON_UPLOAD_FAIL,
+        },
+    )
+    upload_handlers.register_callbacks()
+
+if create_mapping_handlers:
+    mapping_handlers = create_mapping_handlers(app)
+    mapping_handlers.register_callbacks()
+
+if create_classification_handlers:
+    classification_handlers = create_classification_handlers(app)
+
 # ============================================================================
 # ENHANCED STATISTICS SETUP
 # ============================================================================
@@ -1357,84 +1390,6 @@ def create_mapping_dropdowns(headers: Optional[List[str]]) -> Tuple[List[Any], D
         print(f"!! Error creating mapping: {e}")
         return [], {"display": "none"}, {"display": "none"}
 
-# Mapping confirmation callback
-@app.callback(
-    [
-        Output("entrance-verification-ui-section", "style"),
-        Output("mapping-ui-section", "style", allow_duplicate=True),
-        Output("processing-status", "children", allow_duplicate=True),
-        Output("processed-data-store", "data", allow_duplicate=True),
-    ],
-    Input("confirm-header-map-button", "n_clicks"),
-    [
-        State({"type": "mapping-dropdown", "index": ALL}, "value"),
-        State({"type": "mapping-dropdown", "index": ALL}, "id"),
-        State("processed-data-store", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def confirm_mapping(n_clicks: Optional[int], values: List[Optional[str]], ids: List[Dict[str, Any]], processed_data: Any) -> Tuple[Dict[str, Any], Dict[str, Any], Union[str, Any], Any]:
-    """Confirm mapping, apply column names, and show next step"""
-    if not n_clicks:
-        return {"display": "none"}, {"display": "block"}, no_update, no_update
-
-    try:
-        mapped_count = sum(1 for v in values if v is not None)
-        required_count = len(REQUIRED_INTERNAL_COLUMNS)
-
-        if mapped_count < required_count:
-            missing_fields = [
-                REQUIRED_INTERNAL_COLUMNS[ids[i]["index"]]
-                for i, v in enumerate(values)
-                if v is None
-            ]
-            return (
-                {"display": "none"},
-                {"display": "block"},
-                f"⚠️ Please map all required columns. Missing: {', '.join(missing_fields[:2])}",
-                no_update,
-            )
-
-        # Apply mapping to processed dataframe
-        processed_dict = safe_dict_access(processed_data)
-        if processed_dict and "dataframe" in processed_dict:
-            df = pd.DataFrame(processed_dict["dataframe"])
-            rename_map = {
-                val: REQUIRED_INTERNAL_COLUMNS[id_obj["index"]]
-                for val, id_obj in zip(values, ids)
-                if val is not None
-            }
-            df.rename(columns=rename_map, inplace=True)
-            processed_dict["dataframe"] = df.to_dict("records")
-            processed_dict["columns"] = list(df.columns)
-
-        return (
-            {"display": "block"},
-            {"display": "none"},
-            "✅ Column mapping completed! Configure facility settings below.",
-            processed_dict,
-        )
-
-    except Exception as e:
-        return (
-            {"display": "none"},
-            {"display": "block"},
-            f"❌ Error: {str(e)}",
-            no_update,
-        )
-
-# Classification toggle callback
-@app.callback(
-    Output("door-classification-table-container", "style"),
-    Input("manual-map-toggle", "value"),
-    prevent_initial_call=True,
-)
-def toggle_classification(toggle_value: Optional[str]) -> Dict[str, str]:
-    """Toggle classification interface"""
-    if toggle_value == "yes":
-        return {"display": "block"}
-    else:
-        return {"display": "none"}
 
 # FIXED: Debug callback with complete type safety
 @app.callback(
