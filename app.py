@@ -1135,6 +1135,8 @@ app.layout = html.Div([
     
     # Your existing layout
     current_layout,
+    # Inject emergency placeholders for callbacks expecting these IDs
+    *missing_elements,
 ])
 
 print(
