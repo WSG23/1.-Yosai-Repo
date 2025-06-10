@@ -451,6 +451,19 @@ class EnhancedStatsComponent:
                 ),
                 # Activity level indicator
                 html.Div(id="activity-level-indicator", style={"marginTop": "15px"}),
+                # Additional metrics required by callbacks
+                html.P(
+                    id="busiest-floor",
+                    style={"color": COLORS["text_secondary"], "marginTop": "10px"},
+                ),
+                html.P(
+                    id="entry-exit-ratio",
+                    style={"color": COLORS["text_secondary"]},
+                ),
+                html.P(
+                    id="weekend-vs-weekday",
+                    style={"color": COLORS["text_secondary"]},
+                ),
             ],
             style=panel_style,
         )
