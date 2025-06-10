@@ -38,16 +38,13 @@ class EnhancedStatsHandlers:
                 Output('avg-events-per-day', 'children'),
                 Output('enhanced-stats-data-store', 'data', allow_duplicate=True),            ],
             [
+                Input('enhanced-metrics-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
                 Input('refresh-stats-btn', 'n_clicks'),
             ],
-            [
-                State('processed-data-store', 'data'),
-                State('enhanced-stats-data-store', 'data'),
-            ],
             prevent_initial_call=True
         )
-        def update_enhanced_stats(n_intervals, refresh_clicks, processed_data, enhanced_metrics):
+        def update_enhanced_stats(enhanced_metrics, n_intervals, refresh_clicks):
             """Update enhanced statistics display"""
             try:
                 if enhanced_metrics:
