@@ -17,8 +17,8 @@ source venv/bin/activate
 2. Install the required packages. Use the production requirements for normal use or the development list for contributing and running tests:
 
 ```bash
-pip install -r requirements-prod.txt  # Production
-pip install -r requirements-dev.txt   # Development
+pip install -r requirements.txt  # Production
+pip install -r requirements.txt   # Development
 ```
 
 ## Steps to Implement
@@ -124,12 +124,12 @@ ui/
 Install the development requirements before running the test suite:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 pytest
 ```
 
 The tests rely on packages such as `pandas` which are included in
-`requirements-dev.txt`.
+`requirements.txt`.
 
 ## Next Phase Preview
 

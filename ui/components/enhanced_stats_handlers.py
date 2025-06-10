@@ -36,8 +36,7 @@ class EnhancedStatsHandlers:
                 Output('events-trend-indicator', 'children'),
                 Output('events-trend-indicator', 'style'),
                 Output('avg-events-per-day', 'children'),
-                Output('enhanced-stats-data-store', 'data'),
-            ],
+                Output('enhanced-stats-data-store', 'data', allow_duplicate=True),            ],
             [
                 Input('enhanced-metrics-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
@@ -58,7 +57,7 @@ class EnhancedStatsHandlers:
                     trend_style = {
                         'color': COLORS['success'],
                         'fontSize': '1.2rem',
-                        'fontWeight': TYPOGRAPHY['font_bold']
+                        'fontWeight': 'bold'
                     }
                     
                     return (
@@ -84,7 +83,7 @@ class EnhancedStatsHandlers:
                 Output('unique-users-today', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -112,7 +111,7 @@ class EnhancedStatsHandlers:
                 Output('enhanced-most-active-devices-table-body', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -157,7 +156,7 @@ class EnhancedStatsHandlers:
                 Output('weekend-vs-weekday', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -186,7 +185,7 @@ class EnhancedStatsHandlers:
                 Output('security-compliance-score', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True

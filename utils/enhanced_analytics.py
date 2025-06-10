@@ -610,6 +610,8 @@ class EnhancedAnomalyDetector:
             })
         
         return anomalies
+
+
     
     def _detect_statistical_anomalies(self, stats_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Detect statistical anomalies"""
@@ -750,6 +752,43 @@ class EnhancedAnomalyDetector:
         return anomalies
 
 
+class EnhancedAnalyticsProcessor:
+    """High level processor combining various analytics pipelines."""
+
+    def __init__(self):
+        self._processor = EnhancedDataProcessor()
+
+    def process_basic_metrics(self, df: pd.DataFrame) -> Dict[str, Any]:
+
+    def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+    # ... existing debug code ...
+    
+         # ADD THIS DEBUG AT THE TOP:
+        print(f"🔍 ANALYTICS PROCESSOR - DataFrame columns: {list(df.columns)}")
+        print(f"🔍 Looking for timestamp column: 'Timestamp (Event Time)' - Found: {'Timestamp (Event Time)' in df.columns}")
+        print(f"🔍 Looking for user column: 'UserID (Person Identifier)' - Found: {'UserID (Person Identifier)' in df.columns}")
+        print(f"🔍 Looking for device column: 'DoorID (Device Name)' - Found: {'DoorID (Device Name)' in df.columns}")
+        print(f"🔍 Looking for access column: 'Access Result' - Found: {'Access Result' in df.columns}")
+        # END DEBUG
+    
+    # ... rest of function ...
+        
+        """Return core temporal metrics from the data."""
+        return self._processor.process_temporal_patterns(df)
+
+    def process_user_behavior(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Return user behaviour analytics."""
+        return self._processor.process_user_behavior(df)
+
+    def process_device_analytics(self, df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+        """Return device related analytics."""
+        return self._processor.process_device_analytics(df, device_attrs)
+
+    def process_security_metrics(self, df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+        """Return security oriented analytics."""
+        return self._processor.process_security_analytics(device_attrs, df)
+
+
 # Factory functions
 def create_enhanced_data_processor():
     """Create enhanced data processor instance"""
@@ -762,6 +801,10 @@ def create_enhanced_export_manager():
 def create_enhanced_anomaly_detector():
     """Create enhanced anomaly detector instance"""
     return EnhancedAnomalyDetector()
+
+def create_enhanced_analytics_processor():
+    """Create enhanced analytics processor instance"""
+    return EnhancedAnalyticsProcessor()
 
 
 # Utility functions

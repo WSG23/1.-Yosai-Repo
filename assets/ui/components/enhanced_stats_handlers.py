@@ -36,13 +36,13 @@ class EnhancedStatsHandlers:
                 Output('events-trend-indicator', 'children'),
                 Output('events-trend-indicator', 'style'),
                 Output('avg-events-per-day', 'children'),
-                Output('enhanced-stats-data-store', 'data'),
             ],
             [
                 Input('enhanced-metrics-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
                 Input('refresh-stats-btn', 'n_clicks'),
             ],
+
             prevent_initial_call=True
         )
         def update_enhanced_stats(enhanced_metrics, n_intervals, refresh_clicks):
@@ -84,7 +84,7 @@ class EnhancedStatsHandlers:
                 Output('unique-users-today', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -112,7 +112,7 @@ class EnhancedStatsHandlers:
                 Output('enhanced-most-active-devices-table-body', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -157,7 +157,7 @@ class EnhancedStatsHandlers:
                 Output('weekend-vs-weekday', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
@@ -186,7 +186,7 @@ class EnhancedStatsHandlers:
                 Output('security-compliance-score', 'children'),
             ],
             [
-                Input('enhanced-metrics-store', 'data'),
+                Input('enhanced-stats-data-store', 'data'),
                 Input('stats-refresh-interval', 'n_intervals'),
             ],
             prevent_initial_call=True
