@@ -1143,7 +1143,15 @@ print(
 
 # Register core handler callbacks
 if create_upload_handlers:
-    upload_component = create_enhanced_upload_component() if create_enhanced_upload_component else None
+    upload_component = (
+        create_enhanced_upload_component(
+            ICON_UPLOAD_DEFAULT,
+            ICON_UPLOAD_SUCCESS,
+            ICON_UPLOAD_FAIL,
+        )
+        if create_enhanced_upload_component
+        else None
+    )
     upload_handlers = create_upload_handlers(
         app,
         upload_component,
