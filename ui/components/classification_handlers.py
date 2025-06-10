@@ -86,8 +86,8 @@ class ClassificationHandlers:
     def _register_floor_slider_display_handler(self):
         """Update floor display when slider value changes - FIXED with allow_duplicate"""
         @self.app.callback(
-            Output("num-floors-display", "children", allow_duplicate=True),
-            Input("num-floors-input", "value"),
+            Output("floor-slider-value", "children", allow_duplicate=True),
+            Input("floor-slider", "value"),
             prevent_initial_call='initial_duplicate'  # FIXED: Use 'initial_duplicate' with allow_duplicate
         )
         def update_floor_display(value):
@@ -107,7 +107,7 @@ class ClassificationHandlers:
             Output('door-classification-table', 'children', allow_duplicate=True),
             [
                 Input('manual-map-toggle', 'value'),
-                Input('num-floors-input', 'value'),
+                Input('floor-slider', 'value'),
                 Input('all-doors-from-csv-store', 'data')  # Listen to door data changes
             ],
             [

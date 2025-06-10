@@ -242,7 +242,7 @@ def create_facility_setup():
                 }
             ),
             dcc.Slider(
-                id="num-floors-input",
+                id="floor-slider",
                 min=1,
                 max=20,
                 step=1,
@@ -251,7 +251,7 @@ def create_facility_setup():
                 tooltip={"always_visible": False, "placement": "bottom"}
             ),
             html.Div(
-                id="num-floors-display",
+                id="floor-slider-value",
                 children="4 floors",
                 style={
                     "fontSize": "0.9rem",

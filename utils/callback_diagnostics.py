@@ -18,7 +18,7 @@ def find_callback_registrations():
     callback_patterns = [
         r'@app\.callback',
         r'@.*\.callback',
-        r'num-floors-display',
+        r'floor-slider-value',
         r'num-floors-store',
         r'Output.*num-floors',
         r'Input.*num-floors',
