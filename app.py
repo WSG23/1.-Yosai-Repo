@@ -369,16 +369,62 @@ def _create_fallback_enhanced_header():
         ],
     )
 
-def _create_fallback_advanced_panels():
-    """Create fallback advanced analytics panels container"""
+# Add this function to app.py - Create proper advanced analytics container
+
+def _create_advanced_analytics_container():
+    """Create advanced analytics panels container with all required elements"""
+    from ui.themes.style_config import COLORS
+    
+    panel_style = {
+        'backgroundColor': COLORS['surface'],
+        'padding': '20px',
+        'borderRadius': '8px',
+        'border': f"1px solid {COLORS['border']}",
+        'minWidth': '250px',
+        'flex': '1'
+    }
+    
     return html.Div(
         id="advanced-analytics-panels-container",
         style={"display": "none"},
         children=[
-            html.Div("Advanced metrics will appear here", style={"flex": "1"}),
-            html.Div("Charts will appear here", style={"flex": "1"}),
-            html.Div("Additional insights", style={"flex": "1"}),
-        ],
+            # Peak Activity Panel - COMPLETE with all elements
+            html.Div([
+                html.H3("Peak Activity", style={'color': COLORS['text_primary']}),
+                html.P(id="peak-hour-display", children="Peak Hour: Loading...", 
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="peak-day-display", children="Peak Day: Loading...", 
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="busiest-floor", children="Busiest Floor: Loading...", 
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="entry-exit-ratio", children="Entry/Exit: Loading...", 
+                       style={'color': COLORS['text_secondary']}),  # FIXED: Added this
+                html.P(id="weekend-vs-weekday", children="Weekend vs Weekday: Loading...", 
+                       style={'color': COLORS['text_secondary']})  # FIXED: Added this
+            ], style=panel_style),
+            
+            # Security Overview Panel 
+            html.Div([
+                html.H3("Security Overview", style={'color': COLORS['text_primary']}),
+                html.Div(id="security-level-breakdown", children="Security analysis loading...",
+                        style={'color': COLORS['text_secondary']}),
+                html.P(id="security-compliance-score", children="Compliance: Loading...",
+                       style={'color': COLORS['text_secondary']})
+            ], style=panel_style),
+            
+            # Additional Analytics Panel
+            html.Div([
+                html.H3("Analytics Insights", style={'color': COLORS['text_primary']}),
+                html.P(id="traffic-pattern-insight", children="Pattern: Loading...",
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="security-score-insight", children="Score: Loading...",
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="anomaly-insight", children="Alerts: Loading...",
+                       style={'color': COLORS['text_secondary']}),
+                html.P(id="efficiency-insight", children="Efficiency: Loading...",
+                       style={'color': COLORS['text_secondary']})
+            ], style=panel_style)
+        ]
     )
 
 def _create_fallback_graph_container():
@@ -511,7 +557,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
     else:
         enhanced_stats_layout = [
             _create_fallback_enhanced_header(),
-            _create_fallback_advanced_panels(),
+            _create_advanced_analytics_container(),
         ]
 
     return html.Div(
@@ -1005,7 +1051,7 @@ def _add_missing_elements_to_existing_layout(
         required_elements = {
             "enhanced-stats-header": _create_fallback_enhanced_header(),
             "stats-panels-container": _create_fallback_stats_container(),
-            "advanced-analytics-panels-container": _create_fallback_advanced_panels(),
+            "advanced-analytics-panels-container": _create_advanced_analytics_container(),
             "analytics-section": _create_fallback_analytics_section(),
             "charts-section": _create_fallback_charts_section(),
             "export-section": _create_fallback_export_section(),
@@ -1055,6 +1101,11 @@ current_layout = create_fixed_layout_with_required_elements(
     app, MAIN_LOGO_PATH, ICON_UPLOAD_DEFAULT
 )
 
+# EMERGENCY FIX: Add missing elements directly to layout
+missing_elements = [
+    html.P(id="entry-exit-ratio", children="Entry/Exit: N/A", style={"display": "none"}),
+    html.P(id="weekend-vs-weekday", children="Weekend vs Weekday: N/A", style={"display": "none"})
+]
 # Add required data stores
 app.layout = html.Div([
     # Required data stores
@@ -1071,7 +1122,7 @@ app.layout = html.Div([
     dcc.Store(id='chart-data-store'),
     
     # Your existing layout
-    current_layout
+    current_layout,
 ])
 
 print(
@@ -1432,7 +1483,7 @@ def update_debug_info(metrics_data: Any, processed_data: Any) -> Tuple[str, str,
 @app.callback(
     [
         Output("core-row-with-sidebar", "children"),
-        Output("advanced_analytics-panels-container", "children"),
+        Output("advanced-analytics-panels-container", "children"),
     ],
     Input("enhanced-stats-data-store", "data"),
     prevent_initial_call=True,
