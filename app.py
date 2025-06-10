@@ -1161,7 +1161,6 @@ if create_upload_handlers:
             "fail": ICON_UPLOAD_FAIL,
         },
     )
-    upload_handlers.register_callbacks()
 
 if create_mapping_handlers:
     mapping_handlers = create_mapping_handlers(app)
