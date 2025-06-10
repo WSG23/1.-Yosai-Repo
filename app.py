@@ -1202,14 +1202,14 @@ register_enhanced_callbacks_once(app)
 # FIXED: Upload callback with no duplicate exception handling
 @app.callback(
     [
-        Output("uploaded-file-store", "data"),
-        Output("csv-headers-store", "data"),
-        Output("processing-status", "children"),
-        Output("all-doors-from-csv-store", "data"),
-        Output("interactive-setup-container", "style"),
-        Output("upload-data", "style"),
-        Output("processed-data-store", "data"),
-        Output("upload-icon", "src"),
+        Output("uploaded-file-store", "data", allow_duplicate=True),
+        Output("csv-headers-store", "data", allow_duplicate=True),
+        Output("processing-status", "children", allow_duplicate=True),
+        Output("all-doors-from-csv-store", "data", allow_duplicate=True),
+        Output("interactive-setup-container", "style", allow_duplicate=True),
+        Output("upload-data", "style", allow_duplicate=True),
+        Output("processed-data-store", "data", allow_duplicate=True),
+        Output("upload-icon", "src", allow_duplicate=True),
     ],
     Input("upload-data", "contents"),
     State("upload-data", "filename"),
