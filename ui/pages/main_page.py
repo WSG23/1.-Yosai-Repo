@@ -399,28 +399,34 @@ def create_stats_panels():
             html.Div([
                 html.H3("Access Events", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
                 html.H1(id="total-access-events-H1", style={'color': COLORS['accent'], 'margin': f"{SPACING['sm']} 0"}),
-                html.P(id="event-date-range-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.9rem'})
+                html.P(id="event-date-range-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.9rem'}),
+                html.Table([html.Tbody(id='most-active-devices-table-body')])
             ], style=panel_style),
 
-            # Statistics Panel
+            # User Analytics Panel
             html.Div([
-                html.H3("Summary", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
-                html.P(id="stats-date-range-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.8rem'}),
-                html.P(id="stats-days-with-data-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.8rem'}),
-                html.P(id="stats-num-devices-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.8rem'}),
-                html.P(id="stats-unique-tokens-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.8rem'})
+                html.H3("User Analytics", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
+                html.P(id="stats-unique-users", style={'color': COLORS['text_secondary']}),
+                html.P(id="stats-avg-events-per-user", style={'color': COLORS['text_secondary']}),
+                html.P(id="stats-most-active-user", style={'color': COLORS['text_secondary']}),
+                html.P(id="stats-devices-per-user", style={'color': COLORS['text_secondary']}),
+                html.P(id="stats-peak-hour", style={'color': COLORS['text_secondary']}),
+                html.P(id="total-devices-count", style={'color': COLORS['text_secondary']}),
+                html.P(id="entrance-devices-count", style={'color': COLORS['text_secondary']}),
+                html.P(id="high-security-devices", style={'color': COLORS['text_secondary']})
             ], style=panel_style),
 
-            # Active Devices Panel
+            # Activity & Security Panel
             html.Div([
-                html.H3("Top Devices", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
-                html.Table([
-                    html.Thead(html.Tr([
-                        html.Th("Device", style={'color': COLORS['text_primary'], 'fontSize': '0.8rem'}),
-                        html.Th("Events", style={'color': COLORS['text_primary'], 'fontSize': '0.8rem'})
-                    ])),
-                    html.Tbody(id='most-active-devices-table-body')
-                ], style={'width': '100%', 'fontSize': '0.8rem'})
+                html.H3("Activity & Security", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
+                html.P(id="peak-hour-display", style={'color': COLORS['text_secondary']}),
+                html.P(id="peak-day-display", style={'color': COLORS['text_secondary']}),
+                html.P(id="busiest-floor", style={'color': COLORS['text_secondary']}),
+                html.P(id="entry-exit-ratio", style={'color': COLORS['text_secondary']}),
+                html.P(id="weekend-vs-weekday", style={'color': COLORS['text_secondary']}),
+                html.Div(id="security-level-breakdown", style={'color': COLORS['text_secondary']}),
+                html.P(id="compliance-score", style={'color': COLORS['text_secondary']}),
+                html.P(id="anomaly-alerts", style={'color': COLORS['text_secondary']})
             ], style=panel_style)
         ]
     )
