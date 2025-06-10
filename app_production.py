@@ -23,7 +23,9 @@ from ui.components.mapping_handlers import create_mapping_handlers
 from ui.components.classification_handlers import create_classification_handlers
 
 # Import layout
-from ui.pages.main_page import create_main_layout
+# Use the complete fixed layout from the development app so
+# production includes the enhanced statistics components
+from app import create_fixed_layout_with_required_elements, register_enhanced_callbacks_once
 
 # Logging setup
 from utils.logging_config import setup_application_logging, get_logger
@@ -51,12 +53,17 @@ def create_production_app():
     ICON_UPLOAD_FAIL = app.get_asset_url('upload_file_csv_icon_fail.png')
     MAIN_LOGO_PATH = app.get_asset_url('logo_white.png')
     
-    # Create main layout
-    app.layout = create_main_layout(
-        app_instance=app,
-        main_logo_path=MAIN_LOGO_PATH,
-        icon_upload_default=ICON_UPLOAD_DEFAULT
+
+    # Build the same fixed layout used in development so all
+    # enhanced statistics elements are present
+    app.layout = create_fixed_layout_with_required_elements(
+        app,
+        MAIN_LOGO_PATH,
+        ICON_UPLOAD_DEFAULT
     )
+
+    # Register enhanced callbacks for stats and other components
+    register_enhanced_callbacks_once(app)
     
     # Placeholder for registering callbacks using handler factories
     logger.info("✅ Production app created successfully")
