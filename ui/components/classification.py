@@ -132,7 +132,7 @@ class ClassificationComponent:
                 children=[
                     # Your existing slider code
                     dcc.Slider(
-                        id="num-floors-input",
+                        id="floor-slider",
                         min=0,
                         max=100,
                         step=5,
@@ -145,7 +145,7 @@ class ClassificationComponent:
                     
                     # Enhanced live display
                     html.Div(
-                        id="num-floors-display",
+                        id="floor-slider-value",
                         children="4 floors",
                         style={
                             "fontSize": TYPOGRAPHY['text_lg'],
