@@ -8,7 +8,7 @@ import json
 import traceback
 from dash import Input, Output, State, html
 
-from ui.themes.style_config import UPLOAD_STYLES, get_interactive_setup_style
+from ui.themes.style_config import UPLOAD_STYLES, get_interactive_setup_style, COLORS
 from ui.themes.graph_styles import upload_icon_img_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
 
