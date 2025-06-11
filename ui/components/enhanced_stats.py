@@ -1018,9 +1018,57 @@ class EnhancedStatsComponent:
             yaxis_title="Device ID",
             **self.chart_theme["layout"],
         )
-        
+
         return fig
-    
+
+    def create_activity_heatmap(self, df):
+        """Creates day/hour activity heatmap"""
+        if df is None or df.empty:
+            return self._create_empty_chart("No data for heatmap")
+
+        timestamp_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
+        if timestamp_col not in df.columns:
+            return self._create_empty_chart("Timestamp data not available")
+
+        df_copy = df.copy()
+        df_copy["Hour"] = df_copy[timestamp_col].dt.hour
+        df_copy["DayOfWeek"] = df_copy[timestamp_col].dt.day_name()
+
+        heatmap_data = (
+            df_copy.groupby(["DayOfWeek", "Hour"]).size().unstack(fill_value=0)
+        )
+        days_order = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
+        heatmap_data = heatmap_data.reindex(days_order)
+
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=heatmap_data.values,
+                x=list(range(24)),
+                y=days_order,
+                colorscale="Blues",
+                text=heatmap_data.values,
+                texttemplate="%{text}",
+                textfont={"size": 10},
+            )
+        )
+
+        fig.update_layout(
+            title="Activity Heatmap (Day vs Hour)",
+            xaxis_title="Hour of Day",
+            yaxis_title="Day of Week",
+            **self.chart_theme["layout"],
+        )
+
+        return fig
+
     def _create_empty_chart(self, message):
         """Creates an empty chart with a message"""
         fig = go.Figure()
