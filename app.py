@@ -1132,33 +1132,13 @@ def register_all_callbacks_safely(app):
     try:
         print("🔄 Registering callbacks...")
 
-        from ui.components.upload_handlers import UploadHandlers
+        from ui.orchestrator import main_data_orchestrator  # noqa: F401
+        from ui.orchestrator import update_graph_elements  # noqa: F401
+        from ui.orchestrator import update_container_visibility  # noqa: F401
+        from ui.orchestrator import update_status_display  # noqa: F401
         from ui.components.mapping_handlers import MappingHandlers
         from ui.components.classification_handlers import ClassificationHandlers
 
-        # Instantiate the upload component for handlers
-        upload_component = None
-        if 'create_enhanced_upload_component' in globals() and create_enhanced_upload_component:
-            upload_component = create_enhanced_upload_component(
-                ICON_UPLOAD_DEFAULT,
-                ICON_UPLOAD_SUCCESS,
-                ICON_UPLOAD_FAIL,
-            )
-
-        icon_paths = {
-            'default': ICON_UPLOAD_DEFAULT,
-            'success': ICON_UPLOAD_SUCCESS,
-            'fail': ICON_UPLOAD_FAIL,
-        }
-
-        upload_handlers = UploadHandlers(
-            app,
-            upload_component,
-            icon_paths,
-            max_file_size=FILE_LIMITS['max_file_size'],
-        )
-        upload_handlers.register_callbacks()
-        print("   ✅ Upload callbacks registered")
 
         mapping_handlers = MappingHandlers(app)
         mapping_handlers.register_callbacks()
@@ -1788,147 +1768,6 @@ def display_node_data(data: Optional[Dict[str, Any]]) -> str:
     except Exception as e:
         return f"Node information unavailable: {str(e)}"
 
-# Main graph generation callback (from Complete Graph Fix)
-@app.callback(
-    [
-        Output("onion-graph", "elements", allow_duplicate=True),
-        Output("graph-output-container", "style", allow_duplicate=True),
-        Output("status-message-store", "data", allow_duplicate=True),
-    ],
-    Input("confirm-and-generate-button", "n_clicks"),
-    [
-        State("processed-data-store", "data"),
-        State("column-mapping-store", "data"),
-        State("manual-door-classifications-store", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def generate_graph_from_data(
-    n_clicks: Optional[int],
-    processed_data: Any,
-    mappings: Any,
-    classifications: Any,
-) -> Tuple[list[dict], dict, str]:
-    """Generate graph elements from processed data"""
-
-    if not n_clicks or not processed_data:
-        raise dash.exceptions.PreventUpdate
-
-    try:
-        df = pd.DataFrame(processed_data.get("dataframe", []))
-        if df.empty:
-            return [], {"display": "none"}, "No data to generate graph"
-
-        door_col = "DoorID (Device Name)"
-        ts_col = "Timestamp (Event Time)"
-        if isinstance(mappings, dict):
-            header_key = json.dumps(sorted(processed_data.get("columns", [])))
-            mapping = mappings.get(header_key, {})
-            for csv_col, internal in mapping.items():
-                if internal == "DoorID":
-                    door_col = csv_col
-                elif internal == "Timestamp":
-                    ts_col = csv_col
-
-        if ts_col in df.columns:
-            df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
-            df.sort_values(ts_col, inplace=True)
-
-        doors = df[door_col].astype(str).tolist() if door_col in df.columns else []
-
-        nodes = []
-        class_dict = classifications or {}
-        if isinstance(class_dict, str):
-            class_dict = json.loads(class_dict)
-
-        for door in df[door_col].astype(str).unique() if door_col in df.columns else []:
-            data_dict = {"id": door, "label": door}
-            if door in class_dict:
-                c = class_dict[door]
-                data_dict.update(
-                    {
-                        "floor": c.get("floor"),
-                        "security_level": c.get("security_level"),
-                    }
-                )
-                if c.get("is_ee"):
-                    data_dict["is_entrance"] = True
-                if c.get("is_stair"):
-                    data_dict["is_stair"] = True
-            nodes.append({"data": data_dict})
-
-        edges = []
-        prev = None
-        for door in doors:
-            if prev is not None and prev != door:
-                edge_id = f"{prev}->{door}"
-                edges.append({"data": {"id": edge_id, "source": prev, "target": door}})
-            prev = door
-
-        unique_edges = {e["data"]["id"]: e for e in edges}
-        elements = nodes + list(unique_edges.values())
-        return elements, {"display": "block"}, "Analysis complete"
-    except Exception:
-        return [], {"display": "none"}, "Failed to generate graph"
-
-print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
-print("✅ All type safety fixes applied successfully!")
-
-
-@app.callback(
-    [
-        Output('onion-graph', 'elements'),
-        Output('graph-output-container', 'style'),
-        Output('processing-status', 'children', allow_duplicate=True)
-    ],
-    Input('confirm-and-generate-button', 'n_clicks'),
-    [
-        State('processed-data-store', 'data'),
-        State('manual-door-classifications-store', 'data'),
-        State('all-doors-from-csv-store', 'data'),
-        State('column-mapping-store', 'data')
-    ],
-    prevent_initial_call=True
-)
-def generate_onion_graph(n_clicks, processed_data, classifications, doors_data, column_mapping):
-    """Convert processed data to onion graph visualization"""
-    if not n_clicks:
-        return [], {'display': 'none'}, "Click generate to create graph"
-
-    if not doors_data:
-        return [], {'display': 'none'}, "❌ No door data available"
-
-    try:
-        print(f"🎯 GENERATING GRAPH: {len(doors_data)} doors")
-
-        elements = build_onion_security_model(
-            doors_data=doors_data,
-            classifications=classifications or {},
-            processed_data=processed_data
-        )
-
-        show_style = {
-            'display': 'block',
-            'margin': '20px auto',
-            'padding': '20px',
-            'backgroundColor': COLORS.get('surface', '#ffffff'),
-            'borderRadius': '12px',
-            'border': f"1px solid {COLORS.get('border', '#e0e0e0')}"
-        }
-
-        node_count = len([e for e in elements if 'source' not in e.get('data', {})])
-        edge_count = len([e for e in elements if 'source' in e.get('data', {})])
-
-        status = f"✅ Onion Model: {node_count} nodes, {edge_count} connections"
-
-        return elements, show_style, status
-
-    except Exception as e:
-        error_msg = f"❌ Graph generation failed: {str(e)}"
-        print(error_msg)
-        import traceback
-        traceback.print_exc()
-        return [], {'display': 'none'}, error_msg
 
 
 def build_onion_security_model(doors_data: List[str], classifications: Dict[str, Any], processed_data: Any = None) -> List[Dict]:
