@@ -145,6 +145,7 @@ try:
     print(">> Enhanced stats component imported and instantiated")
 except ImportError as e:
     print(f"!! Enhanced stats component not available: {e}")
+    create_enhanced_stats_component = None
     component_instances["enhanced_stats"] = None
 
 # Upload component
@@ -1677,7 +1678,7 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
     import pandas as pd
 
     stats_component = component_instances.get("enhanced_stats")
-    if not stats_component:
+    if not stats_component and create_enhanced_stats_component:
         stats_component = create_enhanced_stats_component()
 
     df = pd.DataFrame()
