@@ -11,21 +11,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import dash_bootstrap_components as dbc
 
 # Import configuration
-from config.settings import get_settings
-from config.app_config import get_config
-
-# Import UI components and handlers
-from ui.components.upload import create_enhanced_upload_component
-from ui.components.mapping import create_mapping_component
-from ui.components.classification import create_classification_component
-from ui.components.upload_handlers import create_upload_handlers
-from ui.components.mapping_handlers import create_mapping_handlers
-from ui.components.classification_handlers import create_classification_handlers
+from config.settings import get_config
 
 # Import layout
 # Use the complete fixed layout from the development app so
 # production includes the enhanced statistics components
-from app import create_fixed_layout_with_required_elements, register_enhanced_callbacks_once
+from app import (
+    create_fixed_layout_with_required_elements,
+    register_enhanced_callbacks_once,
+)
 
 # Logging setup
 from utils.logging_config import setup_application_logging, get_logger
