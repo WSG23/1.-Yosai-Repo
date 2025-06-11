@@ -51,10 +51,10 @@ class UploadHandlers:
                 Output('upload-data', 'style'),
                 Output('entrance-verification-ui-section', 'style', allow_duplicate=True),
                 Output('door-classification-table-container', 'style', allow_duplicate=True),
-                Output('graph-output-container', 'style'),
+                Output('graph-output-container', 'style', allow_duplicate=True),
                 Output('stats-panels-container', 'style', allow_duplicate=True),
                 Output('yosai-custom-header', 'style', allow_duplicate=True),
-                Output('onion-graph', 'elements'),
+                Output('onion-graph', 'elements', allow_duplicate=True),
                 Output('all-doors-from-csv-store', 'data'),
                 Output('upload-icon', 'style'),
                 Output('processed-data-store', 'data')
