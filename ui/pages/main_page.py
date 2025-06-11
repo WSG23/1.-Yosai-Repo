@@ -441,4 +441,7 @@ def create_data_stores():
         dcc.Store(id='all-doors-from-csv-store'),
         dcc.Store(id='manual-door-classifications-store', storage_type='local'),
         dcc.Store(id='num-floors-store', data=1),
+        # Store for processing status messages so a single callback can
+        # update the visible status component
+        dcc.Store(id='status-message-store'),
     ])

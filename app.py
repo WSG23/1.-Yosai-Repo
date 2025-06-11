@@ -1315,7 +1315,7 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
 # FIXED: Enhanced stats store callback with complete validation
 @app.callback(
     Output('enhanced-stats-data-store', 'data'),
-    Input('processing-status', 'children'),
+    Input('status-message-store', 'data'),
     State('processed-data-store', 'data'),
     State('manual-door-classifications-store', 'data'),
     prevent_initial_call=True
@@ -1376,13 +1376,23 @@ def update_enhanced_stats_store(status_message: Any, processed_data: Any, device
         traceback.print_exc()
         return {}
 
+# Single callback to update the visible processing status message
+@app.callback(
+    Output('processing-status', 'children'),
+    Input('status-message-store', 'data'),
+    prevent_initial_call=True
+)
+def display_status_message(message: Any) -> Any:
+    """Display the latest processing status message."""
+    return message
+
 # Main analysis callback - MODIFIED to avoid conflicts
 @app.callback(
     [
         # Only handle visibility and status - let enhanced stats handlers manage the data
         Output("yosai-custom-header", "style", allow_duplicate=True),
         Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("processing-status", "children", allow_duplicate=True),
+        Output("status-message-store", "data"),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
     [

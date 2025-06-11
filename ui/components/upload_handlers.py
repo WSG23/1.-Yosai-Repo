@@ -45,7 +45,8 @@ class UploadHandlers:
                 Output('confirm-header-map-button', 'style', allow_duplicate=True),
                 Output('mapping-ui-section', 'style', allow_duplicate=True),
                 Output('interactive-setup-container', 'style'),
-                Output('processing-status', 'children', allow_duplicate=True),
+                # Store status messages in a single location
+                Output('status-message-store', 'data'),
                 Output('upload-icon', 'src'),
                 Output('upload-data', 'style'),
                 Output('entrance-verification-ui-section', 'style', allow_duplicate=True),
@@ -211,7 +212,7 @@ class UploadHandlers:
             confirm_button_style_hidden,  # confirm button style
             hide_style,  # mapping-ui-section style (hidden)
             hide_style,  # interactive setup container
-            "",  # processing status
+            "",  # status message store
             self.icons['default'],  # upload icon src
             upload_styles['initial'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers
@@ -244,7 +245,7 @@ class UploadHandlers:
                 'margin': '20px auto',
             },  # mapping-ui-section style
             show_interactive_setup_style,  # interactive setup container
-            processing_status_msg,  # processing status
+            processing_status_msg,  # status message store
             self.icons['success'],  # upload icon src
             upload_styles['success'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers
@@ -272,7 +273,7 @@ class UploadHandlers:
             confirm_button_style_hidden,  # confirm button style
             hide_style,  # mapping-ui-section style (hidden)
             show_interactive_setup_style,  # interactive setup container
-            processing_status_msg,  # processing status
+            processing_status_msg,  # status message store
             self.icons['fail'],  # upload icon src
             upload_styles['error'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers

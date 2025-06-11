@@ -36,7 +36,8 @@ class MappingHandlers:
                 Output('mapping-ui-section', 'style', allow_duplicate=True),  
                 Output('entrance-verification-ui-section', 'style', allow_duplicate=True),  # Only show/hide the section
                 Output('column-mapping-store', 'data', allow_duplicate=True),  # Save updated mappings
-                Output('processing-status', 'children', allow_duplicate=True),  # Add this
+                # Update status via shared store
+                Output('status-message-store', 'data'),
                 Output('confirm-header-map-button', 'style', allow_duplicate=True),  # Add this
  
                 # REMOVED: Output('door-classification-table-container', 'style')  ← This was causing conflict
