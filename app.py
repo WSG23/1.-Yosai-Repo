@@ -811,7 +811,11 @@ html.Div(
                         html.P(id="stats-unique-users", children="0 users"),
                         html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
                         html.P(id="stats-most-active-user", children="No data"),
+                        html.P(id="stats-devices-per-user", children="Avg: 0 users/device"),
+                        html.P(id="stats-peak-hour", children="Peak: N/A"),
                         html.P(id="total-devices-count", children="0 devices"),
+                        html.P(id="entrance-devices-count", children="0 entrances"),
+                        html.P(id="high-security-devices", children="0 high security"),
                     ]
                 ),
                 
