@@ -1115,67 +1115,55 @@ print(
     ">> COMPLETE FIXED layout created successfully with all required callback elements"
 )
 
-# Register core handler callbacks
-if create_upload_handlers:
-    upload_component = (
-        create_enhanced_upload_component(
-            ICON_UPLOAD_DEFAULT,
-            ICON_UPLOAD_SUCCESS,
-            ICON_UPLOAD_FAIL,
-        )
-        if create_enhanced_upload_component
-        else None
-    )
-    upload_handlers = create_upload_handlers(
-        app,
-        upload_component,
-        {
-            "default": ICON_UPLOAD_DEFAULT,
-            "success": ICON_UPLOAD_SUCCESS,
-            "fail": ICON_UPLOAD_FAIL,
-        },
-        secure=True,
-        max_file_size=FILE_LIMITS["max_file_size"],
-    )
-    upload_handlers.register_callbacks()
-
-if create_mapping_handlers:
-    mapping_handlers = create_mapping_handlers(app)
-    mapping_handlers.register_callbacks()
-
-if create_classification_handlers:
-    classification_handlers = create_classification_handlers(app)
-    classification_handlers.register_callbacks()
-
-if create_graph_handlers:
-    graph_handlers = create_graph_handlers(app)
-    graph_handlers.register_callbacks()
-
 # ============================================================================
-# ENHANCED STATISTICS SETUP
+# SAFE CALLBACK REGISTRATION
 # ============================================================================
 
-# Ensure callbacks register only once even if app is reloaded
 CALLBACKS_REGISTERED = False
 
-def register_enhanced_callbacks_once(app):
-    """Register enhanced callbacks only once to avoid duplicates."""
+def register_all_callbacks_safely(app):
+    """Register callbacks with conflict prevention"""
     global CALLBACKS_REGISTERED
+
     if CALLBACKS_REGISTERED:
-        print("Callbacks already registered - skipping")
+        print("✅ Callbacks already registered - skipping duplicate registration")
         return
+
     try:
-        if components_available.get("enhanced_stats"):
+        print("🔄 Registering callbacks...")
+
+        from ui.components.upload_handlers import UploadHandlers
+        from ui.components.mapping_handlers import MappingHandlers
+        from ui.components.classification_handlers import ClassificationHandlers
+
+        upload_handlers = UploadHandlers(app)
+        upload_handlers.register_callbacks()
+        print("   ✅ Upload callbacks registered")
+
+        mapping_handlers = MappingHandlers(app)
+        mapping_handlers.register_callbacks()
+        print("   ✅ Mapping callbacks registered")
+
+        classification_handlers = ClassificationHandlers(app)
+        classification_handlers.register_callbacks()
+        print("   ✅ Classification callbacks registered (includes floor slider)")
+
+        if globals().get('components_available', {}).get("enhanced_stats"):
             from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
             stats_handlers = EnhancedStatsHandlers(app)
             stats_handlers.register_callbacks()
-            CALLBACKS_REGISTERED = True
-            print("Enhanced Stats Handlers registered")
-    except Exception as e:
-        print(f"Could not register handlers: {e}")
+            print("   ✅ Enhanced stats callbacks registered")
 
-# Register the missing callbacks
-register_enhanced_callbacks_once(app)
+        CALLBACKS_REGISTERED = True
+        print("🎉 All callbacks registered successfully - no conflicts!")
+
+    except Exception as e:
+        print(f"❌ Error registering callbacks: {e}")
+        CALLBACKS_REGISTERED = False  # Reset flag on error
+        raise
+
+# Register callbacks safely
+register_all_callbacks_safely(app)
 
 # ============================================================================
 # TYPE-SAFE CALLBACK FUNCTIONS
