@@ -1294,7 +1294,7 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
 # FIXED: Enhanced stats store callback with complete validation
 @app.callback(
     Output('enhanced-stats-data-store', 'data'),
-    Input('status-message-store', 'data'),
+    Input('status-message-store', 'data' allow_duplicate=True),
     State('processed-data-store', 'data'),
     State('manual-door-classifications-store', 'data'),
     prevent_initial_call=True
@@ -1358,7 +1358,7 @@ def update_enhanced_stats_store(status_message: Any, processed_data: Any, device
 # Single callback to update the visible processing status message
 @app.callback(
     Output('processing-status', 'children'),
-    Input('status-message-store', 'data'),
+    Input ('status-message-store', 'data' allow_duplicate=True),
     prevent_initial_call=True
 )
 def display_status_message(message: Any) -> Any:
