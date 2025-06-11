@@ -8,14 +8,15 @@ This repository contains the code for the Yōsai analytics dashboard.  Two entry
 # Development mode (default)
 python run.py
 
+# or explicitly specify the mode
+python run.py --mode dev
 # or
 MODE=dev python run.py
 
 # Production mode
-python run.py prod
-
+python run.py --mode prod
 # or
 MODE=prod python run.py
 ```
 
-The script will start the development server when run in `dev` mode.  When `prod` is specified it uses Waitress to serve the app.
+The script starts the development server by default. When `prod` is used it launches the Waitress production server.
