@@ -4,7 +4,14 @@ Application monitoring and health checks
 """
 
 import time
-import psutil
+
+# Optional psutil import for environments where it isn't installed
+try:
+    import psutil  # type: ignore
+    PSUTIL_AVAILABLE = True
+except ImportError:  # pragma: no cover - psutil may not be installed
+    psutil = None  # type: ignore
+    PSUTIL_AVAILABLE = False
 import threading
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timedelta
@@ -129,23 +136,21 @@ class MetricsCollector:
         self.timers = defaultdict(list)
     
     def collect_system_metrics(self) -> SystemMetrics:
-        """Collect current system metrics"""
+        """Collect current system metrics."""
         try:
-            # CPU usage
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            
-            # Memory usage
-            memory = psutil.virtual_memory()
-            
-            # Disk usage
-            disk = psutil.disk_usage('/')
-            
-            # Process count
-            process_count = len(psutil.pids())
-            
-            # Uptime
+            if PSUTIL_AVAILABLE:
+                cpu_percent = psutil.cpu_percent(interval=0.1)
+                memory = psutil.virtual_memory()
+                disk = psutil.disk_usage('/')
+                process_count = len(psutil.pids())
+            else:  # Fallback values when psutil isn't installed
+                cpu_percent = 0.0
+                memory = type('mem', (), {'percent': 0.0, 'used': 0, 'available': 0})()
+                disk = type('disk', (), {'percent': 0.0, 'free': 0})()
+                process_count = 0
+
             uptime = time.time() - self.start_time
-            
+
             metrics = SystemMetrics(
                 timestamp=datetime.utcnow(),
                 cpu_percent=cpu_percent,
@@ -157,13 +162,13 @@ class MetricsCollector:
                 process_count=process_count,
                 uptime_seconds=uptime
             )
-            
+
             with self.lock:
                 self.metrics_history.append(metrics)
-            
+
             return metrics
-            
-        except Exception as e:
+
+        except Exception as e:  # pragma: no cover - runtime protection
             logger.error(f"Failed to collect system metrics: {str(e)}")
             raise
     
@@ -313,8 +318,17 @@ def setup_default_health_checks():
         )
     
     def memory_health() -> HealthCheckResult:
-        """Check memory usage"""
-        memory = psutil.virtual_memory()
+        """Check memory usage."""
+        if PSUTIL_AVAILABLE:
+            memory = psutil.virtual_memory()
+        else:
+            return HealthCheckResult(
+                name='memory',
+                status='unknown',
+                message='psutil not installed',
+                response_time_ms=0,
+                timestamp=datetime.utcnow(),
+            )
         
         if memory.percent > 90:
             status = 'unhealthy'
@@ -336,8 +350,17 @@ def setup_default_health_checks():
         )
     
     def disk_health() -> HealthCheckResult:
-        """Check disk space"""
-        disk = psutil.disk_usage('/')
+        """Check disk space."""
+        if PSUTIL_AVAILABLE:
+            disk = psutil.disk_usage('/')
+        else:
+            return HealthCheckResult(
+                name='disk',
+                status='unknown',
+                message='psutil not installed',
+                response_time_ms=0,
+                timestamp=datetime.utcnow(),
+            )
         
         if disk.percent > 95:
             status = 'unhealthy'
