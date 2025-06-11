@@ -1,21 +1,15 @@
 # ui/handlers/upload_handlers.py
-"""
-Upload callback handlers - extracted from upload_callbacks.py
-Separated business logic from UI definitions
-"""
+"""Unified upload handlers with optional security features."""
 
 import base64
 import io
 import pandas as pd
 import json
 import traceback
-from dash import Input, Output, State, html, dcc
-
-# Import UI components
-from ui.components.upload import create_upload_component
-from ui.themes.graph_styles import upload_icon_img_style
+from dash import Input, Output, State, html
 
 from ui.themes.style_config import UPLOAD_STYLES, get_interactive_setup_style
+from ui.themes.graph_styles import upload_icon_img_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
 
 
@@ -23,14 +17,14 @@ from utils.logging_config import get_logger
 logger = get_logger(__name__)                 
 
 class UploadHandlers:
-    """Handles all upload-related callbacks and business logic"""
-    
-    def __init__(self, app, upload_component, icon_paths):
+    """Handle upload-related callbacks with optional security checks."""
+
+    def __init__(self, app, upload_component, icon_paths, *, secure: bool = False):
         self.app = app
         self.upload_component = upload_component
-        self.icon_upload_default = icon_paths['default']
-        self.icon_upload_success = icon_paths['success']
-        self.icon_upload_fail = icon_paths['fail']
+        self.icons = icon_paths
+        self.secure = secure
+        logger.info("UploadHandlers initialized (secure=%s)", self.secure)
         
     def register_callbacks(self):
         """Register all upload-related callbacks"""
@@ -68,24 +62,26 @@ class UploadHandlers:
         """Core upload processing logic"""
         # Get styles from upload component
         upload_styles = self.upload_component.get_upload_styles()
-        
+
         # Initial state values
         initial_values = self._get_initial_state_values(upload_styles)
-        
+
         if contents is None:
             return initial_values
-            
+
         try:
+            logger.info("Processing upload: %s", filename)
+
             # Process the uploaded file
             result = self._process_csv_file(contents, filename, saved_col_mappings_json)
-            
+
             if result['success']:
                 return self._create_success_response(result, upload_styles, filename)
             else:
                 return self._create_error_response(result, upload_styles, filename)
-                
+
         except Exception as e:
-            logger.info(f"Error in handle_upload: {e}")
+            logger.error("Upload error for %s: %s", filename, e)
             traceback.print_exc()
             error_result = {'error': str(e), 'success': False}
             return self._create_error_response(error_result, upload_styles, filename)
@@ -95,7 +91,9 @@ class UploadHandlers:
         try:
             # Decode the file
             content_type, content_string = contents.split(',')
-            decoded = base64.b64decode(content_string)# Determine file type and load accordingly
+            decoded = base64.b64decode(content_string)
+            if self.secure and len(decoded) > 5000000:
+                raise ValueError("Uploaded file is too large.")
             # Determine file type and load accordingly
             if filename.lower().endswith('.csv'):
                 df_full_for_doors = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
@@ -175,12 +173,13 @@ class UploadHandlers:
     
     def _create_mapping_dropdowns(self, headers, mapping_result):
         """Create dropdown components for column mapping"""
-        from ui.components.mapping import create_mapping_component
-        
-        mapping_component = create_mapping_component()
-        loaded_col_map_prefs = mapping_result['current_preferences']
-        
-        return mapping_component.create_mapping_dropdowns(headers, loaded_col_map_prefs)
+        try:
+            from ui.components.mapping import create_mapping_component
+            mapping_component = create_mapping_component()
+            loaded_col_map_prefs = mapping_result['current_preferences']
+            return mapping_component.create_mapping_dropdowns(headers, loaded_col_map_prefs)
+        except ImportError:
+            return [html.P("Mapping component not available", style={'color': 'orange'})]
     
     def _get_initial_state_values(self, upload_styles):
         """Get initial state values for all outputs"""
@@ -194,13 +193,13 @@ class UploadHandlers:
             confirm_button_style_hidden,  # confirm button style
             hide_style,  # interactive setup container
             "",  # processing status
-            self.icon_upload_default,  # upload icon src
+            self.icons['default'],  # upload icon src
             upload_styles['initial'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
-            upload_icon_img_style  # upload icon style
+            UPLOAD_STYLES['icon']  # upload icon style
         )
     
     def _create_success_response(self, result, upload_styles, filename):
@@ -218,13 +217,13 @@ class UploadHandlers:
             confirm_button_style_visible,  # confirm button style
             show_interactive_setup_style,  # interactive setup container
             processing_status_msg,  # processing status
-            self.icon_upload_success,  # upload icon src
+            self.icons['success'],  # upload icon src
             upload_styles['success'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers
             hide_style,  # yosai header
             [],  # graph elements
             result['all_unique_doors'],  # all doors store
-            upload_icon_img_style  # upload icon style
+            UPLOAD_STYLES['icon']  # upload icon style
         )
     
     def _create_error_response(self, result, upload_styles, filename):
@@ -243,17 +242,17 @@ class UploadHandlers:
             confirm_button_style_hidden,  # confirm button style
             show_interactive_setup_style,  # interactive setup container
             processing_status_msg,  # processing status
-            self.icon_upload_fail,  # upload icon src
-            upload_styles['fail'],  # upload box style
+            self.icons['fail'],  # upload icon src
+            upload_styles['error'],  # upload box style
             hide_style, hide_style, hide_style, hide_style,  # various containers
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
-            upload_icon_img_style  # upload icon style
+            UPLOAD_STYLES['icon']  # upload icon style
         )
 
 
 # Factory function for easy handler creation
-def create_upload_handlers(app, upload_component, icon_paths):
+def create_upload_handlers(app, upload_component, icon_paths, *, secure: bool = False):
     """Factory function to create upload handlers"""
-    return UploadHandlers(app, upload_component, icon_paths)
+    return UploadHandlers(app, upload_component, icon_paths, secure=secure)
