@@ -41,6 +41,7 @@ class ClassificationHandlers:
             Input("confirm-header-map-button", "n_clicks"),
             State("uploaded-file-store", "data"),
             State("column-mapping-store", "data"),
+            prevent_initial_call='initial_duplicate'
         )
         def handle_confirm_header_mapping(n_clicks, uploaded_data, column_mapping):
             if n_clicks == 0 or uploaded_data is None or column_mapping is None:
