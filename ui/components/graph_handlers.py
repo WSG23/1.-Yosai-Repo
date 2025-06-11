@@ -84,7 +84,7 @@ class GraphHandlers:
             ],
             prevent_initial_call=True,
         )
-        def generate_graph(n_clicks, processed_data, mappings, classifications):
+        def generate_graph_from_data(n_clicks, processed_data, mappings, classifications):
             if not n_clicks or not processed_data:
                 raise PreventUpdate
 
