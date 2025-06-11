@@ -7,8 +7,9 @@ import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional
 import re
 
-from core.exceptions import ValidationError, DataProcessingError
-from utils.validators import CSVValidator, MappingValidator
+from utils.error_handler import ValidationError, DataProcessingError
+from utils.csv_validator import CSVValidator
+from ui.components.mapping import MappingValidator
 from config.settings import REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
 class EnhancedDataValidator:
@@ -61,23 +62,26 @@ class EnhancedDataValidator:
         missing_keys: List[str] = []
         
         try:
-            # Check mapping completeness
-            is_complete, missing_keys = self.mapping_validator.validate_mapping_completeness(mapping)
-            
-            if not is_complete:
-                missing_display_names = [
-                    REQUIRED_INTERNAL_COLUMNS[key] for key in missing_keys
-                ]
-                raise ValidationError(f"Missing required mappings: {', '.join(missing_display_names)}")
-            
-            # Check mapping uniqueness
-            self.mapping_validator.validate_mapping_uniqueness(mapping)
-            
+            validation = self.mapping_validator.validate_mapping(mapping)
+            if not validation.get('is_valid'):
+                missing_keys = validation.get('missing_columns', [])
+                raise ValidationError(validation.get('message', 'Invalid mapping'))
+
+            # Check for duplicate internal mappings
+            values = list(mapping.values())
+            duplicates = [v for v in set(values) if values.count(v) > 1]
+            if duplicates:
+                raise ValidationError(
+                    f"Duplicate internal mappings: {', '.join(duplicates)}"
+                )
+
             # Check that mapped CSV columns exist
             missing_csv_columns = [col for col in mapping.keys() if col not in csv_headers]
             if missing_csv_columns:
-                raise ValidationError(f"Mapped CSV columns not found: {', '.join(missing_csv_columns)}")
-            
+                raise ValidationError(
+                    f"Mapped CSV columns not found: {', '.join(missing_csv_columns)}"
+                )
+
             return {
                 'success': True,
                 'mapping': mapping,
