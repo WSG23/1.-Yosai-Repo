@@ -2,6 +2,16 @@
 """Unified runner for the Yōsai dashboard."""
 import os
 import sys
+from packaging.version import Version
+
+import dash_cytoscape as cyto
+
+# Ensure the correct dash-cytoscape version is installed before importing app
+if Version(cyto.__version__) < Version("0.3.0"):
+    raise RuntimeError(
+        f"dash-cytoscape>=0.3.0 required, found {cyto.__version__}. "
+        "Please run 'pip install -r requirements.txt'"
+    )
 
 MODE = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("MODE", "dev")).lower()
 
