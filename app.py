@@ -1547,8 +1547,9 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             date_range = f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
         
         # Calculate basic metrics
-        total_sessions = len(df)
-        total_unique_users = (
+        total_events = len(df)
+        unique_users = (
+
             df['UserID (Person Identifier)'].nunique()
             if 'UserID (Person Identifier)' in df.columns
             else 0
@@ -1559,7 +1560,8 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             else 'N/A'
         )
         avg_events_per_user = (
-            len(df) / total_unique_users if total_unique_users > 0 else 0
+            total_events / unique_users if unique_users > 0 else 0
+
         )
         total_devices_count = (
             df['DoorID (Device Name)'].nunique()
@@ -1572,7 +1574,8 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
             else 'N/A'
         )
-        busiest_day = (
+        peak_day = (
+
             df['Timestamp (Event Time)'].dt.day_name().mode()[0]
             if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
             else 'N/A'
@@ -1589,18 +1592,65 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             denied = df['Access Result'].str.contains('DENIED|FAILED', case=False, na=False).sum()
             security_score = round(100 - ((denied / len(df)) * 100), 2)
 
+        devices_active_today = 0
+        if (
+            'DoorID (Device Name)' in df.columns
+            and 'Timestamp (Event Time)' in df.columns
+            and not df.empty
+        ):
+            today = datetime.now().date()
+            today_df = df[df['Timestamp (Event Time)'].dt.date == today]
+            devices_active_today = today_df['DoorID (Device Name)'].nunique()
+
+        most_active_devices = []
+        if 'DoorID (Device Name)' in df.columns:
+            most_active_devices = (
+                df['DoorID (Device Name)'].value_counts().head(5).reset_index().values.tolist()
+            )
+
+        entry_exit_ratio = 'N/A'
+        if 'EventType (Access Result)' in df.columns:
+            entries = df['EventType (Access Result)'].str.contains('entry', case=False, na=False).sum()
+            exits = df['EventType (Access Result)'].str.contains('exit', case=False, na=False).sum()
+            total_dir = entries + exits
+            if total_dir > 0:
+                entry_exit_ratio = f"{entries}:{exits}"
+
+        weekend_vs_weekday = 'N/A'
+        if 'Timestamp (Event Time)' in df.columns and not df.empty:
+            weekend = df[df['Timestamp (Event Time)'].dt.weekday >= 5]
+            weekday = df[df['Timestamp (Event Time)'].dt.weekday < 5]
+            weekend_vs_weekday = f"{len(weekday)} weekday / {len(weekend)} weekend"
+
+        busiest_floor = 'N/A'
+        security_breakdown = {}
+        if device_attrs is not None and not device_attrs.empty:
+            if 'floor' in device_attrs.columns:
+                floor_counts = device_attrs['floor'].value_counts()
+                if not floor_counts.empty:
+                    busiest_floor = str(floor_counts.idxmax())
+            if 'SecurityLevel' in device_attrs.columns:
+                security_breakdown = device_attrs['SecurityLevel'].value_counts().to_dict()
+
         enhanced_metrics = {
-            'total_sessions': total_sessions,
-            'total_unique_users': total_unique_users,
+            'total_events': total_events,
+            'unique_users': unique_users,
             'most_active_user': most_active_user,
             'most_active_user_count': df['UserID (Person Identifier)'].value_counts().iloc[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 0,
-            'average_events_per_user': avg_events_per_user,
+            'avg_events_per_user': avg_events_per_user,
             'total_devices_count': total_devices_count,
+            'devices_active_today': devices_active_today,
+            'most_active_devices': most_active_devices,
             'events_per_day': events_per_day,
             'peak_hour': peak_hour,
-            'busiest_day': busiest_day,
+            'peak_day': peak_day,
+            'busiest_floor': busiest_floor,
+            'entry_exit_ratio': entry_exit_ratio,
+            'weekend_vs_weekday': weekend_vs_weekday,
             'activity_intensity': activity_intensity,
             'date_range': date_range,
+            'security_breakdown': security_breakdown,
+
             'security_score': security_score,
         }
         
