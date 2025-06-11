@@ -15,6 +15,7 @@ import io
 from datetime import datetime
 import dash_cytoscape as cyto
 from typing import Dict, Any, Union, Optional, List, Tuple
+import math
 
 # Type-safe JSON serialization
 def make_json_serializable(data: Any) -> Union[Dict[str, Any], List[Any], int, float, str, None]:
@@ -1864,4 +1865,249 @@ def generate_graph_from_data(
 
 print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
 print("✅ All type safety fixes applied successfully!")
+
+
+@app.callback(
+    [
+        Output('onion-graph', 'elements'),
+        Output('graph-output-container', 'style'),
+        Output('processing-status', 'children', allow_duplicate=True)
+    ],
+    Input('confirm-and-generate-button', 'n_clicks'),
+    [
+        State('processed-data-store', 'data'),
+        State('manual-door-classifications-store', 'data'),
+        State('all-doors-from-csv-store', 'data'),
+        State('column-mapping-store', 'data')
+    ],
+    prevent_initial_call=True
+)
+def generate_onion_graph(n_clicks, processed_data, classifications, doors_data, column_mapping):
+    """Convert processed data to onion graph visualization"""
+    if not n_clicks:
+        return [], {'display': 'none'}, "Click generate to create graph"
+
+    if not doors_data:
+        return [], {'display': 'none'}, "❌ No door data available"
+
+    try:
+        print(f"🎯 GENERATING GRAPH: {len(doors_data)} doors")
+
+        elements = build_onion_security_model(
+            doors_data=doors_data,
+            classifications=classifications or {},
+            processed_data=processed_data
+        )
+
+        show_style = {
+            'display': 'block',
+            'margin': '20px auto',
+            'padding': '20px',
+            'backgroundColor': COLORS.get('surface', '#ffffff'),
+            'borderRadius': '12px',
+            'border': f"1px solid {COLORS.get('border', '#e0e0e0')}"
+        }
+
+        node_count = len([e for e in elements if 'source' not in e.get('data', {})])
+        edge_count = len([e for e in elements if 'source' in e.get('data', {})])
+
+        status = f"✅ Onion Model: {node_count} nodes, {edge_count} connections"
+
+        return elements, show_style, status
+
+    except Exception as e:
+        error_msg = f"❌ Graph generation failed: {str(e)}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return [], {'display': 'none'}, error_msg
+
+
+def build_onion_security_model(doors_data: List[str], classifications: Dict[str, Any], processed_data: Any = None) -> List[Dict]:
+    """Build onion security model from access control data"""
+    nodes = []
+    edges = []
+
+    security_colors = {
+        'green': '#4CAF50',
+        'yellow': '#FFC107',
+        'orange': '#FF9800',
+        'red': '#F44336'
+    }
+
+    security_levels = {
+        'green': 1,
+        'yellow': 3,
+        'orange': 7,
+        'red': 10
+    }
+
+    print(f"🏗️ Building onion model with {len(doors_data)} doors")
+
+    entrance_nodes = []
+    regular_nodes = []
+    stair_nodes = []
+
+    for i, door_id in enumerate(doors_data):
+        classification = classifications.get(door_id, {})
+
+        security_color = classification.get('security', 'green')
+        security_level = classification.get('security_level', security_levels.get(security_color, 1))
+
+        is_entrance = classification.get('is_ee', False)
+        is_stair = classification.get('is_stair', False)
+        floor = classification.get('floor', 1)
+
+        if is_entrance:
+            node_type = 'entrance'
+            color = '#2E7D32'
+            shape = 'rectangle'
+            size = 80
+            entrance_nodes.append(door_id)
+        elif is_stair:
+            node_type = 'stair'
+            color = '#757575'
+            shape = 'triangle'
+            size = 60
+            stair_nodes.append(door_id)
+        else:
+            node_type = 'device'
+            color = security_colors.get(security_color, '#2196F3')
+            shape = 'ellipse'
+            size = 50 + (security_level * 3)
+            regular_nodes.append(door_id)
+
+        layer = min(security_level // 3, 3)
+
+        nodes_in_layer = len([d for d in doors_data if classifications.get(d, {}).get('security_level', 1) // 3 == layer])
+        layer_index = len([d for d in doors_data[:i] if classifications.get(d, {}).get('security_level', 1) // 3 == layer])
+
+        if nodes_in_layer > 0:
+            angle = (layer_index * 2 * math.pi) / nodes_in_layer
+        else:
+            angle = i * 0.5
+
+        radius = 200 - (layer * 50)
+
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+
+        if is_entrance:
+            entrance_angle = (len(entrance_nodes) * 2 * math.pi) / max(len([d for d in doors_data if classifications.get(d, {}).get('is_ee', False)]), 1)
+            x = 250 * math.cos(entrance_angle)
+            y = 250 * math.sin(entrance_angle)
+
+        node = {
+            'data': {
+                'id': str(door_id),
+                'label': str(door_id)[:8],
+                'type': node_type,
+                'security_level': security_level,
+                'security_color': security_color,
+                'floor': floor,
+                'is_entrance': is_entrance,
+                'is_stair': is_stair,
+                'layer': layer,
+                'full_label': str(door_id)
+            },
+            'position': {'x': x, 'y': y}
+        }
+
+        nodes.append(node)
+
+    print(f"🔗 Creating connections between {len(nodes)} nodes")
+
+    for i, door1 in enumerate(doors_data):
+        class1 = classifications.get(door1, {})
+
+        for j, door2 in enumerate(doors_data[i+1:], i+1):
+            class2 = classifications.get(door2, {})
+
+            floor1 = int(class1.get('floor', 1))
+            floor2 = int(class2.get('floor', 1))
+            level1 = class1.get('security_level', 1)
+            level2 = class2.get('security_level', 1)
+            is_entrance1 = class1.get('is_ee', False)
+            is_entrance2 = class2.get('is_ee', False)
+
+            should_connect = False
+            edge_type = 'normal'
+
+            if floor1 == floor2:
+                if abs(level1 - level2) <= 3:
+                    should_connect = True
+                    edge_type = 'floor'
+                elif is_entrance1 or is_entrance2:
+                    should_connect = True
+                    edge_type = 'entrance'
+
+            elif abs(floor1 - floor2) == 1:
+                if class1.get('is_stair') or class2.get('is_stair'):
+                    should_connect = True
+                    edge_type = 'stair'
+
+            elif is_entrance1 and level2 <= 5:
+                should_connect = True
+                edge_type = 'access'
+
+            elif is_entrance2 and level1 <= 5:
+                should_connect = True
+                edge_type = 'access'
+
+            if should_connect and (
+                edge_type in ['entrance', 'stair', 'access'] or hash(f"{door1}_{door2}") % 3 == 0
+            ):
+                edge = {
+                    'data': {
+                        'id': f"edge_{door1}_{door2}",
+                        'source': str(door1),
+                        'target': str(door2),
+                        'type': edge_type,
+                        'weight': abs(level1 - level2) + 1
+                    }
+                }
+                edges.append(edge)
+
+    print(f"✅ Created {len(nodes)} nodes and {len(edges)} edges")
+
+    all_elements = nodes + edges
+
+    high_security = [n for n in nodes if n['data'].get('security_level', 0) >= 8]
+    if high_security:
+        core_node = {
+            'data': {
+                'id': 'security_core',
+                'label': 'CORE',
+                'type': 'core',
+                'security_level': 10,
+                'layer': 0
+            },
+            'position': {'x': 0, 'y': 0}
+        }
+        all_elements.append(core_node)
+
+        for node in high_security[:3]:
+            core_edge = {
+                'data': {
+                    'id': f"core_edge_{node['data']['id']}",
+                    'source': 'security_core',
+                    'target': node['data']['id'],
+                    'type': 'core'
+                }
+            }
+            all_elements.append(core_edge)
+
+    return all_elements
+
+
+def test_simple_graph():
+    """Test function to verify graph works with minimal data"""
+    test_elements = [
+        {'data': {'id': 'entrance', 'label': 'Main Entrance', 'type': 'entrance'}},
+        {'data': {'id': 'lobby', 'label': 'Lobby', 'type': 'device'}},
+        {'data': {'id': 'secure', 'label': 'Secure Area', 'type': 'device'}},
+        {'data': {'id': 'edge1', 'source': 'entrance', 'target': 'lobby'}},
+        {'data': {'id': 'edge2', 'source': 'lobby', 'target': 'secure'}}
+    ]
+    return test_elements
 
