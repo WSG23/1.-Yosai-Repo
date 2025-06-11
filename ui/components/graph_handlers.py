@@ -3,6 +3,8 @@
 
 from dash import Input, Output, State, callback, no_update
 from dash.exceptions import PreventUpdate
+import pandas as pd
+import json
 
 from ui.components.graph import create_graph_component
 
@@ -19,6 +21,7 @@ class GraphHandlers:
         """Register all graph related callbacks."""
         self._register_layout_change_callback()
         self._register_filter_callback()
+        self._register_generation_callback()
 
     def _register_layout_change_callback(self):
         @self.app.callback(
@@ -64,6 +67,81 @@ class GraphHandlers:
             filtered_nodes = [n for n in nodes if n.get("data", {}).get("id") in visible_nodes]
             filtered_edges = [e for e in edges if edge_visible(e)]
             return filtered_nodes + filtered_edges
+
+    def _register_generation_callback(self):
+        @self.app.callback(
+            [
+                Output("onion-graph", "elements"),
+                Output("graph-output-container", "style"),
+                Output("processing-status", "children"),
+            ],
+            Input("confirm-and-generate-button", "n_clicks"),
+            [
+                State("processed-data-store", "data"),
+                State("column-mapping-store", "data"),
+                State("manual-door-classifications-store", "data"),
+            ],
+            prevent_initial_call=True,
+        )
+        def generate_graph(n_clicks, processed_data, mappings, classifications):
+            if not n_clicks or not processed_data:
+                raise PreventUpdate
+
+            try:
+                df = pd.DataFrame(processed_data.get("dataframe", []))
+                if df.empty:
+                    return [], {"display": "none"}, "No data to generate graph"
+
+                door_col = "DoorID (Device Name)"
+                ts_col = "Timestamp (Event Time)"
+                if isinstance(mappings, dict):
+                    header_key = json.dumps(sorted(processed_data.get("columns", [])))
+                    mapping = mappings.get(header_key, {})
+                    for csv_col, internal in mapping.items():
+                        if internal == "DoorID":
+                            door_col = csv_col
+                        elif internal == "Timestamp":
+                            ts_col = csv_col
+
+                if ts_col in df.columns:
+                    df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
+                    df.sort_values(ts_col, inplace=True)
+
+                doors = df[door_col].astype(str).tolist() if door_col in df.columns else []
+
+                nodes = []
+                class_dict = classifications or {}
+                if isinstance(class_dict, str):
+                    class_dict = json.loads(class_dict)
+
+                for door in df[door_col].astype(str).unique() if door_col in df.columns else []:
+                    data = {"id": door, "label": door}
+                    if door in class_dict:
+                        c = class_dict[door]
+                        data.update({
+                            "floor": c.get("floor"),
+                            "security_level": c.get("security_level"),
+                        })
+                        if c.get("is_ee"):
+                            data["is_entrance"] = True
+                        if c.get("is_stair"):
+                            data["is_stair"] = True
+                    nodes.append({"data": data})
+
+                edges = []
+                prev = None
+                for door in doors:
+                    if prev is not None and prev != door:
+                        edge_id = f"{prev}->{door}"
+                        edges.append({"data": {"id": edge_id, "source": prev, "target": door}})
+                    prev = door
+
+                unique_edges = {e["data"]["id"]: e for e in edges}
+
+                elements = nodes + list(unique_edges.values())
+                return elements, {"display": "block"}, "Analysis complete"
+            except Exception:
+                return [], {"display": "none"}, "Failed to generate graph"
 
 
 # Factory function

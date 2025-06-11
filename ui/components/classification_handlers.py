@@ -23,6 +23,9 @@ class ClassificationHandlers:
     def __init__(self, app, classification_component=None):
         self.app = app
         self.classification_component = classification_component or create_classification_component()
+
+    def register_callbacks(self):
+        """Public method to register all callbacks."""
         self._register_callbacks()
 
     def _register_callbacks(self):
