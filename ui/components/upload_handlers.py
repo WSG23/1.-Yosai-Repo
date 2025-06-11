@@ -55,7 +55,8 @@ class UploadHandlers:
                 Output('yosai-custom-header', 'style', allow_duplicate=True),
                 Output('onion-graph', 'elements'),
                 Output('all-doors-from-csv-store', 'data'),
-                Output('upload-icon', 'style')
+                Output('upload-icon', 'style'),
+                Output('processed-data-store', 'data')
             ],
             [Input('upload-data', 'contents')],
             [State('upload-data', 'filename'), State('column-mapping-store', 'data')],
@@ -118,13 +119,22 @@ class UploadHandlers:
             
             # Create mapping dropdowns
             mapping_dropdowns = self._create_mapping_dropdowns(headers, mapping_result)
-            
+
+            processed_data = {
+                'filename': filename,
+                'dataframe': df_full_for_doors.to_dict('records'),
+                'columns': headers,
+                'row_count': len(df_full_for_doors),
+                'upload_timestamp': pd.Timestamp.now().isoformat(),
+            }
+
             return {
                 'success': True,
                 'contents': contents,
                 'headers': headers,
                 'mapping_dropdowns': mapping_dropdowns,
-                'all_unique_doors': all_unique_doors
+                'all_unique_doors': all_unique_doors,
+                'processed_data': processed_data,
             }
             
         except Exception as e:
@@ -200,7 +210,8 @@ class UploadHandlers:
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
-            upload_icon_img_style  # upload icon style
+            upload_icon_img_style,  # upload icon style
+            None  # processed data store
         )
     
     def _create_success_response(self, result, upload_styles, filename):
@@ -224,7 +235,8 @@ class UploadHandlers:
             hide_style,  # yosai header
             [],  # graph elements
             result['all_unique_doors'],  # all doors store
-            upload_icon_img_style  # upload icon style
+            upload_icon_img_style,  # upload icon style
+            result.get('processed_data')  # processed data store
         )
     
     def _create_error_response(self, result, upload_styles, filename):
@@ -249,7 +261,8 @@ class UploadHandlers:
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
-            upload_icon_img_style  # upload icon style
+            upload_icon_img_style,  # upload icon style
+            None  # processed data store
         )
 
 
