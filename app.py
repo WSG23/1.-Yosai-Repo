@@ -830,8 +830,6 @@ def create_fixed_layout_with_required_elements(
     """Create layout that maintains current design but includes all required callback elements"""
 
     print(">> Creating FIXED layout with all required elements...")
-    print(">> FORCING use of complete fixed layout")  # ADD THIS LINE
-    return _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_default)  # ADD THIS LINE
 
     # First try to use the main layout if available
     base_layout = None
