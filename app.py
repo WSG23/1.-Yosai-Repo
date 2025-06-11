@@ -452,7 +452,7 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
         'security-pie-chart', 'heatmap-chart', 'chart-type-selector',
         'export-stats-csv', 'export-charts-png', 'generate-pdf-report',
         'refresh-analytics', 'download-stats-csv', 'download-charts',
-        'download-report', 'export-status', 'floor-slider-value',
+        'download-report', 'export-status',
         'stats-refresh-interval',
         'export-graph-png', 'export-graph-json',
         'download-graph-png', 'download-graph-json',
@@ -466,9 +466,7 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
         if element_id not in existing_ids:
             print(f">> Adding hidden placeholder for callback target: {element_id}")
             
-            if element_id == 'floor-slider-value':
-                element = html.Div(id=element_id, style={"display": "none"})
-            elif element_id == 'stats-refresh-interval':
+            if element_id == 'stats-refresh-interval':
                 element = dcc.Interval(id=element_id, disabled=True, interval=999999999)
             elif element_id in ['export-stats-csv', 'export-charts-png', 'generate-pdf-report', 'refresh-analytics', 'export-graph-png', 'export-graph-json']:
                 element = html.Button(id=element_id, style={"display": "none"})
