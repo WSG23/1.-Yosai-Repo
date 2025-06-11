@@ -639,6 +639,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
                                     ),
                                 ],
                                 className="upload-area",
+                                accept=".csv,.json",
                             )
                         ],
                     ),
