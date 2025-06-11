@@ -1743,7 +1743,8 @@ if __name__ == "__main__":
     print("   • FIXED: Improved error handling and fallback values")
 
     try:
-        app.run(
+        # Use run_server for type-checked port parameter
+        app.run_server(
             debug=True,
             host="127.0.0.1",
             port=8050,

@@ -24,7 +24,8 @@ if MODE in ("prod", "production"):
 else:
     from app import app
 
-    app.run(
+    # Use Dash's run_server for proper type hints (expects int port)
+    app.run_server(
         debug=True,
         host="127.0.0.1",
         port=8050,
