@@ -6,8 +6,8 @@ All callbacks are handled by unified handler in app.py
 """
 
 from dash import html, dcc
-import dash_cytoscape as cyto
 from ui.components.classification import create_classification_component
+from ui.components.graph import create_graph_container
 
 from ui.themes.style_config import COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS
 from ui.themes.helpers import (
@@ -431,69 +431,6 @@ def create_stats_panels():
         ]
     )
 
-def create_graph_container():
-    """Graph visualization container"""
-    return html.Div(
-        id='graph-output-container',
-        style={'display': 'none'},
-        children=[
-            html.H2(
-                "🗺️ Facility Layout Model",
-                style={
-                    'textAlign': 'center',
-                    'color': COLORS['text_primary'],
-                    'marginBottom': SPACING['md'],
-                    'fontSize': TYPOGRAPHY['text_2xl']
-                }
-            ),
-            html.Div(
-                children=[
-                    cyto.Cytoscape(
-                        id='onion-graph',
-                        layout={'name': 'cose', 'fit': True},
-                        style={
-                            'width': '100%',
-                            'height': '500px',
-                            'backgroundColor': COLORS['background'],
-                            'borderRadius': BORDER_RADIUS['lg']
-                        },
-                        elements=[],
-                        wheelSensitivity=1,
-                        stylesheet=[
-                            {
-                                'selector': 'node',
-                                'style': {
-                                    'background-color': COLORS['accent'],
-                                    'label': 'data(label)',
-                                    'color': COLORS['text_on_accent'],
-                                    'text-valign': 'center',
-                                    'width': 40,
-                                    'height': 40
-                                }
-                            },
-                            {
-                                'selector': 'edge',
-                                'style': {
-                                    'line-color': COLORS['border'],
-                                    'width': 2
-                                }
-                            }
-                        ]
-                    )
-                ],
-                style=get_card_container_style(padding=SPACING['lg'], margin_bottom='0')
-            ),
-            html.Pre(
-                id='tap-node-data-output',
-                children="Generate analysis to see the facility layout. Tap nodes for details.",
-                style={**get_card_container_style(padding=SPACING['base'], margin_bottom='0'),
-                       'color': COLORS['text_secondary'],
-                       'marginTop': SPACING['md'],
-                       'textAlign': 'center',
-                       'fontSize': '0.9rem'}
-            )
-        ]
-    )
 
 def create_data_stores():
     """Create all data store components"""

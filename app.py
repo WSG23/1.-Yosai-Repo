@@ -1165,6 +1165,7 @@ if create_mapping_handlers:
 
 if create_classification_handlers:
     classification_handlers = create_classification_handlers(app)
+    classification_handlers.register_callbacks()
 
 if create_graph_handlers:
     graph_handlers = create_graph_handlers(app)
