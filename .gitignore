@@ -2,3 +2,7 @@
 assets/logs/
 *.log
 
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+
