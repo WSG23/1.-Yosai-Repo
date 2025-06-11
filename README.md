@@ -19,3 +19,9 @@ MODE=prod python run.py
 ```
 
 The script will start the development server when run in `dev` mode.  When `prod` is specified it uses Waitress to serve the app.
+
+When starting the app in development you may see the startup logs printed twice.
+Dash enables its reloader in debug mode which launches the server in a child
+process, causing duplicate output. This is normal behaviour. To disable the
+reloader and run with a single startup sequence use production mode (e.g.
+`python run.py prod`) or set `FLASK_ENV=production` before running `run.py`.
