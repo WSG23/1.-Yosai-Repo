@@ -1,6 +1,10 @@
 #!/bin/bash
 # setup_missing_files.sh - Create all missing files and directories
 
+# Determine repository root relative to this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "${SCRIPT_DIR}")/.."
+
 echo "🔧 Creating missing directory structure..."
 
 # Create directory structure
@@ -149,7 +153,8 @@ echo "✅ Component files created"
 # Install missing dependencies
 echo "📦 Installing missing dependencies..."
 
-pip install --quiet pandas dash plotly dash-bootstrap-components dash-cytoscape
+# Install pinned dependencies from the repository root
+pip install --quiet -r "$REPO_ROOT/requirements.txt"
 
 echo "✅ Dependencies installed"
 
