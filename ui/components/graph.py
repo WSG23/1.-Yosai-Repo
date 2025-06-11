@@ -154,6 +154,7 @@ class GraphComponent:
                     'marginRight': '10px'
                 }
             ),
+            dcc.Download(id='download-graph-png'),
             html.Button(
                 "Export Data as JSON",
                 id='export-graph-json',
@@ -164,7 +165,8 @@ class GraphComponent:
                     'padding': '8px 16px',
                     'borderRadius': '4px'
                 }
-            )
+            ),
+            dcc.Download(id='download-graph-json')
         ])
     
     def create_graph_legend(self):

@@ -174,6 +174,7 @@ class EnhancedStatsHandlers:
             [
                 Output("peak-hour-display", "children"),
                 Output("peak-day-display", "children"),
+                Output("peak-activity-day", "children"),
                 Output("busiest-floor", "children"),
                 Output("entry-exit-ratio", "children"),
                 Output("weekend-vs-weekday", "children"),
@@ -188,17 +189,33 @@ class EnhancedStatsHandlers:
             """Update Peak Activity panel"""
             try:
                 if enhanced_metrics:
+                    peak_day = f"Peak Day: {enhanced_metrics.get('peak_day', 'N/A')}"
                     return (
                         f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}",
-                        f"Peak Day: {enhanced_metrics.get('peak_day', 'N/A')}",
+                        peak_day,
+                        peak_day,
                         f"Busiest Floor: {enhanced_metrics.get('busiest_floor', 'N/A')}",
                         f"Entry/Exit: {enhanced_metrics.get('entry_exit_ratio', 'N/A')}",
                         f"Weekend vs Weekday: {enhanced_metrics.get('weekend_vs_weekday', 'N/A')}",
                     )
                 else:
-                    return "No data", "No data", "No data", "No data", "No data"
+                    return (
+                        "No data",
+                        "No data",
+                        "No data",
+                        "No data",
+                        "No data",
+                        "No data",
+                    )
             except Exception:
-                return "Error", "Error", "Error", "Error", "Error"
+                return (
+                    "Error",
+                    "Error",
+                    "Error",
+                    "Error",
+                    "Error",
+                    "Error",
+                )
 
     def _register_security_overview_callback(self):
         """Register Security Overview panel callback"""

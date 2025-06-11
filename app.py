@@ -496,6 +496,8 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
         'refresh-analytics', 'download-stats-csv', 'download-charts',
         'download-report', 'export-status', 'floor-slider-value',
         'stats-refresh-interval',
+        'export-graph-png', 'export-graph-json',
+        'download-graph-png', 'download-graph-json',
         # FIXED: Add Enhanced Stats Handler targets
         'enhanced-total-access-events-H1', 'enhanced-event-date-range-P',
         'events-trend-indicator', 'avg-events-per-day', 'most-active-user',
@@ -510,11 +512,11 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
                 element = html.Div(id=element_id, style={"display": "none"})
             elif element_id == 'stats-refresh-interval':
                 element = dcc.Interval(id=element_id, disabled=True, interval=999999999)
-            elif element_id in ['export-stats-csv', 'export-charts-png', 'generate-pdf-report', 'refresh-analytics']:
+            elif element_id in ['export-stats-csv', 'export-charts-png', 'generate-pdf-report', 'refresh-analytics', 'export-graph-png', 'export-graph-json']:
                 element = html.Button(id=element_id, style={"display": "none"})
             elif element_id in ['main-analytics-chart', 'security-pie-chart', 'heatmap-chart']:
                 element = dcc.Graph(id=element_id, style={"display": "none"})
-            elif element_id in ['download-stats-csv', 'download-charts', 'download-report']:
+            elif element_id in ['download-stats-csv', 'download-charts', 'download-report', 'download-graph-png', 'download-graph-json']:
                 element = dcc.Download(id=element_id)
             elif 'store' in element_id:
                 element = dcc.Store(id=element_id)
