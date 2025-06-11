@@ -73,7 +73,8 @@ class GraphHandlers:
             [
                 Output("onion-graph", "elements", allow_duplicate=True),
                 Output("graph-output-container", "style", allow_duplicate=True),
-                Output("processing-status", "children", allow_duplicate=True),
+                # Send status updates to the shared store
+                Output("status-message-store", "data"),
             ],
             Input("confirm-and-generate-button", "n_clicks"),
             [
