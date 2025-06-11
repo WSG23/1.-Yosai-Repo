@@ -1,27 +1,6 @@
-# app.py - COMPLETE FIXED VERSION WITH TYPE SAFETY
-# ============================================================================
-# FIXED: All type safety issues resolved
-# FIXED: All callback outputs now have corresponding layout elements
-# FIXED: Missing function arguments for create_main_layout
-# FIXED: Removed duplicate exception handling in upload function
-# FIXED: Added comprehensive type guards and safe accessors
-# ============================================================================
-"""
-Yōsai Enhanced Analytics Dashboard - COMPLETE FIXED VERSION WITH TYPE SAFETY
+"""Yōsai Enhanced Analytics Dashboard application entry point.
 
-FIXES:
-- ✅ Added missing yosai-custom-header element
-- ✅ Added missing dropdown-mapping-area element
-- ✅ All callback outputs now have corresponding layout elements
-- ✅ Maintained existing layout consistency
-- ✅ Preserved current design and styling
-- ✅ All helper functions included
-- ✅ FIXED: Added missing function arguments for create_main_layout
-- ✅ FIXED: Removed duplicate exception handling in upload function
-- ✅ FIXED: Complete type safety for all callbacks and functions
-- ✅ FIXED: Safe dictionary access and length operations
-- ✅ FIXED: Improved error handling and fallback values
-"""
+Provides type‑safe helper utilities and registers all Dash callbacks."""
 import sys
 import os
 import dash
