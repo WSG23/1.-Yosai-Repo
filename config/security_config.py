@@ -12,7 +12,8 @@ class SecurityConfig:
     """Security configuration settings"""
     
     # File upload security
-    max_file_size: int = 10 * 1024 * 1024  # 10MB
+    # Allow much larger uploads by default
+    max_file_size: int = 100 * 1024 * 1024  # 100MB
     allowed_mime_types: List[str] = field(default_factory=lambda: [
         'text/csv', 'text/plain', 'application/csv'
     ])

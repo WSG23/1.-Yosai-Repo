@@ -41,7 +41,8 @@ DEFAULT_ICONS = {
 
 # File processing limits
 FILE_LIMITS = {
-    'max_file_size': 10 * 1024 * 1024,  # 10MB
+    # Increased to allow much larger uploads
+    'max_file_size': 100 * 1024 * 1024,  # 100MB
     'max_rows': 1_000_000,
     'allowed_extensions': ['.csv', '.json'],
     'encoding': 'utf-8'

@@ -114,7 +114,7 @@ from ui.themes.style_config import (
     TYPOGRAPHY,
     SPACING,
 )
-from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS
+from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
 print("🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)...")
 
@@ -1168,6 +1168,7 @@ if create_upload_handlers:
             "fail": ICON_UPLOAD_FAIL,
         },
         secure=True,
+        max_file_size=FILE_LIMITS["max_file_size"],
     )
     upload_handlers.register_callbacks()
 

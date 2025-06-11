@@ -19,12 +19,17 @@ logger = get_logger(__name__)
 class UploadHandlers:
     """Handle upload-related callbacks with optional security checks."""
 
-    def __init__(self, app, upload_component, icon_paths, *, secure: bool = False):
+    def __init__(self, app, upload_component, icon_paths, *, secure: bool = False, max_file_size: int | None = None):
         self.app = app
         self.upload_component = upload_component
         self.icons = icon_paths
         self.secure = secure
-        logger.info("UploadHandlers initialized (secure=%s)", self.secure)
+        self.max_file_size = max_file_size
+        logger.info(
+            "UploadHandlers initialized (secure=%s, max_file_size=%s)",
+            self.secure,
+            self.max_file_size,
+        )
         
     def register_callbacks(self):
         """Register all upload-related callbacks"""
@@ -94,8 +99,10 @@ class UploadHandlers:
             # Decode the file
             content_type, content_string = contents.split(',')
             decoded = base64.b64decode(content_string)
-            if self.secure and len(decoded) > 5000000:
-                raise ValueError("Uploaded file is too large.")
+            if self.secure and self.max_file_size and len(decoded) > self.max_file_size:
+                raise ValueError(
+                    f"Uploaded file is too large ({len(decoded)} bytes > {self.max_file_size} bytes)."
+                )
             # Determine file type and load accordingly
             if filename.lower().endswith('.csv'):
                 df_full_for_doors = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
@@ -279,6 +286,6 @@ class UploadHandlers:
 
 
 # Factory function for easy handler creation
-def create_upload_handlers(app, upload_component, icon_paths, *, secure: bool = False):
+def create_upload_handlers(app, upload_component, icon_paths, *, secure: bool = False, max_file_size: int | None = None):
     """Factory function to create upload handlers"""
-    return UploadHandlers(app, upload_component, icon_paths, secure=secure)
+    return UploadHandlers(app, upload_component, icon_paths, secure=secure, max_file_size=max_file_size)

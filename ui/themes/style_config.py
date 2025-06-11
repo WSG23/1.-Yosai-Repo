@@ -246,7 +246,8 @@ UI_COMPONENTS = {
     'upload': {
         'enabled': True,
         'accept_types': ['.csv'],
-        'max_file_size': '10MB',
+        # Updated to reflect new limit
+        'max_file_size': '100MB',
         'multiple_files': False,
         'icon_size': '120px',  # NEW: Larger icon size
         'container_width': '70%',  # NEW: Wider container
