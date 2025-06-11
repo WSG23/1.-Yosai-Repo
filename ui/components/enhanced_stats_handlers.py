@@ -373,18 +373,19 @@ class EnhancedStatsHandlers:
         def _update_basic(enhanced_metrics):
             metrics = enhanced_metrics or {}
 
-            total_events = str(metrics.get("total_sessions", "0"))
-            date_range = "Data analyzed successfully"
-            unique_users = f"{metrics.get('total_unique_users', 0)} users"
-            avg_events = f"Avg: {metrics.get('average_events_per_user', 0)} events/user"
+            total_events = str(metrics.get("total_events", "0"))
+            date_range = metrics.get('date_range', 'N/A')
+            unique_users = f"{metrics.get('unique_users', 0)} users"
+            avg_events = f"Avg: {metrics.get('avg_events_per_user', 0)} events/user"
             most_active = f"Most Active: {metrics.get('most_active_user', 'N/A')}"
-            total_devices = "0 devices"
+            total_devices = f"{metrics.get('total_devices_count', 0)} devices"
             peak_hour = f"Peak: {metrics.get('peak_hour', 'N/A')}:00"
-            busiest_floor = f"Busiest Day: {metrics.get('busiest_day', 'N/A')}"
+            busiest_floor = f"Busiest Day: {metrics.get('peak_day', 'N/A')}"
             activity_intensity = metrics.get('activity_intensity', 'N/A')
             traffic_pattern = f"Activity: {activity_intensity}"
-            security_score = "Score: N/A"
-            anomaly_insight = f"Sessions: {metrics.get('total_sessions', '0')}"
+            sec = metrics.get('security_score')
+            security_score = f"Score: {sec}" if sec is not None else "Score: N/A"
+            anomaly_insight = f"Sessions: {metrics.get('total_events', '0')}"
 
             return (
                 total_events,
