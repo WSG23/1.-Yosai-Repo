@@ -1717,34 +1717,63 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
 
 # Export callback
 @app.callback(
-    Output("export-status", "children"),
+    [
+        Output("download-stats-csv", "data"),
+        Output("download-charts", "data"),
+        Output("download-report", "data"),
+        Output("export-status", "children"),
+    ],
     [
         Input("export-stats-csv", "n_clicks"),
         Input("export-charts-png", "n_clicks"),
         Input("generate-pdf-report", "n_clicks"),
         Input("refresh-analytics", "n_clicks"),
     ],
+    State("enhanced-stats-data-store", "data"),
+    State("main-analytics-chart", "figure"),
     prevent_initial_call=True,
 )
-def handle_export_actions(csv_clicks: Optional[int], png_clicks: Optional[int], pdf_clicks: Optional[int], refresh_clicks: Optional[int]) -> str:
-    """Handle export actions"""
-    from dash import ctx
+def handle_export_actions(
+    csv_clicks: Optional[int],
+    png_clicks: Optional[int],
+    pdf_clicks: Optional[int],
+    refresh_clicks: Optional[int],
+    stats_data: Any,
+    chart_fig: Any,
+) -> Tuple[Any, Any, Any, str]:
+    """Handle export actions and provide downloadable content"""
+    from dash import ctx, no_update
+    from utils.enhanced_analytics import create_enhanced_export_manager
+    import plotly.io as pio
 
     if not ctx.triggered:
-        return ""
+        return no_update, no_update, no_update, ""
 
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    manager = create_enhanced_export_manager()
 
     if button_id == "export-stats-csv":
-        return "📊 CSV export completed!"
+        report = manager.export_comprehensive_report(stats_data or {}, format="CSV")
+        if report.get("download_ready"):
+            content = base64.b64decode(report["content"])
+            data = dict(content=content, filename=report["filename"])
+            return data, no_update, no_update, "📊 CSV export completed!"
     elif button_id == "export-charts-png":
-        return "📈 Charts exported as PNG!"
+        if chart_fig:
+            try:
+                img_bytes = pio.to_image(chart_fig, format="png")
+                return no_update, dict(content=img_bytes, filename="charts.png"), no_update, "📈 Charts exported as PNG!"
+            except Exception:
+                pass
     elif button_id == "generate-pdf-report":
-        return "📄 PDF report generated!"
+        report = manager.export_comprehensive_report(stats_data or {}, format="PDF")
+        if report.get("download_ready"):
+            data = dict(content=report["content"], filename=report["filename"])
+            return no_update, no_update, data, "📄 PDF report generated!"
     elif button_id == "refresh-analytics":
-        return "🔄 Analytics data refreshed!"
+        return no_update, no_update, no_update, "🔄 Analytics data refreshed!"
 
-    return ""
+    return no_update, no_update, no_update, ""
 
 
 # Node tap callback
