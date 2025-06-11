@@ -1779,6 +1779,89 @@ def display_node_data(data: Optional[Dict[str, Any]]) -> str:
     except Exception as e:
         return f"Node information unavailable: {str(e)}"
 
+# Main graph generation callback (from Complete Graph Fix)
+@app.callback(
+    [
+        Output("onion-graph", "elements", allow_duplicate=True),
+        Output("graph-output-container", "style", allow_duplicate=True),
+        Output("status-message-store", "data", allow_duplicate=True),
+    ],
+    Input("confirm-and-generate-button", "n_clicks"),
+    [
+        State("processed-data-store", "data"),
+        State("column-mapping-store", "data"),
+        State("manual-door-classifications-store", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def generate_graph_from_data(
+    n_clicks: Optional[int],
+    processed_data: Any,
+    mappings: Any,
+    classifications: Any,
+) -> Tuple[list[dict], dict, str]:
+    """Generate graph elements from processed data"""
+
+    if not n_clicks or not processed_data:
+        raise dash.exceptions.PreventUpdate
+
+    try:
+        df = pd.DataFrame(processed_data.get("dataframe", []))
+        if df.empty:
+            return [], {"display": "none"}, "No data to generate graph"
+
+        door_col = "DoorID (Device Name)"
+        ts_col = "Timestamp (Event Time)"
+        if isinstance(mappings, dict):
+            header_key = json.dumps(sorted(processed_data.get("columns", [])))
+            mapping = mappings.get(header_key, {})
+            for csv_col, internal in mapping.items():
+                if internal == "DoorID":
+                    door_col = csv_col
+                elif internal == "Timestamp":
+                    ts_col = csv_col
+
+        if ts_col in df.columns:
+            df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
+            df.sort_values(ts_col, inplace=True)
+
+        doors = df[door_col].astype(str).tolist() if door_col in df.columns else []
+
+        nodes = []
+        class_dict = classifications or {}
+        if isinstance(class_dict, str):
+            class_dict = json.loads(class_dict)
+
+        for door in df[door_col].astype(str).unique() if door_col in df.columns else []:
+            data_dict = {"id": door, "label": door}
+            if door in class_dict:
+                c = class_dict[door]
+                data_dict.update(
+                    {
+                        "floor": c.get("floor"),
+                        "security_level": c.get("security_level"),
+                    }
+                )
+                if c.get("is_ee"):
+                    data_dict["is_entrance"] = True
+                if c.get("is_stair"):
+                    data_dict["is_stair"] = True
+            nodes.append({"data": data_dict})
+
+        edges = []
+        prev = None
+        for door in doors:
+            if prev is not None and prev != door:
+                edge_id = f"{prev}->{door}"
+                edges.append({"data": {"id": edge_id, "source": prev, "target": door}})
+            prev = door
+
+        unique_edges = {e["data"]["id"]: e for e in edges}
+        elements = nodes + list(unique_edges.values())
+        return elements, {"display": "block"}, "Analysis complete"
+    except Exception:
+        return [], {"display": "none"}, "Failed to generate graph"
+
 print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
 print("✅ All type safety fixes applied successfully!")
 
