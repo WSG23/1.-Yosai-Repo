@@ -38,6 +38,7 @@ class UploadHandlers:
                 Output('csv-headers-store', 'data'),
                 Output('dropdown-mapping-area', 'children'),
                 Output('confirm-header-map-button', 'style', allow_duplicate=True),
+                Output('mapping-ui-section', 'style', allow_duplicate=True),
                 Output('interactive-setup-container', 'style'),
                 Output('processing-status', 'children', allow_duplicate=True),
                 Output('upload-icon', 'src'),
@@ -201,6 +202,7 @@ class UploadHandlers:
         return (
             None, None, [],  # file store, headers, dropdown area
             confirm_button_style_hidden,  # confirm button style
+            hide_style,  # mapping-ui-section style (hidden)
             hide_style,  # interactive setup container
             "",  # processing status
             self.icons['default'],  # upload icon src
@@ -227,6 +229,13 @@ class UploadHandlers:
             result['headers'],  # csv headers store
             result['mapping_dropdowns'],  # dropdown mapping area
             confirm_button_style_visible,  # confirm button style
+            {
+                'display': 'block',
+                'padding': '25px',
+                'backgroundColor': COLORS['surface'],
+                'borderRadius': '12px',
+                'margin': '20px auto',
+            },  # mapping-ui-section style
             show_interactive_setup_style,  # interactive setup container
             processing_status_msg,  # processing status
             self.icons['success'],  # upload icon src
@@ -254,6 +263,7 @@ class UploadHandlers:
             None, None,  # file store, headers
             [html.P(processing_status_msg, style={'color': 'red'})],  # dropdown area
             confirm_button_style_hidden,  # confirm button style
+            hide_style,  # mapping-ui-section style (hidden)
             show_interactive_setup_style,  # interactive setup container
             processing_status_msg,  # processing status
             self.icons['fail'],  # upload icon src
