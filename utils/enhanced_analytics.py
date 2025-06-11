@@ -759,22 +759,34 @@ class EnhancedAnalyticsProcessor:
         self._processor = EnhancedDataProcessor()
 
     def process_basic_metrics(self, df: pd.DataFrame) -> Dict[str, Any]:
-
-    def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
-    # ... existing debug code ...
-    
-         # ADD THIS DEBUG AT THE TOP:
-        print(f"🔍 ANALYTICS PROCESSOR - DataFrame columns: {list(df.columns)}")
-        print(f"🔍 Looking for timestamp column: 'Timestamp (Event Time)' - Found: {'Timestamp (Event Time)' in df.columns}")
-        print(f"🔍 Looking for user column: 'UserID (Person Identifier)' - Found: {'UserID (Person Identifier)' in df.columns}")
-        print(f"🔍 Looking for device column: 'DoorID (Device Name)' - Found: {'DoorID (Device Name)' in df.columns}")
-        print(f"🔍 Looking for access column: 'Access Result' - Found: {'Access Result' in df.columns}")
-        # END DEBUG
-    
-    # ... rest of function ...
-        
         """Return core temporal metrics from the data."""
         return self._processor.process_temporal_patterns(df)
+
+    def process_uploaded_data(
+        self,
+        df: pd.DataFrame,
+        device_attrs: Optional[pd.DataFrame] = None,
+    ) -> Dict[str, Any]:
+        """Process uploaded data with debug output."""
+        print(f"🔍 ANALYTICS PROCESSOR - DataFrame columns: {list(df.columns)}")
+        print(
+            f"🔍 Looking for timestamp column: '{REQUIRED_INTERNAL_COLUMNS['Timestamp']}' - Found: "
+            f"{REQUIRED_INTERNAL_COLUMNS['Timestamp'] in df.columns}"
+        )
+        print(
+            f"🔍 Looking for user column: '{REQUIRED_INTERNAL_COLUMNS['UserID']}' - Found: "
+            f"{REQUIRED_INTERNAL_COLUMNS['UserID'] in df.columns}"
+        )
+        print(
+            f"🔍 Looking for device column: '{REQUIRED_INTERNAL_COLUMNS['DoorID']}' - Found: "
+            f"{REQUIRED_INTERNAL_COLUMNS['DoorID'] in df.columns}"
+        )
+        print(
+            f"🔍 Looking for access column: '{REQUIRED_INTERNAL_COLUMNS['EventType']}' - Found: "
+            f"{REQUIRED_INTERNAL_COLUMNS['EventType'] in df.columns}"
+        )
+
+        return self._processor.process_security_analytics(device_attrs, df)
 
     def process_user_behavior(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Return user behaviour analytics."""
