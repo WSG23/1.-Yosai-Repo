@@ -1380,7 +1380,7 @@ def update_enhanced_stats_store(status_message: Any, processed_data: Any, device
 @app.callback(
     [
         # Only handle visibility and status - let enhanced stats handlers manage the data
-        Output("yosai-custom-header", "style"),
+        Output("yosai-custom-header", "style", allow_duplicate=True),
         Output("stats-panels-container", "style", allow_duplicate=True),
         Output("processing-status", "children", allow_duplicate=True),
     ],
