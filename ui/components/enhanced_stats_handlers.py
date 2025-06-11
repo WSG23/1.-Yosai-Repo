@@ -27,6 +27,7 @@ class EnhancedStatsHandlers:
         self._register_chart_update_callbacks()
         self._register_export_callbacks()
         self._register_basic_stats_callback()
+        self._register_additional_metrics_callback()
 
     def _register_stats_update_callback(self):
         """Register main stats update callback"""
@@ -322,34 +323,60 @@ class EnhancedStatsHandlers:
         """Register export callbacks"""
 
         @self.app.callback(
-            Output("export-status", "children", allow_duplicate=True),
+            [
+                Output("download-pdf", "data"),
+                Output("download-excel", "data"),
+                Output("download-charts-png", "data"),
+                Output("download-json", "data"),
+                Output("export-status", "children", allow_duplicate=True),
+            ],
             [
                 Input("export-pdf-btn", "n_clicks"),
                 Input("export-excel-btn", "n_clicks"),
                 Input("export-charts-btn", "n_clicks"),
                 Input("export-json-btn", "n_clicks"),
             ],
+            State("enhanced-stats-data-store", "data"),
+            State("main-analytics-chart", "figure"),
             prevent_initial_call=True,
         )
-        def handle_export_actions(pdf_clicks, excel_clicks, charts_clicks, json_clicks):
-            """Handle export button clicks"""
+        def handle_export_actions(pdf_clicks, excel_clicks, charts_clicks, json_clicks, stats_data, chart_fig):
+            """Handle export button clicks and provide downloadable files"""
             from dash import ctx
+            from utils.enhanced_analytics import create_enhanced_export_manager
+            import plotly.io as pio
+            import base64
 
             if not ctx.triggered:
-                return no_update
+                return [no_update] * 5
 
             button_id = ctx.triggered[0]["prop_id"].split(".")[0]
+            manager = create_enhanced_export_manager()
 
             if button_id == "export-pdf-btn":
-                return "📄 PDF report generated successfully!"
+                report = manager.export_comprehensive_report(stats_data or {}, format="PDF")
+                if report.get("download_ready"):
+                    data = dict(content=report["content"], filename=report["filename"])
+                    return data, no_update, no_update, no_update, "📄 PDF report generated successfully!"
             elif button_id == "export-excel-btn":
-                return "📊 Excel data exported successfully!"
+                report = manager.export_comprehensive_report(stats_data or {}, format="Excel")
+                if report.get("download_ready"):
+                    content = base64.b64decode(report["content"])
+                    return no_update, dict(content=content, filename=report["filename"]), no_update, no_update, "📊 Excel data exported successfully!"
             elif button_id == "export-charts-btn":
-                return "📈 Charts exported as PNG!"
+                if chart_fig:
+                    try:
+                        img_bytes = pio.to_image(chart_fig, format="png")
+                        return no_update, no_update, dict(content=img_bytes, filename="chart.png"), no_update, "📈 Charts exported as PNG!"
+                    except Exception:
+                        pass
             elif button_id == "export-json-btn":
-                return "💾 Raw data exported as JSON!"
-            else:
-                return "Export completed"
+                report = manager.export_comprehensive_report(stats_data or {}, format="JSON")
+                if report.get("download_ready"):
+                    content = base64.b64decode(report["content"])
+                    return no_update, no_update, no_update, dict(content=content, filename=report["filename"]), "💾 Raw data exported as JSON!"
+
+            return [no_update, no_update, no_update, no_update, "Export completed"]
 
     def _register_basic_stats_callback(self):
         """Update legacy stats elements"""
@@ -400,6 +427,37 @@ class EnhancedStatsHandlers:
                 traffic_pattern,
                 security_score,
                 anomaly_insight,
+            )
+
+    def _register_additional_metrics_callback(self):
+        """Update extended metric elements"""
+
+        @self.app.callback(
+            [
+                Output("stats-devices-per-user", "children"),
+                Output("entrance-devices-count", "children"),
+                Output("high-security-devices", "children"),
+                Output("efficiency-insight", "children"),
+                Output("peak-activity-day", "children"),
+            ],
+            Input("enhanced-stats-data-store", "data"),
+            prevent_initial_call=True,
+        )
+        def _update_additional(metrics):
+            metrics = metrics or {}
+
+            devices_per_user = metrics.get("avg_users_per_device", "N/A")
+            entrance_count = metrics.get("entrance_devices_count", "N/A")
+            high_sec = metrics.get("high_security_devices", "N/A")
+            efficiency = metrics.get("efficiency_score", "N/A")
+            peak_day = metrics.get("peak_activity_day", "N/A")
+
+            return (
+                devices_per_user,
+                entrance_count,
+                high_sec,
+                efficiency,
+                peak_day,
             )
 
 

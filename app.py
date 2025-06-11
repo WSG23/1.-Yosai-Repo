@@ -1663,7 +1663,50 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         import traceback
         traceback.print_exc()
         return {}
-     
+
+# Chart type selector callback
+@app.callback(
+    Output("main-analytics-chart", "figure"),
+    Input("chart-type-selector", "value"),
+    State("processed-data-store", "data"),
+    State("device-attrs-store", "data"),
+    prevent_initial_call=True,
+)
+def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
+    """Update main analytics chart based on dropdown selection"""
+    import pandas as pd
+
+    stats_component = component_instances.get("enhanced_stats")
+    if not stats_component:
+        stats_component = create_enhanced_stats_component()
+
+    df = pd.DataFrame()
+    if processed_data and isinstance(processed_data, dict) and "dataframe" in processed_data:
+        df = pd.DataFrame(processed_data["dataframe"])
+        ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
+        if ts_col in df.columns:
+            df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
+
+    attrs_df = None
+    if device_attrs and isinstance(device_attrs, dict):
+        try:
+            attrs_df = pd.DataFrame.from_dict(device_attrs, orient="index")
+            attrs_df.reset_index(inplace=True)
+            attrs_df.rename(columns={"index": "Door Number"}, inplace=True)
+        except Exception:
+            attrs_df = None
+
+    if chart_type == "daily":
+        return stats_component.create_daily_trends_chart(df)
+    elif chart_type == "security":
+        return stats_component.create_security_distribution_chart(attrs_df)
+    elif chart_type in ("devices", "users"):
+        return stats_component.create_device_usage_chart(df)
+    elif chart_type in ("heatmap", "floor"):
+        return stats_component.create_activity_heatmap(df)
+    else:
+        return stats_component.create_hourly_activity_chart(df)
+
 # Export callback
 @app.callback(
     Output("export-status", "children"),

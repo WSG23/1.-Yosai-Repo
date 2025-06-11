@@ -806,6 +806,11 @@ class EnhancedStatsComponent:
                                     vertical=True,
                                     className="w-100",
                                 ),
+                                # Hidden download components for exports
+                                dcc.Download(id="download-pdf"),
+                                dcc.Download(id="download-excel"),
+                                dcc.Download(id="download-charts-png"),
+                                dcc.Download(id="download-json"),
                             ],
                             style=export_options_style,
                         ),
