@@ -458,6 +458,7 @@ def create_graph_container():
                             'borderRadius': BORDER_RADIUS['lg']
                         },
                         elements=[],
+                        wheelSensitivity=1,
                         stylesheet=[
                             {
                                 'selector': 'node',
