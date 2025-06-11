@@ -183,12 +183,14 @@ try:
     from ui.components.upload_handlers import create_upload_handlers
     from ui.components.mapping_handlers import create_mapping_handlers
     from ui.components.classification_handlers import create_classification_handlers
+    from ui.components.graph_handlers import create_graph_handlers
     print(">> Handler factories imported")
 except ImportError as e:
     print(f"!! Handler factories not available: {e}")
     create_upload_handlers = None
     create_mapping_handlers = None
     create_classification_handlers = None
+    create_graph_handlers = None
 
 # Cytoscape for graphs
 try:
@@ -1183,6 +1185,10 @@ if create_mapping_handlers:
 
 if create_classification_handlers:
     classification_handlers = create_classification_handlers(app)
+
+if create_graph_handlers:
+    graph_handlers = create_graph_handlers(app)
+    graph_handlers.register_callbacks()
 
 # ============================================================================
 # ENHANCED STATISTICS SETUP
