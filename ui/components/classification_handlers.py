@@ -37,7 +37,7 @@ class ClassificationHandlers:
 
     def _register_confirm_header_mapping_handler(self):
         @callback(
-            Output("door-classification-table", "children"),
+            Output("door-classification-table", "children", allow_duplicate=True),
             Input("confirm-header-map-button", "n_clicks"),
             State("uploaded-file-store", "data"),
             State("column-mapping-store", "data"),

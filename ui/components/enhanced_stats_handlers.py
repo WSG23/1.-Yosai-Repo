@@ -172,12 +172,12 @@ class EnhancedStatsHandlers:
 
         @self.app.callback(
             [
-                Output("peak-hour-display", "children"),
-                Output("peak-day-display", "children"),
-                Output("peak-activity-events", "children"),
-                Output("busiest-floor", "children"),
-                Output("entry-exit-ratio", "children"),
-                Output("weekend-vs-weekday", "children"),
+                Output("peak-hour-display", "children", allow_duplicate=True),
+                Output("peak-day-display", "children", allow_duplicate=True),
+                Output("peak-activity-events", "children", allow_duplicate=True),
+                Output("busiest-floor", "children", allow_duplicate=True),
+                Output("entry-exit-ratio", "children", allow_duplicate=True),
+                Output("weekend-vs-weekday", "children", allow_duplicate=True),
             ],
             [
                 Input("enhanced-stats-data-store", "data"),
