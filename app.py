@@ -1667,7 +1667,7 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
 
 # Chart type selector callback
 @app.callback(
-    Output("main-analytics-chart", "figure"),
+    Output("main-analytics-chart", "figure", allow_duplicate=True),
     Input("chart-type-selector", "value"),
     State("processed-data-store", "data"),
     State("device-attrs-store", "data"),
