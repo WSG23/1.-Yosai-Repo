@@ -804,7 +804,9 @@ html.Div(
         _create_fallback_analytics_section(),
         _create_fallback_charts_section(),
         _create_fallback_export_section(),
-        create_graph_container(),
+        create_graph_container() if create_graph_container else html.Div(
+            id="graph-output-container", style={"display": "none"}
+        ),
         _create_mini_graph_container(),
         create_debug_panel(),
     ],
@@ -1034,7 +1036,9 @@ def _add_missing_elements_to_existing_layout(
             "analytics-section": _create_fallback_analytics_section(),
             "charts-section": _create_fallback_charts_section(),
             "export-section": _create_fallback_export_section(),
-            "graph-output-container": create_graph_container(),
+            "graph-output-container": create_graph_container() if create_graph_container else html.Div(
+                id="graph-output-container", style={"display": "none"}
+            ),
             "mini-graph-container": _create_mini_graph_container(),
             "debug-panel": create_debug_panel(),
             "onion-graph": None,  # Will be added to graph-output-container
@@ -1290,7 +1294,7 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
 # FIXED: Enhanced stats store callback with complete validation
 @app.callback(
     Output('enhanced-stats-data-store', 'data'),
-    Input('status-message-store', 'data' allow_duplicate=True),
+    Input('status-message-store', 'data', allow_duplicate=True),
     State('processed-data-store', 'data'),
     State('manual-door-classifications-store', 'data'),
     prevent_initial_call=True
@@ -1354,7 +1358,7 @@ def update_enhanced_stats_store(status_message: Any, processed_data: Any, device
 # Single callback to update the visible processing status message
 @app.callback(
     Output('processing-status', 'children'),
-    Input('status-message-store', 'data'allow_duplicate=True),
+    Input('status-message-store', 'data', allow_duplicate=True),
     prevent_initial_call=True
 )
 def display_status_message(message: Any) -> Any:
