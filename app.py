@@ -1132,6 +1132,27 @@ def register_all_callbacks_safely(app):
     try:
         print("🔄 Registering callbacks...")
 
+        # ===== UPLOAD HANDLERS - ADD THIS SECTION =====
+        from ui.components.upload_handlers import UploadHandlers
+        from ui.components.upload import create_enhanced_upload_component
+
+        # Create upload component and handlers
+        upload_component = create_enhanced_upload_component(
+            ICON_UPLOAD_DEFAULT,
+            ICON_UPLOAD_SUCCESS,
+            ICON_UPLOAD_FAIL,
+        )
+        icon_paths = {
+            'default': ICON_UPLOAD_DEFAULT,
+            'success': ICON_UPLOAD_SUCCESS,
+            'fail': ICON_UPLOAD_FAIL,
+        }
+
+        upload_handlers = UploadHandlers(app, upload_component, icon_paths)
+        upload_handlers.register_callbacks()
+        print("   ✅ Upload callbacks registered")
+        # ===== END UPLOAD HANDLERS =====
+
         from ui.orchestrator import main_data_orchestrator  # noqa: F401
         from ui.orchestrator import update_graph_elements  # noqa: F401
         from ui.orchestrator import update_container_visibility  # noqa: F401
