@@ -4,7 +4,6 @@ Enhanced statistics component with advanced metrics, charts, and export features
 """
 
 from dash import html, dcc
-from ui.components.graph import create_graph_container ###
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -230,8 +229,8 @@ class EnhancedStatsComponent:
                 html.Div([
                     dcc.Graph(id='security-pie-chart', style={'height': '300px'})
                 ], style={'flex': '1', 'margin': '0 10px'}),
-                html.Div([
-                    create_graph_container()], style={'flex': '1', 'margin': '0 10px'}),
+                html.Div(id='secondary-graph-container',
+                         style={'flex': '1', 'margin': '0 10px'}),
                 html.Div([
                     dcc.Graph(id='heatmap-chart', style={'height': '300px'})
                 ], style={'flex': '1', 'margin': '0 10px'})

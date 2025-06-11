@@ -163,6 +163,7 @@ try:
     from ui.components.mapping_handlers import create_mapping_handlers
     from ui.components.classification_handlers import create_classification_handlers
     from ui.components.graph_handlers import create_graph_handlers
+    from ui.components.graph import create_graph_container
     print(">> Handler factories imported")
 except ImportError as e:
     print(f"!! Handler factories not available: {e}")
@@ -170,6 +171,7 @@ except ImportError as e:
     create_mapping_handlers = None
     create_classification_handlers = None
     create_graph_handlers = None
+    create_graph_container = None
 
 # Cytoscape for graphs
 try:
@@ -421,29 +423,6 @@ def _create_advanced_analytics_container():
         ]
     )
 
-def _create_fallback_graph_container():
-    """Create fallback graph container"""
-    graph_element = html.Div("Graph placeholder")
-    if components_available["cytoscape"]:
-        graph_element = cyto.Cytoscape(
-            id="onion-graph",
-            style={"width": "100%", "height": "600px"},
-            elements=[],
-            wheelSensitivity=1,
-        )
-
-    return html.Div(
-        id="graph-output-container",
-        style={"display": "none"},
-        children=[
-            html.H2("Security Model Graph"),
-            graph_element,
-            html.Pre(
-                id="tap-node-data-output",
-                children="Graph interaction data will appear here",
-            ),
-        ],
-    )
 
 def _create_mini_graph_container():
     """Create mini graph container"""
@@ -827,7 +806,7 @@ html.Div(
         _create_fallback_analytics_section(),
         _create_fallback_charts_section(),
         _create_fallback_export_section(),
-        _create_fallback_graph_container(),
+        create_graph_container(),
         _create_mini_graph_container(),
         create_debug_panel(),
     ],
@@ -1059,7 +1038,7 @@ def _add_missing_elements_to_existing_layout(
             "analytics-section": _create_fallback_analytics_section(),
             "charts-section": _create_fallback_charts_section(),
             "export-section": _create_fallback_export_section(),
-            "graph-output-container": _create_fallback_graph_container(),
+            "graph-output-container": create_graph_container(),
             "mini-graph-container": _create_mini_graph_container(),
             "debug-panel": create_debug_panel(),
             "onion-graph": None,  # Will be added to graph-output-container
