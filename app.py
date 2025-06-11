@@ -1392,7 +1392,7 @@ def display_status_message(message: Any) -> Any:
         # Only handle visibility and status - let enhanced stats handlers manage the data
         Output("yosai-custom-header", "style", allow_duplicate=True),
         Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("status-message-store", "data"),
+        Output("status-message-store", "data", allow_duplicate=True),
     ],
     Input("confirm-and-generate-button", "n_clicks"),
     [

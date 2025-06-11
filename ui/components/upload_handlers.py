@@ -46,7 +46,7 @@ class UploadHandlers:
                 Output('mapping-ui-section', 'style', allow_duplicate=True),
                 Output('interactive-setup-container', 'style'),
                 # Store status messages in a single location
-                Output('status-message-store', 'data'),
+                Output('status-message-store', 'data', allow_duplicate=True),
                 Output('upload-icon', 'src'),
                 Output('upload-data', 'style'),
                 Output('entrance-verification-ui-section', 'style', allow_duplicate=True),
