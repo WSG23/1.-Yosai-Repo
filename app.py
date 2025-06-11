@@ -1570,6 +1570,21 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             else 0
         )
 
+        # Unique devices is synonymous with total device count
+        unique_devices = total_devices_count
+
+        avg_users_per_device = 0
+        if (
+            'DoorID (Device Name)' in df.columns
+            and 'UserID (Person Identifier)' in df.columns
+            and total_devices_count > 0
+        ):
+            avg_users_per_device = (
+                df.groupby('DoorID (Device Name)')['UserID (Person Identifier)']
+                .nunique()
+                .mean()
+            )
+
         peak_hour = (
             df['Timestamp (Event Time)'].dt.hour.mode()[0]
             if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
@@ -1587,6 +1602,36 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         events_per_day = 0
         if 'Timestamp (Event Time)' in df.columns and not df.empty:
             events_per_day = df.groupby(df['Timestamp (Event Time)'].dt.date).size().mean()
+
+            df_copy = df.copy()
+            df_copy['Hour'] = df_copy['Timestamp (Event Time)'].dt.hour
+            hour_counts = df_copy['Hour'].value_counts()
+
+            peak_hours = hour_counts.head(3).index.tolist()
+            if any(h in [7, 8, 9] for h in peak_hours) and any(h in [17, 18, 19] for h in peak_hours):
+                traffic_pattern = 'Business Hours Peak'
+            elif any(h in [22, 23, 0, 1, 2] for h in peak_hours):
+                traffic_pattern = 'Night Activity'
+            else:
+                traffic_pattern = 'Distributed Activity'
+
+            efficiency_score = 'N/A'
+            if len(hour_counts) > 0:
+                peak_activity = hour_counts.head(6).sum()
+                total_activity = hour_counts.sum()
+                efficiency_score = round((peak_activity / total_activity) * 100, 0) if total_activity > 0 else 0
+
+            anomaly_count = 0
+            daily_counts = df.groupby(df['Timestamp (Event Time)'].dt.date).size()
+            if len(daily_counts) > 1:
+                mean_daily = daily_counts.mean()
+                std_daily = daily_counts.std()
+                anomaly_threshold = mean_daily + (2 * std_daily)
+                anomaly_count = len(daily_counts[daily_counts > anomaly_threshold])
+        else:
+            traffic_pattern = 'No Data'
+            efficiency_score = 'N/A'
+            anomaly_count = 0
 
         security_score = None
         if 'Access Result' in df.columns and len(df) > 0:
@@ -1625,6 +1670,8 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
 
         busiest_floor = 'N/A'
         security_breakdown = {}
+        entrance_devices_count = 0
+        high_security_devices = 0
         if device_attrs is not None and not device_attrs.empty:
             if 'floor' in device_attrs.columns:
                 floor_counts = device_attrs['floor'].value_counts()
@@ -1632,14 +1679,21 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
                     busiest_floor = str(floor_counts.idxmax())
             if 'SecurityLevel' in device_attrs.columns:
                 security_breakdown = device_attrs['SecurityLevel'].value_counts().to_dict()
-
+                high_security_devices = (device_attrs['SecurityLevel'] == 'high').sum()
+            if 'type' in device_attrs.columns:
+                entrance_devices_count = (device_attrs['type'] == 'entrance').sum()
+        
         enhanced_metrics = {
             'total_events': total_events,
             'unique_users': unique_users,
             'most_active_user': most_active_user,
             'most_active_user_count': df['UserID (Person Identifier)'].value_counts().iloc[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 0,
             'avg_events_per_user': avg_events_per_user,
+            'avg_users_per_device': avg_users_per_device,
             'total_devices_count': total_devices_count,
+            'unique_devices': unique_devices,
+            'entrance_devices_count': entrance_devices_count,
+            'high_security_devices': high_security_devices,
             'devices_active_today': devices_active_today,
             'most_active_devices': most_active_devices,
             'events_per_day': events_per_day,
@@ -1649,6 +1703,9 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             'entry_exit_ratio': entry_exit_ratio,
             'weekend_vs_weekday': weekend_vs_weekday,
             'activity_intensity': activity_intensity,
+            'traffic_pattern': traffic_pattern,
+            'efficiency_score': efficiency_score,
+            'anomaly_count': anomaly_count,
             'date_range': date_range,
             'security_breakdown': security_breakdown,
 
