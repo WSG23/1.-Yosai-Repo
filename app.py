@@ -718,6 +718,16 @@ def _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_defa
                     _create_fallback_graph_container(),
                     _create_mini_graph_container(),
                     create_debug_panel(),
+                    # Data stores required for callbacks
+                    dcc.Store(id="uploaded-file-store"),
+                    dcc.Store(id="csv-headers-store"),
+                    dcc.Store(id="column-mapping-store", storage_type="local"),
+                    dcc.Store(id="all-doors-from-csv-store"),
+                    dcc.Store(
+                        id="manual-door-classifications-store",
+                        storage_type="local",
+                    ),
+                    dcc.Store(id="num-floors-store", data=1),
                 ],
             ),
         ],
