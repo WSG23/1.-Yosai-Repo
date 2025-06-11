@@ -1136,7 +1136,27 @@ def register_all_callbacks_safely(app):
         from ui.components.mapping_handlers import MappingHandlers
         from ui.components.classification_handlers import ClassificationHandlers
 
-        upload_handlers = UploadHandlers(app)
+        # Instantiate the upload component for handlers
+        upload_component = None
+        if 'create_enhanced_upload_component' in globals() and create_enhanced_upload_component:
+            upload_component = create_enhanced_upload_component(
+                ICON_UPLOAD_DEFAULT,
+                ICON_UPLOAD_SUCCESS,
+                ICON_UPLOAD_FAIL,
+            )
+
+        icon_paths = {
+            'default': ICON_UPLOAD_DEFAULT,
+            'success': ICON_UPLOAD_SUCCESS,
+            'fail': ICON_UPLOAD_FAIL,
+        }
+
+        upload_handlers = UploadHandlers(
+            app,
+            upload_component,
+            icon_paths,
+            max_file_size=FILE_LIMITS['max_file_size'],
+        )
         upload_handlers.register_callbacks()
         print("   ✅ Upload callbacks registered")
 
