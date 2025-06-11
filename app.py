@@ -25,6 +25,7 @@ FIXES:
 import sys
 import os
 import dash
+import logging
 from dash import Input, Output, State, html, dcc, no_update, callback, ALL
 import dash_bootstrap_components as dbc
 import json
@@ -37,6 +38,9 @@ from datetime import datetime
 import dash_cytoscape as cyto
 from typing import Dict, Any, Union, Optional, List, Tuple
 
+# Module-level logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Type-safe JSON serialization
 def make_json_serializable(data: Any) -> Union[Dict[str, Any], List[Any], int, float, str, None]:
     """
@@ -116,7 +120,7 @@ from ui.themes.style_config import (
 )
 from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
-print("🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)...")
+logger.info("🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)...")
 
 # ============================================================================
 # ENHANCED IMPORTS WITH FALLBACK SUPPORT
@@ -130,7 +134,7 @@ components_available = {
 
 component_instances = {}
 
-print("🔍 Detecting available components...")
+logger.info("🔍 Detecting available components...")
 
 # Enhanced stats component
 try:
@@ -142,9 +146,9 @@ try:
 
     components_available["enhanced_stats"] = True
     component_instances["enhanced_stats"] = create_enhanced_stats_component()
-    print(">> Enhanced stats component imported and instantiated")
+    logger.info(">> Enhanced stats component imported and instantiated")
 except ImportError as e:
-    print(f"!! Enhanced stats component not available: {e}")
+    logger.warning(f"!! Enhanced stats component not available: {e}")
     create_enhanced_stats_component = None
     component_instances["enhanced_stats"] = None
 
@@ -153,9 +157,9 @@ try:
     from ui.components.upload import create_enhanced_upload_component
 
     components_available["upload"] = True
-    print(">> Upload component imported")
+    logger.info(">> Upload component imported")
 except ImportError as e:
-    print(f"!! Upload component not available: {e}")
+    logger.warning(f"!! Upload component not available: {e}")
     create_enhanced_upload_component = None
 
 # Mapping component
@@ -163,9 +167,9 @@ try:
     from ui.components.mapping import create_mapping_component
 
     components_available["mapping"] = True
-    print(">> Mapping component imported")
+    logger.info(">> Mapping component imported")
 except ImportError as e:
-    print(f"!! Mapping component not available: {e}")
+    logger.warning(f"!! Mapping component not available: {e}")
     create_mapping_component = None
 
 # Classification component
@@ -173,9 +177,9 @@ try:
     from ui.components.classification import create_classification_component
 
     components_available["classification"] = True
-    print(">> Classification component imported")
+    logger.info(">> Classification component imported")
 except ImportError as e:
-    print(f"!! Classification component not available: {e}")
+    logger.warning(f"!! Classification component not available: {e}")
     create_classification_component = None
 
 # Handler factories
@@ -184,9 +188,9 @@ try:
     from ui.components.mapping_handlers import create_mapping_handlers
     from ui.components.classification_handlers import create_classification_handlers
     from ui.components.graph_handlers import create_graph_handlers
-    print(">> Handler factories imported")
+    logger.info(">> Handler factories imported")
 except ImportError as e:
-    print(f"!! Handler factories not available: {e}")
+    logger.warning(f"!! Handler factories not available: {e}")
     create_upload_handlers = None
     create_mapping_handlers = None
     create_classification_handlers = None
@@ -197,9 +201,9 @@ try:
     import dash_cytoscape as cyto
 
     components_available["cytoscape"] = True
-    print(">> Cytoscape available")
+    logger.info(">> Cytoscape available")
 except ImportError as e:
-    print(f"!! Cytoscape not available: {e}")
+    logger.warning(f"!! Cytoscape not available: {e}")
 
 # Plotly for charts
 try:
@@ -207,9 +211,9 @@ try:
     import plotly.graph_objects as go
 
     components_available["plotly"] = True
-    print(">> Plotly available")
+    logger.info(">> Plotly available")
 except ImportError as e:
-    print(f"!! Plotly not available: {e}")
+    logger.warning(f"!! Plotly not available: {e}")
     px = None
     go = None
 
@@ -222,15 +226,15 @@ try:
     )
 
     components_available["main_layout"] = True
-    print(">> Main layout imported")
+    logger.info(">> Main layout imported")
 except ImportError as e:
-    print(f"!! Main layout not available: {e}")
+    logger.warning(f"!! Main layout not available: {e}")
     create_main_layout = None
 
-print(f">> Component Detection Complete:")
+logger.info(">> Component Detection Complete:")
 for component, available in components_available.items():
     status = "[ACTIVE]" if available else "[FALLBACK]"
-    print(f"   {component}: {status}")
+    logger.info(f"   {component}: {status}")
 
 # ============================================================================
 # CREATE DASH APP WITH FIXED LAYOUT
@@ -259,7 +263,7 @@ ICON_UPLOAD_SUCCESS = app.get_asset_url("upload_file_csv_icon_success.png")
 ICON_UPLOAD_FAIL = app.get_asset_url("upload_file_csv_icon_fail.png")
 MAIN_LOGO_PATH = app.get_asset_url("logo_white.png")
 
-print(f">> Assets loaded: {ICON_UPLOAD_DEFAULT}")
+logger.info(f">> Assets loaded: {ICON_UPLOAD_DEFAULT}")
 
 # ============================================================================
 # HELPER FUNCTIONS - ALL INCLUDED WITH TYPE SAFETY
@@ -1811,24 +1815,24 @@ def display_node_data(data: Optional[Dict[str, Any]]) -> str:
     except Exception as e:
         return f"Node information unavailable: {str(e)}"
 
-print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
-print("✅ All type safety fixes applied successfully!")
+logger.info("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
+logger.info("✅ All type safety fixes applied successfully!")
 
 if __name__ == "__main__":
-    print("\n🚀 Starting COMPLETE FIXED Enhanced Analytics Dashboard WITH TYPE SAFETY...")
-    print("🌐 Dashboard will be available at: http://127.0.0.1:8050")
-    print("\n✅ ALL FIXES APPLIED:")
-    print("   • Added missing yosai-custom-header element")
-    print("   • Added missing dropdown-mapping-area element")
-    print("   • Added all missing helper functions")
-    print("   • All callback outputs now have corresponding layout elements")
-    print("   • Maintained existing layout consistency")
-    print("   • Preserved current design and styling")
-    print("   • FIXED: Added missing function arguments for create_main_layout")
-    print("   • FIXED: Removed duplicate exception handling in upload function")
-    print("   • FIXED: Complete type safety for all callbacks and functions")
-    print("   • FIXED: Safe dictionary access and length operations")
-    print("   • FIXED: Improved error handling and fallback values")
+    logger.info("\n🚀 Starting COMPLETE FIXED Enhanced Analytics Dashboard WITH TYPE SAFETY...")
+    logger.info("🌐 Dashboard will be available at: http://127.0.0.1:8050")
+    logger.debug("\n✅ ALL FIXES APPLIED:")
+    logger.debug("   • Added missing yosai-custom-header element")
+    logger.debug("   • Added missing dropdown-mapping-area element")
+    logger.debug("   • Added all missing helper functions")
+    logger.debug("   • All callback outputs now have corresponding layout elements")
+    logger.debug("   • Maintained existing layout consistency")
+    logger.debug("   • Preserved current design and styling")
+    logger.debug("   • FIXED: Added missing function arguments for create_main_layout")
+    logger.debug("   • FIXED: Removed duplicate exception handling in upload function")
+    logger.debug("   • FIXED: Complete type safety for all callbacks and functions")
+    logger.debug("   • FIXED: Safe dictionary access and length operations")
+    logger.debug("   • FIXED: Improved error handling and fallback values")
 
     try:
         # Use run_server for type-checked port parameter
@@ -1841,5 +1845,5 @@ if __name__ == "__main__":
             dev_tools_props_check=False,
         )
     except Exception as e:
-        print(f"💥 Failed to start server: {e}")
+        logger.error(f"💥 Failed to start server: {e}")
         traceback.print_exc()
