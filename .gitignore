@@ -1,0 +1,4 @@
+# Ignore log files
+assets/logs/
+*.log
+

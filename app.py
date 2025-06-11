@@ -1166,6 +1166,7 @@ if create_upload_handlers:
             "success": ICON_UPLOAD_SUCCESS,
             "fail": ICON_UPLOAD_FAIL,
         },
+        secure=True,
     )
     upload_handlers.register_callbacks()
 
