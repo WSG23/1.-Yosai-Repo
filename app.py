@@ -444,7 +444,10 @@ def _create_fallback_graph_container():
     graph_element = html.Div("Graph placeholder")
     if components_available["cytoscape"]:
         graph_element = cyto.Cytoscape(
-            id="onion-graph", style={"width": "100%", "height": "600px"}, elements=[]
+            id="onion-graph",
+            style={"width": "100%", "height": "600px"},
+            elements=[],
+            wheelSensitivity=1,
         )
 
     return html.Div(
@@ -468,6 +471,7 @@ def _create_mini_graph_container():
             id="mini-onion-graph",
             style={"width": "100%", "height": "300px"},
             elements=[],
+            wheelSensitivity=1,
         )
 
     return html.Div(
