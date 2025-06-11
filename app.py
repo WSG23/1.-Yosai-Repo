@@ -774,8 +774,6 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
 html.Div(
     id="tab-content",
     children=[
-        # All required elements for callbacks (initially hidden)
-        *enhanced_stats_layout,
         # Your 3 panels container
         html.Div(
             id="stats-panels-container",
@@ -835,6 +833,8 @@ html.Div(
                 ),
             ]
         ),
+        # All required elements for callbacks (initially hidden)
+        *enhanced_stats_layout,
         _create_fallback_analytics_section(),
         _create_fallback_charts_section(),
         _create_fallback_export_section(),
