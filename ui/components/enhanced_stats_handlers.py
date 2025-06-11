@@ -26,6 +26,7 @@ class EnhancedStatsHandlers:
         self._register_security_overview_callback()
         self._register_chart_update_callbacks()
         self._register_export_callbacks()
+        self._register_basic_stats_callback()
 
     def _register_stats_update_callback(self):
         """Register main stats update callback"""
@@ -349,6 +350,55 @@ class EnhancedStatsHandlers:
                 return "💾 Raw data exported as JSON!"
             else:
                 return "Export completed"
+
+    def _register_basic_stats_callback(self):
+        """Update legacy stats elements"""
+        @self.app.callback(
+            [
+                Output("total-access-events-H1", "children", allow_duplicate=True),
+                Output("event-date-range-P", "children", allow_duplicate=True),
+                Output("stats-unique-users", "children", allow_duplicate=True),
+                Output("stats-avg-events-per-user", "children", allow_duplicate=True),
+                Output("stats-most-active-user", "children", allow_duplicate=True),
+                Output("total-devices-count", "children", allow_duplicate=True),
+                Output("peak-hour-display", "children", allow_duplicate=True),
+                Output("busiest-floor", "children", allow_duplicate=True),
+                Output("traffic-pattern-insight", "children", allow_duplicate=True),
+                Output("security-score-insight", "children", allow_duplicate=True),
+                Output("anomaly-insight", "children", allow_duplicate=True),
+            ],
+            Input("enhanced-stats-data-store", "data"),
+            prevent_initial_call=True,
+        )
+        def _update_basic(enhanced_metrics):
+            metrics = enhanced_metrics or {}
+
+            total_events = str(metrics.get("total_sessions", "0"))
+            date_range = "Data analyzed successfully"
+            unique_users = f"{metrics.get('total_unique_users', 0)} users"
+            avg_events = f"Avg: {metrics.get('average_events_per_user', 0)} events/user"
+            most_active = f"Most Active: {metrics.get('most_active_user', 'N/A')}"
+            total_devices = "0 devices"
+            peak_hour = f"Peak: {metrics.get('peak_hour', 'N/A')}:00"
+            busiest_floor = f"Busiest Day: {metrics.get('busiest_day', 'N/A')}"
+            activity_intensity = metrics.get('activity_intensity', 'N/A')
+            traffic_pattern = f"Activity: {activity_intensity}"
+            security_score = "Score: N/A"
+            anomaly_insight = f"Sessions: {metrics.get('total_sessions', '0')}"
+
+            return (
+                total_events,
+                date_range,
+                unique_users,
+                avg_events,
+                most_active,
+                total_devices,
+                peak_hour,
+                busiest_floor,
+                traffic_pattern,
+                security_score,
+                anomaly_insight,
+            )
 
 
 def create_enhanced_stats_handlers(app):

@@ -24,8 +24,44 @@ class MappingHandlers:
         
     def register_callbacks(self):
         """Register ONLY mapping callbacks"""
+        self._register_mapping_dropdown_creator()
         self._register_mapping_confirmation_handler()
         # REMOVED: Any callback that outputs to 'door-classification-table-container'
+
+    def _register_mapping_dropdown_creator(self):
+        """Create mapping dropdowns when headers are available"""
+        @self.app.callback(
+            [
+                Output('dropdown-mapping-area', 'children'),
+                Output('confirm-header-map-button', 'style'),
+                Output('mapping-ui-section', 'style'),
+            ],
+            Input('csv-headers-store', 'data'),
+            prevent_initial_call=True,
+        )
+        def _create_dropdowns(headers):
+            if not headers:
+                return [], {'display': 'none'}, {'display': 'none'}
+
+            dropdowns = self.mapping_component.create_mapping_dropdowns(headers, {})
+            button_style = {
+                'display': 'block',
+                'margin': '25px auto',
+                'padding': '12px 30px',
+                'backgroundColor': COLORS['accent'],
+                'color': 'white',
+                'border': 'none',
+                'borderRadius': '8px',
+                'cursor': 'pointer',
+            }
+            section_style = {
+                'display': 'block',
+                'padding': '25px',
+                'backgroundColor': COLORS['surface'],
+                'borderRadius': '12px',
+                'margin': '20px auto',
+            }
+            return dropdowns, button_style, section_style
     
     def _register_mapping_confirmation_handler(self):
         """Mapping confirmation - NO classification outputs"""

@@ -1168,6 +1168,7 @@ if create_upload_handlers:
         },
         secure=True,
     )
+    upload_handlers.register_callbacks()
 
 if create_mapping_handlers:
     mapping_handlers = create_mapping_handlers(app)
@@ -1207,94 +1208,6 @@ register_enhanced_callbacks_once(app)
 # ============================================================================
 
 # FIXED: Upload callback with no duplicate exception handling
-@app.callback(
-    [
-        Output("uploaded-file-store", "data", allow_duplicate=True),
-        Output("csv-headers-store", "data", allow_duplicate=True),
-        Output("processing-status", "children", allow_duplicate=True),
-        Output("all-doors-from-csv-store", "data", allow_duplicate=True),
-        Output("interactive-setup-container", "style", allow_duplicate=True),
-        Output("upload-data", "style", allow_duplicate=True),
-        Output("processed-data-store", "data", allow_duplicate=True),
-        Output("upload-icon", "src", allow_duplicate=True),
-    ],
-    Input("upload-data", "contents"),
-    State("upload-data", "filename"),
-    prevent_initial_call=True,
-)
-def enhanced_file_upload(contents: Optional[str], filename: Optional[str]) -> Tuple[Any, ...]:
-    """Enhanced upload callback - FIXED: No duplicate exception handling"""
-    print(f">> Upload callback triggered: {filename}")
-    if not contents:
-        return None, None, "", None, {"display": "none"}, {}, None, ICON_UPLOAD_DEFAULT
-
-    try:
-        print(f">> Processing file: {filename}")
-
-        # Decode file
-        content_type, content_string = contents.split(",")
-        decoded = base64.b64decode(content_string)
-
-        # Load data
-        if filename and filename.lower().endswith(".csv"):
-            df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-        elif filename and filename.lower().endswith(".json"):
-            df = pd.read_json(io.StringIO(decoded.decode("utf-8")))
-        else:
-            return (
-                None,
-                None,
-                "Error: Please upload a CSV or JSON file",
-                None,
-                {"display": "none"},
-                {},
-                None,
-                ICON_UPLOAD_FAIL,
-            )
-
-        headers = df.columns.tolist()
-        print(f">> File loaded: {len(df)} rows, {len(headers)} columns")
-
-        # Extract doors (simple heuristic)
-        doors = []
-        for col_idx in range(min(len(headers), 5)):
-            unique_vals = df.iloc[:, col_idx].nunique()
-            if 5 <= unique_vals <= 100:
-                doors = df.iloc[:, col_idx].astype(str).unique().tolist()[:50]
-                break
-
-        processed_data = {
-            "filename": filename,
-            "dataframe": df.to_dict("records"),
-            "columns": headers,
-            "row_count": len(df),
-            "upload_timestamp": pd.Timestamp.now().isoformat(),
-        }
-
-        print(">> Upload successful")
-        return (
-            contents,
-            headers,
-            f"[SUCCESS] Uploaded: {filename} ({len(df):,} rows, {len(headers)} columns)",
-            doors,
-            {"display": "block"},
-            {"borderColor": "#2DBE6C"},
-            processed_data,
-            ICON_UPLOAD_SUCCESS,
-        )
-
-    except Exception as e:
-        print(f"!! Error in upload: {e}")
-        return (
-            None,
-            None,
-            f"[ERROR] Error processing {filename}: {str(e)}",
-            None,
-            {"display": "none"},
-            {},
-            None,
-            ICON_UPLOAD_FAIL,
-        )
 
 # Advanced view toggle callback
 @app.callback(
@@ -1340,69 +1253,6 @@ def toggle_advanced_view(n_clicks: Optional[int]) -> Tuple[Dict[str, Any], Dict[
         {"display": "none"},
         "Advanced View",
     )
-
-# Mapping dropdowns callback (unchanged)
-@app.callback(
-    [
-        Output("dropdown-mapping-area", "children"),
-        Output("confirm-header-map-button", "style"),
-        Output("mapping-ui-section", "style"),
-    ],
-    Input("csv-headers-store", "data"),
-    prevent_initial_call=True,
-)
-def create_mapping_dropdowns(headers: Optional[List[str]]) -> Tuple[List[Any], Dict[str, Any], Dict[str, Any]]:
-    """Create mapping dropdowns when CSV is uploaded"""
-    print(f">> Mapping callback triggered with headers: {headers}")
-
-    if not headers:
-        return [], {"display": "none"}, {"display": "none"}
-
-    try:
-        dropdowns = []
-        for internal_key, display_name in REQUIRED_INTERNAL_COLUMNS.items():
-            dropdowns.append(
-                html.Div(
-                    [
-                        html.Label(
-                            f"{display_name}:", style={"color": COLORS["text_primary"]}
-                        ),
-                        dcc.Dropdown(
-                            id={"type": "mapping-dropdown", "index": internal_key},
-                            options=[{"label": h, "value": h} for h in headers],
-                            placeholder=f"Select column for {display_name}...",
-                            style={"marginBottom": "16px"},
-                        ),
-                    ],
-                    style={"marginBottom": "24px"},
-                )
-            )
-
-        button_style = {
-            "display": "block",
-            "margin": "25px auto",
-            "padding": "12px 30px",
-            "backgroundColor": COLORS["accent"],
-            "color": "white",
-            "border": "none",
-            "borderRadius": "8px",
-            "cursor": "pointer",
-        }
-
-        section_style = {
-            "display": "block",
-            "padding": "25px",
-            "backgroundColor": COLORS["surface"],
-            "borderRadius": "12px",
-            "margin": "20px auto",
-        }
-
-        print(f">> Created {len(dropdowns)} mapping controls")
-        return dropdowns, button_style, section_style
-
-    except Exception as e:
-        print(f"!! Error creating mapping: {e}")
-        return [], {"display": "none"}, {"display": "none"}
 
 
 # FIXED: Debug callback with complete type safety
@@ -1753,88 +1603,6 @@ def handle_export_actions(csv_clicks: Optional[int], png_clicks: Optional[int], 
 
     return ""
 
-# FIXED: Add callback to display enhanced stats in the main UI with allow_duplicate=True
-@app.callback(
-    [
-        Output("total-access-events-H1", "children", allow_duplicate=True),          # ADD allow_duplicate=True
-        Output("event-date-range-P", "children", allow_duplicate=True),             # ADD allow_duplicate=True
-        Output("stats-unique-users", "children", allow_duplicate=True),             # ADD allow_duplicate=True
-        Output("stats-avg-events-per-user", "children", allow_duplicate=True),      # ADD allow_duplicate=True
-        Output("stats-most-active-user", "children", allow_duplicate=True),         # ADD allow_duplicate=True
-        Output("total-devices-count", "children", allow_duplicate=True),            # ADD allow_duplicate=True
-        Output("peak-hour-display", "children", allow_duplicate=True),
-        Output("busiest-floor", "children", allow_duplicate=True),
-        Output("traffic-pattern-insight", "children", allow_duplicate=True),        # ADD allow_duplicate=True
-        Output("security-score-insight", "children", allow_duplicate=True),         # ADD allow_duplicate=True
-        Output("anomaly-insight", "children", allow_duplicate=True),                # ADD allow_duplicate=True
-    ],
-    Input("enhanced-stats-data-store", "data"),
-    prevent_initial_call=True,
-)
-
-def display_enhanced_stats_in_ui(enhanced_metrics: Any) -> Tuple[str, ...]:
-    """Display enhanced statistics in the main UI elements"""
-
-    print(f"🔍 Stats display callback triggered with {len(enhanced_metrics) if enhanced_metrics else 0} metrics")  # ADD THIS LINE
-  
-    metrics_dict = safe_dict_access(enhanced_metrics)
-    if not metrics_dict:
-        print("❌ No metrics data available for display")
-        return (
-            "0", "No data", "0 users", "Avg: 0 events/user", "No data",
-            "0 devices", "Peak: N/A", "Floor: N/A", "Pattern: N/A",
-            "Score: N/A", "Alerts: 0"
-        )
-
-    # ADD THIS DEBUG SECTION HERE:
-    print(f"📊 Available metrics keys: {list(metrics_dict.keys())[:20]}")
-    print(f"🔍 Looking for 'total_sessions': {metrics_dict.get('total_sessions', 'NOT FOUND')}")
-    print(f"🔍 Looking for 'total_unique_users': {metrics_dict.get('total_unique_users', 'NOT FOUND')}")
-    print(f"🔍 Looking for 'peak_hour': {metrics_dict.get('peak_hour', 'NOT FOUND')}")
-    # END DEBUG SECTION
-
-    def safe_format_value(key: str, default: Any = "N/A", format_type: str = "str") -> str:
-        """Safely format metric values"""
-        try:
-            value = metrics_dict.get(key, default)
-            if format_type == "int" and isinstance(value, (int, float)):
-                return f"{int(value):,}"
-            elif format_type == "float" and isinstance(value, (int, float)):
-                return f"{float(value):.1f}"
-            return str(value) if value is not None else str(default)
-        except (AttributeError, TypeError, ValueError):
-            return str(default)
-
-    # Format the statistics for display - DIRECT ACCESS
-    total_events = str(metrics_dict.get('total_sessions', '0'))
-    date_range = "Data analyzed successfully"
-    unique_users = f"{metrics_dict.get('total_unique_users', 0)} users"
-    avg_events = f"Avg: {metrics_dict.get('average_events_per_user', 0)} events/user"
-    most_active = f"Most Active: {metrics_dict.get('most_active_user', 'N/A')}"
-    total_devices = f"0 devices"
-    peak_hour = f"Peak: {metrics_dict.get('peak_hour', 'N/A')}:00"
-    busiest_floor = f"Busiest Day: {metrics_dict.get('busiest_day', 'N/A')}"
-
-    # Advanced insights
-    activity_intensity = metrics_dict.get('activity_intensity', 'N/A')
-    traffic_pattern = f"Activity: {activity_intensity}"
-    security_score = "Score: N/A"
-    anomaly_count = "0"
-    anomaly_insight = f"Sessions: {metrics_dict.get('total_sessions', '0')}"
-
- # ADD THIS DEBUG RIGHT HERE:
-    print(f"🎯 RETURNING VALUES:")
-    print(f"   total_events: {total_events}")
-    print(f"   unique_users: {unique_users}")
-    print(f"   peak_hour: {peak_hour}")
-    print(f"   traffic_pattern: {traffic_pattern}")
-    # END DEBUG
-
-    return (
-        total_events, date_range, unique_users, avg_events, most_active,
-        total_devices, peak_hour, busiest_floor, traffic_pattern,
-        security_score, anomaly_insight
-    )
 
 # Node tap callback
 @app.callback(
