@@ -9,6 +9,10 @@ import json
 from .enhanced_stats import create_enhanced_stats_component
 from ui.themes.style_config import COLORS, TYPOGRAPHY
 from config.settings import REQUIRED_INTERNAL_COLUMNS
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2338bf5056044143f1b06f92a14de6bfcd800aa3
 
 class EnhancedStatsHandlers:
     """Handles enhanced statistics callbacks"""
