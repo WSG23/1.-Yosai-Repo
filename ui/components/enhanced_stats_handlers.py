@@ -8,6 +8,7 @@ import pandas as pd
 import json
 from .enhanced_stats import create_enhanced_stats_component
 from ui.themes.style_config import COLORS, TYPOGRAPHY
+from config.settings import REQUIRED_INTERNAL_COLUMNS
 
 
 class EnhancedStatsHandlers:
