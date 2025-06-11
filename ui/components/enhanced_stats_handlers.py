@@ -438,7 +438,6 @@ class EnhancedStatsHandlers:
                 Output("entrance-devices-count", "children"),
                 Output("high-security-devices", "children"),
                 Output("efficiency-insight", "children"),
-                Output("peak-activity-day", "children"),
             ],
             Input("enhanced-stats-data-store", "data"),
             prevent_initial_call=True,
@@ -450,14 +449,11 @@ class EnhancedStatsHandlers:
             entrance_count = metrics.get("entrance_devices_count", "N/A")
             high_sec = metrics.get("high_security_devices", "N/A")
             efficiency = metrics.get("efficiency_score", "N/A")
-            peak_day = metrics.get("peak_activity_day", "N/A")
-
             return (
                 devices_per_user,
                 entrance_count,
                 high_sec,
                 efficiency,
-                peak_day,
             )
 
 
