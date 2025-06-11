@@ -1782,32 +1782,3 @@ def display_node_data(data: Optional[Dict[str, Any]]) -> str:
 print("✅ COMPLETE FIXED callback registration complete - all outputs have corresponding layout elements")
 print("✅ All type safety fixes applied successfully!")
 
-if __name__ == "__main__":
-    print("\n🚀 Starting COMPLETE FIXED Enhanced Analytics Dashboard WITH TYPE SAFETY...")
-    print("🌐 Dashboard will be available at: http://127.0.0.1:8050")
-    print("\n✅ ALL FIXES APPLIED:")
-    print("   • Added missing yosai-custom-header element")
-    print("   • Added missing dropdown-mapping-area element")
-    print("   • Added all missing helper functions")
-    print("   • All callback outputs now have corresponding layout elements")
-    print("   • Maintained existing layout consistency")
-    print("   • Preserved current design and styling")
-    print("   • FIXED: Added missing function arguments for create_main_layout")
-    print("   • FIXED: Removed duplicate exception handling in upload function")
-    print("   • FIXED: Complete type safety for all callbacks and functions")
-    print("   • FIXED: Safe dictionary access and length operations")
-    print("   • FIXED: Improved error handling and fallback values")
-
-    try:
-        # Use run_server for type-checked port parameter
-        app.run_server(
-            debug=True,
-            host="127.0.0.1",
-            port=8050,
-            dev_tools_hot_reload=True,
-            dev_tools_ui=True,
-            dev_tools_props_check=False,
-        )
-    except Exception as e:
-        print(f"💥 Failed to start server: {e}")
-        traceback.print_exc()
