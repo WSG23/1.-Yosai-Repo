@@ -349,7 +349,9 @@ def create_results_section():
         create_stats_panels(),
 
         # Graph Container (hidden)
-        create_graph_container(),
+        # Removed duplicate onion graph component. The graph
+        # container from ``ui.components.graph`` will be added
+        # by the application layout.
 
         # Analytics Section (initially hidden)
         html.Div(
