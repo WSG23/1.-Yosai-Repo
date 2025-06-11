@@ -1680,6 +1680,9 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
     stats_component = component_instances.get("enhanced_stats")
     if not stats_component and create_enhanced_stats_component:
         stats_component = create_enhanced_stats_component()
+    if not stats_component:
+        print("!! Enhanced stats component not available")
+        return dash.no_update
 
     df = pd.DataFrame()
     if processed_data and isinstance(processed_data, dict) and "dataframe" in processed_data:
