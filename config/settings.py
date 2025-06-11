@@ -43,7 +43,7 @@ DEFAULT_ICONS = {
 FILE_LIMITS = {
     'max_file_size': 10 * 1024 * 1024,  # 10MB
     'max_rows': 1_000_000,
-    'allowed_extensions': ['.csv'],
+    'allowed_extensions': ['.csv', '.json'],
     'encoding': 'utf-8'
 }
 

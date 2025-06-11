@@ -73,18 +73,23 @@ class SecureFileValidator:
             if self.magic_available and self.magic is not None:
                 try:
                     detected_mime = self.magic.from_buffer(file_content)
-                    allowed_mimes = ['text/csv', 'text/plain', 'application/csv']
+                    allowed_mimes = [
+                        'text/csv', 'text/plain', 'application/csv',
+                        'application/json', 'text/json'
+                    ]
                     if detected_mime not in allowed_mimes:
-                        warning_msg = f"Detected MIME type: {detected_mime}. Expected CSV format."
+                        warning_msg = (
+                            f"Detected MIME type: {detected_mime}. Expected CSV or JSON format."
+                        )
                         result['warnings'].append(warning_msg)
                         logger.info(f"MIME type warning: {warning_msg}")
                 except Exception as e:
                     warning_msg = f"Could not detect MIME type: {str(e)}"
                     result['warnings'].append(warning_msg)
                     logger.warning(warning_msg)
-            
+
             # 4. Content structure validation
-            csv_validation = self._validate_csv_structure(file_content)
+            csv_validation = self._validate_file_structure(file_content, filename)
             if not csv_validation['valid']:
                 result['errors'].extend(csv_validation['errors'])
                 logger.warning(f"CSV structure validation failed: {csv_validation['errors']}")
@@ -115,26 +120,30 @@ class SecureFileValidator:
         
         return result
     
-    def _validate_csv_structure(self, file_content: bytes) -> Dict[str, Any]:
-        """Validate CSV file structure"""
+    def _validate_file_structure(self, file_content: bytes, filename: str) -> Dict[str, Any]:
+        """Validate CSV or JSON file structure based on extension"""
         temp_file_path = None
-        
+        is_json = filename.lower().endswith('.json')
+
         try:
             # Create temporary file for pandas
             with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmp_file:
                 tmp_file.write(file_content)
                 temp_file_path = tmp_file.name
-            
+
             try:
-                # Read CSV with limited preview (first 1000 rows)
-                df_preview = pd.read_csv(temp_file_path, nrows=1000, dtype=str)
+                if is_json:
+                    df_preview = pd.read_json(temp_file_path, dtype=str)
+                else:
+                    # Read CSV with limited preview (first 1000 rows)
+                    df_preview = pd.read_csv(temp_file_path, nrows=1000, dtype=str)
                 
                 # Basic structure checks
                 if df_preview.empty:
-                    return {'valid': False, 'errors': ['CSV file is empty']}
-                
+                    return {'valid': False, 'errors': ['File is empty']}
+
                 if len(df_preview.columns) == 0:
-                    return {'valid': False, 'errors': ['CSV has no columns']}
+                    return {'valid': False, 'errors': ['File has no columns']}
                 
                 # Estimate total rows
                 estimated_rows = self._estimate_csv_rows(temp_file_path)
@@ -151,8 +160,8 @@ class SecureFileValidator:
                 }
                 
             except Exception as e:
-                logger.error(f"CSV parsing error: {str(e)}")
-                return {'valid': False, 'errors': [f'CSV parsing error: {str(e)}']}
+                logger.error(f"File parsing error: {str(e)}")
+                return {'valid': False, 'errors': [f'File parsing error: {str(e)}']}
                 
         except Exception as e:
             logger.error(f"File handling error: {str(e)}")
@@ -167,7 +176,7 @@ class SecureFileValidator:
                     logger.warning(f"Could not delete temp file {temp_file_path}: {str(e)}")
     
     def _estimate_csv_rows(self, file_path: str) -> int:
-        """Estimate number of rows in CSV file"""
+        """Estimate number of rows in a text-based file"""
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 # Count lines in first chunk
