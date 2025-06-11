@@ -71,9 +71,9 @@ class GraphHandlers:
     def _register_generation_callback(self):
         @self.app.callback(
             [
-                Output("onion-graph", "elements"),
-                Output("graph-output-container", "style"),
-                Output("processing-status", "children"),
+                Output("onion-graph", "elements", allow_duplicate=True),
+                Output("graph-output-container", "style", allow_duplicate=True),
+                Output("processing-status", "children", allow_duplicate=True),
             ],
             Input("confirm-and-generate-button", "n_clicks"),
             [
