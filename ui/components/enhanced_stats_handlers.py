@@ -174,7 +174,7 @@ class EnhancedStatsHandlers:
             [
                 Output("peak-hour-display", "children"),
                 Output("peak-day-display", "children"),
-                Output("peak-activity-day", "children"),
+                Output("peak-activity-events", "children"),
                 Output("busiest-floor", "children"),
                 Output("entry-exit-ratio", "children"),
                 Output("weekend-vs-weekday", "children"),
@@ -190,10 +190,13 @@ class EnhancedStatsHandlers:
             try:
                 if enhanced_metrics:
                     peak_day = f"Peak Day: {enhanced_metrics.get('peak_day', 'N/A')}"
+                    # Reuse peak_day information for the events text if a
+                    # specific count is not provided
+                    peak_activity = peak_day
                     return (
                         f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}",
                         peak_day,
-                        peak_day,
+                        peak_activity,
                         f"Busiest Floor: {enhanced_metrics.get('busiest_floor', 'N/A')}",
                         f"Entry/Exit: {enhanced_metrics.get('entry_exit_ratio', 'N/A')}",
                         f"Weekend vs Weekday: {enhanced_metrics.get('weekend_vs_weekday', 'N/A')}",
