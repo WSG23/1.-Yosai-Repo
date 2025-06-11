@@ -377,6 +377,7 @@ class EnhancedStatsHandlers:
             date_range = metrics.get('date_range', 'N/A')
             unique_users = f"{metrics.get('unique_users', 0)} users"
             avg_events = f"Avg: {metrics.get('avg_events_per_user', 0)} events/user"
+
             most_active = f"Most Active: {metrics.get('most_active_user', 'N/A')}"
             total_devices = f"{metrics.get('total_devices_count', 0)} devices"
             peak_hour = f"Peak: {metrics.get('peak_hour', 'N/A')}:00"

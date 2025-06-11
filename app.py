@@ -1549,6 +1549,7 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         # Calculate basic metrics
         total_events = len(df)
         unique_users = (
+
             df['UserID (Person Identifier)'].nunique()
             if 'UserID (Person Identifier)' in df.columns
             else 0
@@ -1560,6 +1561,7 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         )
         avg_events_per_user = (
             total_events / unique_users if unique_users > 0 else 0
+
         )
         total_devices_count = (
             df['DoorID (Device Name)'].nunique()
@@ -1573,6 +1575,7 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             else 'N/A'
         )
         peak_day = (
+
             df['Timestamp (Event Time)'].dt.day_name().mode()[0]
             if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
             else 'N/A'
@@ -1647,6 +1650,7 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
             'activity_intensity': activity_intensity,
             'date_range': date_range,
             'security_breakdown': security_breakdown,
+
             'security_score': security_score,
         }
         
