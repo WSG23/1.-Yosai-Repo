@@ -7,7 +7,6 @@ All callbacks are handled by unified handler in app.py
 
 from dash import html, dcc
 from ui.components.classification import create_classification_component
-from ui.components.graph import create_graph_container
 
 from ui.themes.style_config import COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS
 from ui.themes.helpers import (
