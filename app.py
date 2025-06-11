@@ -1539,29 +1539,69 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         if 'Timestamp (Event Time)' in df.columns:
             df['Timestamp (Event Time)'] = pd.to_datetime(df['Timestamp (Event Time)'], errors='coerce')
             df = df.dropna(subset=['Timestamp (Event Time)'])
+
+        date_range = ""
+        if 'Timestamp (Event Time)' in df.columns and not df.empty:
+            min_date = df['Timestamp (Event Time)'].min().date()
+            max_date = df['Timestamp (Event Time)'].max().date()
+            date_range = f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
         
         # Calculate basic metrics
+        total_sessions = len(df)
+        total_unique_users = (
+            df['UserID (Person Identifier)'].nunique()
+            if 'UserID (Person Identifier)' in df.columns
+            else 0
+        )
+        most_active_user = (
+            df['UserID (Person Identifier)'].value_counts().index[0]
+            if len(df) > 0 and 'UserID (Person Identifier)' in df.columns
+            else 'N/A'
+        )
+        avg_events_per_user = (
+            len(df) / total_unique_users if total_unique_users > 0 else 0
+        )
+        total_devices_count = (
+            df['DoorID (Device Name)'].nunique()
+            if 'DoorID (Device Name)' in df.columns
+            else 0
+        )
+
+        peak_hour = (
+            df['Timestamp (Event Time)'].dt.hour.mode()[0]
+            if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
+            else 'N/A'
+        )
+        busiest_day = (
+            df['Timestamp (Event Time)'].dt.day_name().mode()[0]
+            if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
+            else 'N/A'
+        )
+
+        activity_intensity = 'High' if len(df) > 1000 else 'Medium' if len(df) > 100 else 'Low'
+
+        events_per_day = 0
+        if 'Timestamp (Event Time)' in df.columns and not df.empty:
+            events_per_day = df.groupby(df['Timestamp (Event Time)'].dt.date).size().mean()
+
+        security_score = None
+        if 'Access Result' in df.columns and len(df) > 0:
+            denied = df['Access Result'].str.contains('DENIED|FAILED', case=False, na=False).sum()
+            security_score = round(100 - ((denied / len(df)) * 100), 2)
+
         enhanced_metrics = {
-            'total_sessions': len(df),
-            'total_unique_users': df['UserID (Person Identifier)'].nunique() if 'UserID (Person Identifier)' in df.columns else 0,
-            'most_active_user': df['UserID (Person Identifier)'].value_counts().index[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 'N/A',
-            'average_events_per_user': len(df) / df['UserID (Person Identifier)'].nunique() if 'UserID (Person Identifier)' in df.columns and df['UserID (Person Identifier)'].nunique() > 0 else 0,
-            'peak_hour': df['Timestamp (Event Time)'].dt.hour.mode()[0] if len(df) > 0 and 'Timestamp (Event Time)' in df.columns else 'N/A',
-            'busiest_day': df['Timestamp (Event Time)'].dt.day_name().mode()[0] if len(df) > 0 and 'Timestamp (Event Time)' in df.columns else 'N/A',
-            'activity_intensity': 'High' if len(df) > 1000 else 'Medium' if len(df) > 100 else 'Low',
-            'hourly_distribution': {},
-            'daily_distribution': {},
-            'rush_hour_periods': [],
-            'user_activity_variance': 0,
-            'average_session_length': 0,
-            'peak_hour_count': 0,
-            'lowest_hour': 'N/A',
-            'lowest_hour_count': 0,
-            'busiest_day_count': 0,
-            'daily_average': len(df) / df['Timestamp (Event Time)'].dt.date.nunique() if len(df) > 0 and 'Timestamp (Event Time)' in df.columns else 0,
-            'daily_variance': 0,
-            'trend_slope': 0,
-            'most_active_user_count': df['UserID (Person Identifier)'].value_counts().iloc[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 0
+            'total_sessions': total_sessions,
+            'total_unique_users': total_unique_users,
+            'most_active_user': most_active_user,
+            'most_active_user_count': df['UserID (Person Identifier)'].value_counts().iloc[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 0,
+            'average_events_per_user': avg_events_per_user,
+            'total_devices_count': total_devices_count,
+            'events_per_day': events_per_day,
+            'peak_hour': peak_hour,
+            'busiest_day': busiest_day,
+            'activity_intensity': activity_intensity,
+            'date_range': date_range,
+            'security_score': security_score,
         }
         
         print(f"✅ Simple analytics calculated: {len(enhanced_metrics)} metrics")
