@@ -83,7 +83,49 @@ class MappingHandlers:
     # This is now handled exclusively by classification_handlers.py to avoid conflicts
     
     def _process_mapping_confirmation(self, values, ids, csv_headers, existing_json):
-        """Process the mapping confirmation logic"""
+        """Process user's mapping selections and validate completeness.
+
+        Takes the user's dropdown selections from the mapping interface, validates
+        that all required columns are mapped, and prepares the data for the next
+        workflow step. Also updates stored user preferences for future uploads.
+
+        Args:
+            values: List of selected values from mapping dropdowns. Each value
+                corresponds to a CSV column name chosen by the user.
+            ids: List of dropdown component IDs containing the internal field names.
+                Structure: ``[{'index': 'UserID'}, {'index': 'DoorID'}, ...]``
+            csv_headers: Complete list of available CSV column headers that can
+                be selected in the dropdowns.
+            existing_json: Previously saved mapping preferences, either as JSON
+                string or dictionary. Used to update user's preference history.
+
+        Returns:
+            Processing result dictionary containing:
+                - ``success`` (bool): ``True`` if mapping is valid and complete
+                - ``mapping`` (Dict[str, str]): Final validated mapping if successful
+                - ``updated_mappings`` (Dict): Updated preference storage including new mapping
+                - ``csv_headers`` (List[str]): Original headers for reference
+                - ``error`` (str): Error message if validation failed
+                - ``missing_columns`` (List[str]): Missing required columns if validation failed
+
+        Raises:
+            ValueError: If ``values`` and ``ids`` lists have different lengths
+            TypeError: If input parameters are not the expected types
+
+        Example:
+            >>> values = ['user_id_col', 'door_name_col', 'event_time', 'access_result']
+            >>> ids = [{'index': 'UserID'}, {'index': 'DoorID'}, {'index': 'Timestamp'}, {'index': 'EventType'}]
+            >>> headers = ['user_id_col', 'door_name_col', 'event_time', 'access_result', 'extra_col']
+            >>> result = handler._process_mapping_confirmation(values, ids, headers, None)
+            >>> print(result['success'])
+            True
+            >>> print(result['mapping'])
+            {'user_id_col': 'UserID', 'door_name_col': 'DoorID', 'event_time': 'Timestamp', 'access_result': 'EventType'}
+
+        Side Effects:
+            Updates internal mapping preferences storage for future use.
+            May trigger UI state changes through callback return values.
+        """
         try:
             # Create mapping dictionary
             mapping = {

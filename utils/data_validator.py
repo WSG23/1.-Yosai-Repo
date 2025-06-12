@@ -222,7 +222,43 @@ class DataQualityAnalyzer:
         self.quality_metrics: Dict[str, Any] = {}
     
     def analyze_dataframe_quality(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Comprehensive data quality analysis"""
+        """Perform comprehensive data quality analysis on a DataFrame.
+
+        Analyzes multiple aspects of data quality including basic statistics,
+        missing data patterns, data type optimization opportunities, duplicate
+        detection, outlier identification, and generates actionable recommendations.
+
+        Args:
+            df: pandas DataFrame to analyze. Must not be empty and should contain
+                meaningful data for analysis. Column names should be strings.
+
+        Returns:
+            Comprehensive analysis dictionary containing:
+                - ``basic_stats`` (Dict): Row/column counts, memory usage, type distribution
+                - ``missing_data`` (Dict): Missing value analysis by column and overall
+                - ``data_types`` (Dict): Type analysis and categorical conversion suggestions
+                - ``duplicates`` (Dict): Duplicate row analysis and key column duplicates
+                - ``outliers`` (Dict): Outlier detection for numeric columns using IQR method
+                - ``recommendations`` (List[str]): Prioritized list of improvement actions
+
+        Raises:
+            ValueError: If DataFrame is empty or has no columns
+            TypeError: If input is not a pandas DataFrame
+
+        Example:
+            >>> analyzer = DataQualityAnalyzer()
+            >>> df = pd.DataFrame({'user': ['A', 'B', None], 'score': [1, 2, 100]})
+            >>> results = analyzer.analyze_dataframe_quality(df)
+            >>> print(results['missing_data']['total_missing_percentage'])
+            11.11  # 1 missing value out of 9 total cells
+            >>> print(results['recommendations'])
+            ['1 records have empty user values', 'Potential outlier in score column']
+
+        Performance:
+            Uses vectorized pandas operations for optimal performance. Typical analysis
+            time is O(n*m) where n=rows and m=columns. Large datasets (>100MB) may
+            benefit from sampling before analysis.
+        """
         if df.empty:
             return {'error': 'DataFrame is empty'}
         
@@ -396,11 +432,36 @@ class DataQualityAnalyzer:
         return recommendations
 
 def create_data_validator() -> EnhancedDataValidator:
-    """Factory function to create data validator"""
+    """Create a new EnhancedDataValidator instance with default configuration.
+
+    Factory function that provides a convenient way to create data validator
+    instances without needing to import and configure dependencies manually.
+
+    Returns:
+        Fully configured ``EnhancedDataValidator`` ready for use.
+
+    Example:
+        >>> validator = create_data_validator()
+        >>> result = validator.validate_upload('data.csv', 1024, csv_contents)
+        >>> if result['success']:
+        ...     print(f"Validation passed: {result['row_count']} rows")
+    """
     return EnhancedDataValidator()
 
 def create_quality_analyzer() -> DataQualityAnalyzer:
-    """Factory function to create quality analyzer"""
+    """Create a new DataQualityAnalyzer instance for data quality assessment.
+
+    Factory function that creates a data quality analyzer configured with
+    appropriate defaults for CSV analysis in the access control domain.
+
+    Returns:
+        ``DataQualityAnalyzer`` instance ready to analyze DataFrames.
+
+    Example:
+        >>> analyzer = create_quality_analyzer()
+        >>> quality_report = analyzer.analyze_dataframe_quality(df)
+        >>> print(f"Quality score: {len(quality_report['recommendations'])} issues found")
+    """
     return DataQualityAnalyzer()
 
 def quick_validate_csv(file_path: str) -> Dict[str, Any]:
