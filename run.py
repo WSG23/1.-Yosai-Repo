@@ -118,6 +118,7 @@ def run_development(app, host="127.0.0.1", port=8050, debug=True, **kwargs):
     print("=" * 50)
     
 
+    # Development tools are enabled here instead of in the Dash constructor
     app.run_server(
         debug=debug,
         host=host,
