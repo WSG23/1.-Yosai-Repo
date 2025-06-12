@@ -19,6 +19,7 @@ from config.settings import REQUIRED_INTERNAL_COLUMNS, SECURITY_LEVELS
 
 class EnhancedStatsComponent:
     """Enhanced statistics component with comprehensive metrics and visualizations"""
+
     def __init__(self):
         self.panel_style_base = {
             "flex": "1",
@@ -30,7 +31,7 @@ class EnhancedStatsComponent:
             "boxShadow": "2px 2px 5px rgba(0,0,0,0.2)",
             "minHeight": "200px",
         }
-        
+
         # Chart theme matching app colors
         self.chart_theme = {
             "layout": {
@@ -45,14 +46,14 @@ class EnhancedStatsComponent:
                     COLORS["success"],
                     COLORS["warning"],
                     COLORS["critical"],
-                    COLORS['accent_light'],
+                    COLORS["accent_light"],
                     "#66BB6A",
                     "#FFA726",
                     "#EF5350",
                 ],
             }
         }
-    
+
     def create_enhanced_stats_container(self):
         """Creates the main enhanced statistics container"""
         return html.Div(
@@ -151,7 +152,7 @@ class EnhancedStatsComponent:
                             style={
                                 "fontSize": "18px",
                                 "fontWeight": "400",
-                                "color": COLORS['text_on_accent'],
+                                "color": COLORS["text_on_accent"],
                                 "fontFamily": "system-ui, -apple-system, sans-serif",
                                 "verticalAlign": "middle",
                             },
@@ -159,7 +160,6 @@ class EnhancedStatsComponent:
                     ],
                     style={"display": "flex", "alignItems": "center"},
                 ),
-                
                 # Right: Controls
                 html.Div(
                     [
@@ -188,7 +188,7 @@ class EnhancedStatsComponent:
                 ),
             ],
         )
-    
+
     def create_enhanced_access_events_panel(self):
         """Enhanced access events panel with trend indicators"""
         panel_style = self.panel_style_base.copy()
@@ -240,7 +240,7 @@ class EnhancedStatsComponent:
             ],
             style=panel_style,
         )
-    
+
     def create_enhanced_statistics_panel(self):
         """Enhanced general statistics panel with more metrics"""
         panel_style = self.panel_style_base.copy()
@@ -322,7 +322,7 @@ class EnhancedStatsComponent:
             ],
             style=panel_style,
         )
-    
+
     def create_enhanced_active_devices_panel(self):
         """Enhanced active devices panel with interactive table"""
         panel_style = self.panel_style_base.copy()
@@ -467,7 +467,7 @@ class EnhancedStatsComponent:
             ],
             style=panel_style,
         )
-    
+
     def create_security_distribution_panel(self):
         """New panel for security level distribution"""
         panel_style = self.panel_style_base.copy()
@@ -863,21 +863,21 @@ class EnhancedStatsComponent:
             ],
             style=container_style,
         )
-    
+
     # Chart creation methods
     def create_hourly_activity_chart(self, df):
         """Creates hourly activity line chart"""
         if df is None or df.empty:
             return self._create_empty_chart("No data available for hourly activity")
-        
+
         # Extract hour from timestamp
         timestamp_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
         if timestamp_col not in df.columns:
             return self._create_empty_chart("Timestamp data not available")
-        
+
         hourly_data = df.groupby(df[timestamp_col].dt.hour).size().reset_index()
         hourly_data.columns = ["Hour", "Events"]
-        
+
         # Ensure all 24 hours are represented
         all_hours = pd.DataFrame({"Hour": range(24)})
         hourly_data = all_hours.merge(hourly_data, on="Hour", how="left").fillna(0)
@@ -894,25 +894,24 @@ class EnhancedStatsComponent:
             )
         )
 
-        
         fig.update_layout(
             title="Access Events by Hour of Day",
             xaxis_title="Hour",
             yaxis_title="Number of Events",
-             **self.chart_theme["layout"],
+            **self.chart_theme["layout"],
         )
-        
+
         return fig
-    
+
     def create_daily_trends_chart(self, df):
         """Creates daily trends chart"""
         if df is None or df.empty:
             return self._create_empty_chart("No data available for daily trends")
-        
+
         timestamp_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
         if timestamp_col not in df.columns:
             return self._create_empty_chart("Timestamp data not available")
-        
+
         daily_data = df.groupby(df[timestamp_col].dt.date).size().reset_index()
         daily_data.columns = ["Date", "Events"]
 
@@ -925,7 +924,7 @@ class EnhancedStatsComponent:
                 marker=dict(size=6, color=COLORS["success"]),
             )
         )
-        
+
         # Add trend line
         if len(daily_data) > 1:
             z = np.polyfit(range(len(daily_data)), daily_data["Events"], 1)
@@ -940,24 +939,23 @@ class EnhancedStatsComponent:
                 )
             )
 
-        
         fig.update_layout(
             title="Daily Access Events Trend",
             xaxis_title="Date",
             yaxis_title="Number of Events",
-            **self.chart_theme['layout'],
+            **self.chart_theme["layout"],
         )
-        
+
         return fig
-    
+
     def create_security_distribution_chart(self, device_attrs):
         """Creates security level distribution pie chart"""
         if device_attrs is None or device_attrs.empty:
             return self._create_empty_chart("No security data available")
-        
-        if 'SecurityLevel' not in device_attrs.columns:
+
+        if "SecurityLevel" not in device_attrs.columns:
             return self._create_empty_chart("Security level data not available")
-                
+
         sec_series = self._normalize_security_column(device_attrs["SecurityLevel"])
         security_counts = sec_series.value_counts()
 
@@ -967,7 +965,7 @@ class EnhancedStatsComponent:
             "red": COLORS["critical"],
             "unclassified": COLORS["border"],
         }
-        
+
         fig = go.Figure(
             data=[
                 go.Pie(
@@ -983,24 +981,23 @@ class EnhancedStatsComponent:
             ]
         )
 
-        
         fig.update_layout(
             title="Security Level Distribution", **self.chart_theme["layout"]
-       )
-        
+        )
+
         return fig
-    
+
     def create_device_usage_chart(self, df):
         """Creates device usage bar chart"""
         if df is None or df.empty:
             return self._create_empty_chart("No device data available")
-        
+
         doorid_col = REQUIRED_INTERNAL_COLUMNS["DoorID"]
         if doorid_col not in df.columns:
             return self._create_empty_chart("Device data not available")
-        
+
         device_counts = df[doorid_col].value_counts().head(10)
-        
+
         fig = go.Figure(
             data=[
                 go.Bar(
@@ -1011,7 +1008,7 @@ class EnhancedStatsComponent:
                 )
             ]
         )
-        
+
         fig.update_layout(
             title="Top 10 Most Active Devices",
             xaxis_title="Number of Events",
@@ -1084,49 +1081,47 @@ class EnhancedStatsComponent:
                     font=dict(size=16, color=COLORS["text_secondary"]),
                 )
             ],
-            **self.chart_theme["layout"]
+            **self.chart_theme["layout"],
         )
         return fig
-    
+
     # Data processing methods
     def process_enhanced_stats(self, df, device_attrs=None):
         """Process data for enhanced statistics"""
         if df is None or df.empty:
             return self._get_default_enhanced_stats()
-        
+
         stats = {}
-        
+
         # Core metrics (enhanced from original)
         timestamp_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
         doorid_col = REQUIRED_INTERNAL_COLUMNS["DoorID"]
         userid_col = REQUIRED_INTERNAL_COLUMNS["UserID"]
 
-        
         if timestamp_col in df.columns:
             # Basic stats
             stats["total_events"] = len(df)
             stats["date_range"] = self._get_date_range_string(df[timestamp_col])
             stats["days_with_data"] = df[timestamp_col].dt.date.nunique()
-            
+
             # Enhanced time-based analytics
             stats["peak_hour"] = df[timestamp_col].dt.hour.mode()[0]
             stats["peak_day"] = df[timestamp_col].dt.day_name().mode()[0]
-            stats["events_per_day"] = stats["total_events"] / max(
-                stats["days_with_data"], 1
+            stats["events_per_day"] = round(
+                stats["total_events"] / max(stats["days_with_data"], 1), 2
             )
 
-            
             # Activity patterns
             hourly_activity = df.groupby(df[timestamp_col].dt.hour).size()
             stats["activity_variance"] = hourly_activity.var()
             stats["peak_hour_events"] = hourly_activity.max()
-            
+
         if doorid_col in df.columns:
             stats["num_devices"] = df[doorid_col].nunique()
             stats["devices_active_today"] = self._get_devices_active_today(
                 df, doorid_col, timestamp_col
             )
-            
+
         if userid_col in df.columns:
             stats["unique_users"] = df[userid_col].nunique()
             stats["avg_events_per_user"] = stats.get("total_events", 0) / max(
@@ -1135,16 +1130,16 @@ class EnhancedStatsComponent:
             stats["most_active_user"] = (
                 df[userid_col].value_counts().index[0] if not df.empty else "N/A"
             )
-            
+
         # Security analysis
         if device_attrs is not None and not device_attrs.empty:
             stats["security_distribution"] = self._analyze_security_distribution(
                 device_attrs
             )
             stats["compliance_score"] = self._calculate_compliance_score(device_attrs)
-            
+
         return stats
-    
+
     def _get_default_enhanced_stats(self):
         """Returns default enhanced stats structure"""
         return {
@@ -1164,15 +1159,15 @@ class EnhancedStatsComponent:
             "security_distribution": {},
             "compliance_score": 0,
         }
-    
+
     def _get_date_range_string(self, timestamp_series):
         """Gets formatted date range string"""
         min_date = timestamp_series.min()
         max_date = timestamp_series.max()
         if pd.notna(min_date) and pd.notna(max_date):
-            return f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
+            return f"{min_date.strftime('%d-%m-%Y')} - {max_date.strftime('%d-%m-%Y')}"
         return "N/A"
-    
+
     def _get_devices_active_today(self, df, doorid_col, timestamp_col):
         """Gets count of devices active today"""
         if timestamp_col not in df.columns:
@@ -1192,7 +1187,7 @@ class EnhancedStatsComponent:
                 return str(val)
 
         return series.map(convert)
-        
+
     def _analyze_security_distribution(self, device_attrs):
         """Analyzes security level distribution"""
         if "SecurityLevel" not in device_attrs.columns:
@@ -1200,20 +1195,20 @@ class EnhancedStatsComponent:
 
         sec_series = self._normalize_security_column(device_attrs["SecurityLevel"])
         return sec_series.value_counts().to_dict()
-    
+
     def _calculate_compliance_score(self, device_attrs):
         """Calculates security compliance score (0-100)"""
         if device_attrs is None or device_attrs.empty:
             return 0
-        
+
         total_devices = len(device_attrs)
         if total_devices == 0:
             return 0
-        
+
         # Score based on security classification completeness and distribution
         classified_devices = 0
         high_security_devices = 0
-        
+
         if "SecurityLevel" in device_attrs.columns:
             sec_series = self._normalize_security_column(device_attrs["SecurityLevel"])
             classified_devices = sec_series.notna().sum()
@@ -1226,7 +1221,6 @@ class EnhancedStatsComponent:
             30, (high_security_devices / max(total_devices, 1)) * 100
         )  # 30% for security balance
 
-        
         return round(classification_score + security_balance_score, 1)
 
 

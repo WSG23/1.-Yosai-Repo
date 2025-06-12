@@ -1,6 +1,7 @@
 """Yōsai Enhanced Analytics Dashboard application entry point.
 
 Provides type‑safe helper utilities and registers all Dash callbacks."""
+
 import sys
 import os
 import dash
@@ -17,11 +18,14 @@ import dash_cytoscape as cyto
 from typing import Dict, Any, Union, Optional, List, Tuple
 import math
 
+
 # Type-safe JSON serialization
-def make_json_serializable(data: Any) -> Union[Dict[str, Any], List[Any], int, float, str, None]:
+def make_json_serializable(
+    data: Any,
+) -> Union[Dict[str, Any], List[Any], int, float, str, None]:
     """
     Convert numpy data types to native Python types for JSON serialization.
-    
+
     Returns: Always returns JSON-serializable Python types
     """
     if data is None:
@@ -39,7 +43,7 @@ def make_json_serializable(data: Any) -> Union[Dict[str, Any], List[Any], int, f
                 str_key = key
             else:
                 str_key = str(key)  # Convert any other type to string
-            
+
             # Recursively serialize values
             serialized_dict[str_key] = make_json_serializable(value)
         return serialized_dict
@@ -57,32 +61,38 @@ def make_json_serializable(data: Any) -> Union[Dict[str, Any], List[Any], int, f
         return None
     elif isinstance(data, (pd.Timestamp, datetime)):
         return data.isoformat()
-    elif hasattr(data, 'item'):  # Additional numpy scalar types
+    elif hasattr(data, "item"):  # Additional numpy scalar types
         return data.item()
     else:
         return data
 
+
 # Type-safe helper functions
-def safe_dict_access(data: Any, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def safe_dict_access(
+    data: Any, default: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Safely ensure data is a dictionary"""
     if isinstance(data, dict):
         return data
     return default or {}
 
+
 def safe_len(data: Any, default: int = 0) -> int:
     """Safely get length of sized objects"""
     try:
-        if hasattr(data, '__len__'):
+        if hasattr(data, "__len__"):
             return len(data)
     except (TypeError, AttributeError):
         pass
     return default
+
 
 def safe_get_keys(data: Any, max_keys: int = 6) -> List[str]:
     """Safely get dictionary keys"""
     if isinstance(data, dict):
         return list(data.keys())[:max_keys]
     return []
+
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -96,7 +106,9 @@ from ui.themes.style_config import (
 )
 from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
-print("🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)...")
+print(
+    "🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)..."
+)
 
 # ============================================================================
 # ENHANCED IMPORTS WITH FALLBACK SUPPORT
@@ -165,6 +177,7 @@ try:
     from ui.components.classification_handlers import create_classification_handlers
     from ui.components.graph_handlers import create_graph_handlers
     from ui.components.graph import create_graph_container
+
     print(">> Handler factories imported")
 except ImportError as e:
     print(f"!! Handler factories not available: {e}")
@@ -247,6 +260,7 @@ print(f">> Assets loaded: {ICON_UPLOAD_DEFAULT}")
 # HELPER FUNCTIONS - ALL INCLUDED WITH TYPE SAFETY
 # ============================================================================
 
+
 def _create_fallback_stats_container():
     """Create fallback stats container with all required callback elements"""
     return html.Div(
@@ -290,6 +304,7 @@ def _create_fallback_stats_container():
         ],
     )
 
+
 def _create_fallback_analytics_section():
     """Create fallback analytics section"""
     return html.Div(
@@ -303,6 +318,7 @@ def _create_fallback_analytics_section():
             html.P(id="anomaly-insight", children="0 detected"),
         ],
     )
+
 
 def _create_fallback_charts_section():
     """Create fallback charts section"""
@@ -325,6 +341,7 @@ def _create_fallback_charts_section():
         ],
     )
 
+
 def _create_fallback_export_section():
     """Create fallback export section"""
     return html.Div(
@@ -342,6 +359,7 @@ def _create_fallback_export_section():
             html.Div(id="export-status"),
         ],
     )
+
 
 def _create_fallback_enhanced_header():
     """Create fallback header for enhanced stats"""
@@ -366,62 +384,108 @@ def _create_fallback_enhanced_header():
         ],
     )
 
+
 # Add this function to app.py - Create proper advanced analytics container
+
 
 def _create_advanced_analytics_container():
     """Create advanced analytics panels container with all required elements"""
     from ui.themes.style_config import COLORS
-    
+
     panel_style = {
-        'backgroundColor': COLORS['surface'],
-        'padding': '20px',
-        'borderRadius': '8px',
-        'border': f"1px solid {COLORS['border']}",
-        'minWidth': '250px',
-        'flex': '1'
+        "backgroundColor": COLORS["surface"],
+        "padding": "20px",
+        "borderRadius": "8px",
+        "border": f"1px solid {COLORS['border']}",
+        "minWidth": "250px",
+        "flex": "1",
     }
-    
+
     return html.Div(
         id="advanced-analytics-panels-container",
         style={"display": "none"},
         children=[
             # Peak Activity Panel - COMPLETE with all elements
-            html.Div([
-                html.H3("Peak Activity", style={'color': COLORS['text_primary']}),
-                html.P(id="peak-hour-display", children="Peak Hour: Loading...", 
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="peak-day-display", children="Peak Day: Loading...", 
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="busiest-floor", children="Busiest Floor: Loading...", 
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="entry-exit-ratio", children="Entry/Exit: Loading...", 
-                       style={'color': COLORS['text_secondary']}),  # FIXED: Added this
-                html.P(id="weekend-vs-weekday", children="Weekend vs Weekday: Loading...", 
-                       style={'color': COLORS['text_secondary']})  # FIXED: Added this
-            ], style=panel_style),
-            
-            # Security Overview Panel 
-            html.Div([
-                html.H3("Security Overview", style={'color': COLORS['text_primary']}),
-                html.Div(id="security-level-breakdown", children="Security analysis loading...",
-                        style={'color': COLORS['text_secondary']}),
-                html.P(id="security-compliance-score", children="Compliance: Loading...",
-                       style={'color': COLORS['text_secondary']})
-            ], style=panel_style),
-            
+            html.Div(
+                [
+                    html.H3("Peak Activity", style={"color": COLORS["text_primary"]}),
+                    html.P(
+                        id="peak-hour-display",
+                        children="Peak Hour: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="peak-day-display",
+                        children="Peak Day: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="busiest-floor",
+                        children="Busiest Floor: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="entry-exit-ratio",
+                        children="Entry/Exit: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),  # FIXED: Added this
+                    html.P(
+                        id="weekend-vs-weekday",
+                        children="Weekend vs Weekday: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),  # FIXED: Added this
+                ],
+                style=panel_style,
+            ),
+            # Security Overview Panel
+            html.Div(
+                [
+                    html.H3(
+                        "Security Overview", style={"color": COLORS["text_primary"]}
+                    ),
+                    html.Div(
+                        id="security-level-breakdown",
+                        children="Security analysis loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="security-compliance-score",
+                        children="Compliance: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                ],
+                style=panel_style,
+            ),
             # Additional Analytics Panel
-            html.Div([
-                html.H3("Analytics Insights", style={'color': COLORS['text_primary']}),
-                html.P(id="traffic-pattern-insight", children="Pattern: Loading...",
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="security-score-insight", children="Score: Loading...",
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="anomaly-insight", children="Alerts: Loading...",
-                       style={'color': COLORS['text_secondary']}),
-                html.P(id="efficiency-insight", children="Efficiency: Loading...",
-                       style={'color': COLORS['text_secondary']})
-            ], style=panel_style)
-        ]
+            html.Div(
+                [
+                    html.H3(
+                        "Analytics Insights", style={"color": COLORS["text_primary"]}
+                    ),
+                    html.P(
+                        id="traffic-pattern-insight",
+                        children="Pattern: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="security-score-insight",
+                        children="Score: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="anomaly-insight",
+                        children="Alerts: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                    html.P(
+                        id="efficiency-insight",
+                        children="Efficiency: Loading...",
+                        style={"color": COLORS["text_secondary"]},
+                    ),
+                ],
+                style=panel_style,
+            ),
+        ],
     )
 
 
@@ -440,51 +504,99 @@ def _create_mini_graph_container():
         id="mini-graph-container", style={"display": "none"}, children=[mini_graph]
     )
 
+
 def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) -> None:
     """Add missing callback elements as hidden placeholders"""
     callback_targets = [
-        'stats-unique-users', 'stats-avg-events-per-user', 'stats-most-active-user',
-        'stats-devices-per-user', 'stats-peak-hour', 'total-devices-count',
-        'entrance-devices-count', 'high-security-devices', 'traffic-pattern-insight',
-        'security-score-insight', 'efficiency-insight', 'anomaly-insight',
-        'peak-hour-display', 'peak-day-display', 'busiest-floor',
-        'entry-exit-ratio', 'weekend-vs-weekday', 'security-level-breakdown',
-        'compliance-score', 'security-compliance-score', 'anomaly-alerts', 'main-analytics-chart',
-        'security-pie-chart', 'heatmap-chart', 'chart-type-selector',
-        'export-stats-csv', 'export-charts-png', 'generate-pdf-report',
-        'refresh-analytics', 'download-stats-csv', 'download-charts',
-        'download-report', 'export-status',
-        'stats-refresh-interval',
-        'export-graph-png', 'export-graph-json',
-        'download-graph-png', 'download-graph-json',
+        "stats-unique-users",
+        "stats-avg-events-per-user",
+        "stats-most-active-user",
+        "stats-devices-per-user",
+        "stats-peak-hour",
+        "total-devices-count",
+        "entrance-devices-count",
+        "high-security-devices",
+        "traffic-pattern-insight",
+        "security-score-insight",
+        "efficiency-insight",
+        "anomaly-insight",
+        "peak-hour-display",
+        "peak-day-display",
+        "busiest-floor",
+        "entry-exit-ratio",
+        "weekend-vs-weekday",
+        "security-level-breakdown",
+        "compliance-score",
+        "security-compliance-score",
+        "anomaly-alerts",
+        "main-analytics-chart",
+        "security-pie-chart",
+        "heatmap-chart",
+        "chart-type-selector",
+        "export-stats-csv",
+        "export-charts-png",
+        "generate-pdf-report",
+        "refresh-analytics",
+        "download-stats-csv",
+        "download-charts",
+        "download-report",
+        "export-status",
+        "stats-refresh-interval",
+        "export-graph-png",
+        "export-graph-json",
+        "download-graph-png",
+        "download-graph-json",
         # FIXED: Add Enhanced Stats Handler targets
-        'enhanced-total-access-events-H1', 'enhanced-event-date-range-P',
-        'events-trend-indicator', 'avg-events-per-day', 'most-active-user',
-        'avg-user-activity', 'unique-users-today',
+        "enhanced-total-access-events-H1",
+        "enhanced-event-date-range-P",
+        "events-trend-indicator",
+        "avg-events-per-day",
+        "most-active-user",
+        "avg-user-activity",
+        "unique-users-today",
         # Add IDs referenced by enhanced stats callbacks
-        'core-row-with-sidebar', 'peak-activity-events'
+        "core-row-with-sidebar",
+        "peak-activity-events",
     ]
-    
+
     for element_id in callback_targets:
         if element_id not in existing_ids:
             print(f">> Adding hidden placeholder for callback target: {element_id}")
-            
-            if element_id == 'stats-refresh-interval':
+
+            if element_id == "stats-refresh-interval":
                 element = dcc.Interval(id=element_id, disabled=True, interval=999999999)
-            elif element_id in ['export-stats-csv', 'export-charts-png', 'generate-pdf-report', 'refresh-analytics', 'export-graph-png', 'export-graph-json']:
+            elif element_id in [
+                "export-stats-csv",
+                "export-charts-png",
+                "generate-pdf-report",
+                "refresh-analytics",
+                "export-graph-png",
+                "export-graph-json",
+            ]:
                 element = html.Button(id=element_id, style={"display": "none"})
-            elif element_id in ['main-analytics-chart', 'security-pie-chart', 'heatmap-chart']:
+            elif element_id in [
+                "main-analytics-chart",
+                "security-pie-chart",
+                "heatmap-chart",
+            ]:
                 element = dcc.Graph(id=element_id, style={"display": "none"})
-            elif element_id in ['download-stats-csv', 'download-charts', 'download-report', 'download-graph-png', 'download-graph-json']:
+            elif element_id in [
+                "download-stats-csv",
+                "download-charts",
+                "download-report",
+                "download-graph-png",
+                "download-graph-json",
+            ]:
                 element = dcc.Download(id=element_id)
-            elif 'store' in element_id:
+            elif "store" in element_id:
                 element = dcc.Store(id=element_id)
-            elif 'chart-type-selector' in element_id:
+            elif "chart-type-selector" in element_id:
                 element = dcc.Dropdown(id=element_id, style={"display": "none"})
             else:
                 element = html.Div(id=element_id, style={"display": "none"})
 
             base_children.append(element)
+
 
 def create_debug_panel():
     """Create debug panel to monitor Enhanced Analytics data flow"""
@@ -524,13 +636,18 @@ def create_debug_panel():
         },
     )
 
-def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload_default: str):
+
+def _create_complete_fixed_layout(
+    app_instance, main_logo_path: str, icon_upload_default: str
+):
     """Create complete layout from scratch with all required elements"""
 
     print(">> Creating complete layout from scratch with all required elements")
 
     # Choose enhanced stats implementation if available
-    if components_available.get("enhanced_stats") and component_instances.get("enhanced_stats"):
+    if components_available.get("enhanced_stats") and component_instances.get(
+        "enhanced_stats"
+    ):
         enhanced_stats_layout = [
             component_instances["enhanced_stats"].create_enhanced_stats_container(),
         ]
@@ -765,13 +882,24 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
                             children=[
                                 html.H3("User Analytics"),
                                 html.P(id="stats-unique-users", children="0 users"),
-                                html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
+                                html.P(
+                                    id="stats-avg-events-per-user",
+                                    children="Avg: 0 events/user",
+                                ),
                                 html.P(id="stats-most-active-user", children="No data"),
-                                html.P(id="stats-devices-per-user", children="Avg: 0 users/device"),
+                                html.P(
+                                    id="stats-devices-per-user",
+                                    children="Avg: 0 users/device",
+                                ),
                                 html.P(id="stats-peak-hour", children="Peak: N/A"),
                                 html.P(id="total-devices-count", children="0 devices"),
-                                html.P(id="entrance-devices-count", children="0 entrances"),
-                                html.P(id="high-security-devices", children="0 high security"),
+                                html.P(
+                                    id="entrance-devices-count", children="0 entrances"
+                                ),
+                                html.P(
+                                    id="high-security-devices",
+                                    children="0 high security",
+                                ),
                             ],
                         ),
                         # Panel 3: Activity Insights
@@ -787,8 +915,13 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
                                 html.H3("Activity Insights"),
                                 html.P(id="peak-hour-display", children="Peak: N/A"),
                                 html.P(id="busiest-floor", children="Floor: N/A"),
-                                html.P(id="traffic-pattern-insight", children="Pattern: N/A"),
-                                html.P(id="security-score-insight", children="Score: N/A"),
+                                html.P(
+                                    id="traffic-pattern-insight",
+                                    children="Pattern: N/A",
+                                ),
+                                html.P(
+                                    id="security-score-insight", children="Score: N/A"
+                                ),
                                 html.P(id="anomaly-insight", children="Alerts: 0"),
                             ],
                         ),
@@ -799,8 +932,12 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
                 _create_fallback_analytics_section(),
                 _create_fallback_charts_section(),
                 _create_fallback_export_section(),
-                create_graph_container() if create_graph_container else html.Div(
-                    id="graph-output-container", style={"display": "none"}
+                (
+                    create_graph_container()
+                    if create_graph_container
+                    else html.Div(
+                        id="graph-output-container", style={"display": "none"}
+                    )
                 ),
                 _create_mini_graph_container(),
                 create_debug_panel(),
@@ -837,9 +974,11 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
         },
     )
 
+
 # ============================================================================
 # FIXED LAYOUT CREATION - MAINTAINS CONSISTENCY + ADDS REQUIRED ELEMENTS
 # ============================================================================
+
 
 def create_fixed_layout_with_required_elements(
     app_instance, main_logo_path: str, icon_upload_default: str
@@ -871,6 +1010,7 @@ def create_fixed_layout_with_required_elements(
         return _create_complete_fixed_layout(
             app_instance, main_logo_path, icon_upload_default
         )
+
 
 def _add_missing_elements_to_existing_layout(
     base_layout, main_logo_path: str, icon_upload_default: str
@@ -1053,8 +1193,10 @@ def _add_missing_elements_to_existing_layout(
             "analytics-section": _create_fallback_analytics_section(),
             "charts-section": _create_fallback_charts_section(),
             "export-section": _create_fallback_export_section(),
-            "graph-output-container": create_graph_container() if create_graph_container else html.Div(
-                id="graph-output-container", style={"display": "none"}
+            "graph-output-container": (
+                create_graph_container()
+                if create_graph_container
+                else html.Div(id="graph-output-container", style={"display": "none"})
             ),
             "mini-graph-container": _create_mini_graph_container(),
             "debug-panel": create_debug_panel(),
@@ -1096,6 +1238,7 @@ def _add_missing_elements_to_existing_layout(
         traceback.print_exc()
         return _create_complete_fixed_layout(None, main_logo_path, icon_upload_default)
 
+
 # FIXED: Create layout with all required elements and correct arguments
 current_layout = create_fixed_layout_with_required_elements(
     app, MAIN_LOGO_PATH, ICON_UPLOAD_DEFAULT
@@ -1103,29 +1246,36 @@ current_layout = create_fixed_layout_with_required_elements(
 
 # EMERGENCY FIX: Add missing elements directly to layout
 missing_elements = [
-    html.P(id="entry-exit-ratio", children="Entry/Exit: N/A", style={"display": "none"}),
-    html.P(id="weekend-vs-weekday", children="Weekend vs Weekday: N/A", style={"display": "none"})
+    html.P(
+        id="entry-exit-ratio", children="Entry/Exit: N/A", style={"display": "none"}
+    ),
+    html.P(
+        id="weekend-vs-weekday",
+        children="Weekend vs Weekday: N/A",
+        style={"display": "none"},
+    ),
 ]
 # Add required data stores
-app.layout = html.Div([
-    # Required data stores
-    dcc.Store(id='uploaded-file-store'),
-    dcc.Store(id='csv-headers-store'),
-    dcc.Store(id='column-mapping-store', storage_type='local'),
-    dcc.Store(id='all-doors-from-csv-store'),
-    dcc.Store(id='processed-data-store'),
-    dcc.Store(id='device-attrs-store'),
-    dcc.Store(id='manual-door-classifications-store', storage_type='local'),
-    dcc.Store(id='num-floors-store', data=1),
-    dcc.Store(id='stats-data-store'),
-    dcc.Store(id='enhanced-stats-data-store'),
-    dcc.Store(id='chart-data-store'),
-    
-    # Your existing layout
-    current_layout,
-    # Inject emergency placeholders for callbacks expecting these IDs
-    *missing_elements,
-])
+app.layout = html.Div(
+    [
+        # Required data stores
+        dcc.Store(id="uploaded-file-store"),
+        dcc.Store(id="csv-headers-store"),
+        dcc.Store(id="column-mapping-store", storage_type="local"),
+        dcc.Store(id="all-doors-from-csv-store"),
+        dcc.Store(id="processed-data-store"),
+        dcc.Store(id="device-attrs-store"),
+        dcc.Store(id="manual-door-classifications-store", storage_type="local"),
+        dcc.Store(id="num-floors-store", data=1),
+        dcc.Store(id="stats-data-store"),
+        dcc.Store(id="enhanced-stats-data-store"),
+        dcc.Store(id="chart-data-store"),
+        # Your existing layout
+        current_layout,
+        # Inject emergency placeholders for callbacks expecting these IDs
+        *missing_elements,
+    ]
+)
 
 print(
     ">> COMPLETE FIXED layout created successfully with all required callback elements"
@@ -1136,6 +1286,7 @@ print(
 # ============================================================================
 
 CALLBACKS_REGISTERED = False
+
 
 def register_all_callbacks_safely(app):
     """Register callbacks with conflict prevention"""
@@ -1159,9 +1310,9 @@ def register_all_callbacks_safely(app):
             ICON_UPLOAD_FAIL,
         )
         icon_paths = {
-            'default': ICON_UPLOAD_DEFAULT,
-            'success': ICON_UPLOAD_SUCCESS,
-            'fail': ICON_UPLOAD_FAIL,
+            "default": ICON_UPLOAD_DEFAULT,
+            "success": ICON_UPLOAD_SUCCESS,
+            "fail": ICON_UPLOAD_FAIL,
         }
 
         upload_handlers = UploadHandlers(app, upload_component, icon_paths)
@@ -1176,7 +1327,6 @@ def register_all_callbacks_safely(app):
         from ui.components.mapping_handlers import MappingHandlers
         from ui.components.classification_handlers import ClassificationHandlers
 
-
         mapping_handlers = MappingHandlers(app)
         mapping_handlers.register_callbacks()
         print("   ✅ Mapping callbacks registered")
@@ -1185,8 +1335,9 @@ def register_all_callbacks_safely(app):
         classification_handlers.register_callbacks()
         print("   ✅ Classification callbacks registered (includes floor slider)")
 
-        if globals().get('components_available', {}).get("enhanced_stats"):
+        if globals().get("components_available", {}).get("enhanced_stats"):
             from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
+
             stats_handlers = EnhancedStatsHandlers(app)
             stats_handlers.register_callbacks()
             print("   ✅ Enhanced stats callbacks registered")
@@ -1199,6 +1350,7 @@ def register_all_callbacks_safely(app):
         CALLBACKS_REGISTERED = False  # Reset flag on error
         raise
 
+
 # Register callbacks safely
 register_all_callbacks_safely(app)
 
@@ -1207,6 +1359,7 @@ register_all_callbacks_safely(app)
 # ============================================================================
 
 # FIXED: Upload callback with no duplicate exception handling
+
 
 # Advanced view toggle callback
 @app.callback(
@@ -1219,7 +1372,9 @@ register_all_callbacks_safely(app)
     Input("advanced-view-button", "n_clicks"),
     prevent_initial_call=True,
 )
-def toggle_advanced_view(n_clicks: Optional[int]) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], str]:
+def toggle_advanced_view(
+    n_clicks: Optional[int],
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], str]:
     """Toggle between basic and advanced analytics view"""
 
     if not n_clicks:
@@ -1265,17 +1420,24 @@ def toggle_advanced_view(n_clicks: Optional[int]) -> Tuple[Dict[str, Any], Dict[
     [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
     prevent_initial_call=True,
 )
-def update_debug_info(metrics_data: Any, processed_data: Any) -> Tuple[str, str, str, str]:
+def update_debug_info(
+    metrics_data: Any, processed_data: Any
+) -> Tuple[str, str, str, str]:
     """Update debug information to track data flow - COMPLETELY TYPE-SAFE"""
-    
+
     # Safe metrics processing
     metrics_dict = safe_dict_access(metrics_data)
     if metrics_dict:
         metrics_count = f"[OK] Metrics: {safe_len(metrics_dict)} items calculated"
         keys = safe_get_keys(metrics_dict, 6)
         metrics_keys = f"Keys: {', '.join(keys)}..." if keys else "Keys: None"
-        
-        advanced_keys = ["traffic_pattern", "security_score", "avg_events_per_user", "most_active_user"]
+
+        advanced_keys = [
+            "traffic_pattern",
+            "security_score",
+            "avg_events_per_user",
+            "most_active_user",
+        ]
         has_advanced = any(key in metrics_dict for key in advanced_keys)
         calculation_status = f"Advanced metrics: {'YES' if has_advanced else 'MISSING'}"
     else:
@@ -1297,6 +1459,7 @@ def update_debug_info(metrics_data: Any, processed_data: Any) -> Tuple[str, str,
 
     return metrics_count, metrics_keys, processed_info, calculation_status
 
+
 # FIXED: Container sync callback with complete type safety
 @app.callback(
     [
@@ -1317,47 +1480,52 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
     # `peak-day-display` remain present for other callbacks.
     return dash.no_update, dash.no_update
 
+
 # FIXED: Enhanced stats store callback with complete validation
 @app.callback(
-    Output('enhanced-stats-data-store', 'data'),
-    Input('status-message-store', 'data'),
-    State('processed-data-store', 'data'),
-    State('manual-door-classifications-store', 'data'),
-    prevent_initial_call=True
+    Output("enhanced-stats-data-store", "data"),
+    Input("status-message-store", "data"),
+    State("processed-data-store", "data"),
+    State("manual-door-classifications-store", "data"),
+    prevent_initial_call=True,
 )
-def update_enhanced_stats_store(status_message: Any, processed_data: Any, device_classifications: Any) -> Dict[str, Any]:
+def update_enhanced_stats_store(
+    status_message: Any, processed_data: Any, device_classifications: Any
+) -> Dict[str, Any]:
     """Update enhanced stats store - COMPLETELY TYPE-SAFE"""
-    
+
     # Validate inputs
     if not status_message or "Analysis complete" not in str(status_message):
         return {}
-        
+
     try:
         processed_dict = safe_dict_access(processed_data)
         if not processed_dict or "dataframe" not in processed_dict:
             print("❌ Invalid processed_data format")
             return {}
-            
+
         # Safely create DataFrame
         dataframe_data = processed_dict["dataframe"]
         if not isinstance(dataframe_data, (list, dict)):
             print("❌ Invalid dataframe data format")
             return {}
-            
+
         df = pd.DataFrame(dataframe_data)
-        
+
         # Convert timestamp column if it exists
         timestamp_col = "Timestamp (Event Time)"
         if timestamp_col in df.columns:
             # FIXED: Use correct pandas to_datetime parameters
-            df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors='coerce')
+            df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
 
         # Handle device classifications safely
         device_attrs = None
         classifications_dict = safe_dict_access(device_classifications)
         if classifications_dict:
             try:
-                device_attrs = pd.DataFrame.from_dict(classifications_dict, orient="index")
+                device_attrs = pd.DataFrame.from_dict(
+                    classifications_dict, orient="index"
+                )
                 device_attrs.reset_index(inplace=True)
                 device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
             except Exception as e:
@@ -1365,31 +1533,34 @@ def update_enhanced_stats_store(status_message: Any, processed_data: Any, device
 
         # Calculate metrics safely
         enhanced_metrics = process_uploaded_data(df, device_attrs)
-        
+
         # Ensure result is a dictionary
         metrics_dict = safe_dict_access(enhanced_metrics)
         if not metrics_dict:
             print("❌ process_uploaded_data returned invalid data")
             return {}
-            
+
         print(f"✅ Enhanced stats updated: {safe_len(metrics_dict)} metrics")
         return metrics_dict
-        
+
     except Exception as e:
         print(f"❌ Error in enhanced stats store: {e}")
         import traceback
+
         traceback.print_exc()
         return {}
 
+
 # Single callback to update the visible processing status message
 @app.callback(
-    Output('processing-status', 'children'),
-    Input('status-message-store', 'data'),
-    prevent_initial_call=True
+    Output("processing-status", "children"),
+    Input("status-message-store", "data"),
+    prevent_initial_call=True,
 )
 def display_status_message(message: Any) -> Any:
     """Display the latest processing status message."""
     return message
+
 
 # Main analysis callback - MODIFIED to avoid conflicts
 @app.callback(
@@ -1408,14 +1579,17 @@ def display_status_message(message: Any) -> Any:
     prevent_initial_call=True,
 )
 def generate_enhanced_analysis(
-    n_clicks: Optional[int], file_data: Any, processed_data: Any, device_classifications: Any
+    n_clicks: Optional[int],
+    file_data: Any,
+    processed_data: Any,
+    device_classifications: Any,
 ) -> Tuple[Dict[str, str], Dict[str, Any], str]:
     """Generate analysis - handle visibility and status only"""
     if not n_clicks or not file_data:
         hide_style = {"display": "none"}
         return (
             hide_style,  # yosai-custom-header
-            hide_style,  # stats-panels-container  
+            hide_style,  # stats-panels-container
             "Click generate to start analysis",  # status
         )
 
@@ -1424,8 +1598,14 @@ def generate_enhanced_analysis(
 
         # Show header and stats containers
         show_style = {"display": "block"}
-        stats_style = {"display": "flex", "gap": "20px", "marginBottom": "30px", "backgroundColor": COLORS["background"],
-            "padding": "20px", "marginTop": "20px"}
+        stats_style = {
+            "display": "flex",
+            "gap": "20px",
+            "marginBottom": "30px",
+            "backgroundColor": COLORS["background"],
+            "padding": "20px",
+            "marginTop": "20px",
+        }
 
         # ACTUALLY PROCESS THE DATA and store it for enhanced stats handlers to use
         processed_dict = safe_dict_access(processed_data)
@@ -1436,8 +1616,8 @@ def generate_enhanced_analysis(
             # Convert timestamp column to datetime if it exists
             timestamp_col = "Timestamp (Event Time)"
             if timestamp_col in df.columns:
-                # FIXED: Use correct pandas to_datetime parameters  
-                df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors='coerce')
+                # FIXED: Use correct pandas to_datetime parameters
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
 
             # Prepare device attributes DataFrame if available
             device_attrs = None
@@ -1472,13 +1652,15 @@ def generate_enhanced_analysis(
     except Exception as e:
         print(f"❌ Error in enhanced analysis: {e}")
         import traceback
+
         traceback.print_exc()
-            
+
         return (
             {"display": "block"},  # yosai-custom-header
             {"display": "none"},  # stats-panels-container
             f"❌ Analysis failed: {str(e)}",  # status
         )
+
 
 def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Union[int, str]]:
     """Fallback function to calculate basic metrics if enhanced component fails"""
@@ -1499,7 +1681,7 @@ def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Union[int, str]]:
         "total_events": len(df),
         "unique_users": df[user_col].nunique() if user_col in df.columns else 0,
         "unique_devices": df[door_col].nunique() if door_col in df.columns else 0,
-        "date_range": "No date data"  # Default value
+        "date_range": "No date data",  # Default value
     }
 
     # FIXED: Safe assignment to properly typed dictionary
@@ -1507,7 +1689,9 @@ def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Union[int, str]]:
         try:
             min_date = df[timestamp_col].min()
             max_date = df[timestamp_col].max()
-            metrics["date_range"] = f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
+            metrics["date_range"] = (
+                f"{min_date.strftime('%d-%m-%Y')} - {max_date.strftime('%d-%m-%Y')}"
+            )
         except Exception as e:
             print(f"Error formatting dates: {e}")
             metrics["date_range"] = "Date formatting error"
@@ -1516,9 +1700,12 @@ def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Union[int, str]]:
 
     return metrics
 
+
 # IMPROVED: Enhanced process_uploaded_data function with type safety
 # FIXED: Simple process_uploaded_data function that bypasses broken analytics file
-def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+def process_uploaded_data(
+    df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None
+) -> Dict[str, Any]:
     """Process uploaded data and compute enhanced metrics - TYPE-SAFE"""
     try:
         # Validate DataFrame
@@ -1530,146 +1717,174 @@ def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame]
         print(f"🔍 DataFrame columns: {list(df.columns)}")
 
         # Manual column mapping fix
-        if 'Timestamp' in df.columns and 'Timestamp (Event Time)' not in df.columns:
+        if "Timestamp" in df.columns and "Timestamp (Event Time)" not in df.columns:
             print("🔧 Manually applying column mapping...")
-            df = df.rename(columns={
-                'Timestamp': 'Timestamp (Event Time)',
-                'Person ID': 'UserID (Person Identifier)', 
-                'Device name': 'DoorID (Device Name)',
-                'Access result': 'Access Result'
-            })
+            df = df.rename(
+                columns={
+                    "Timestamp": "Timestamp (Event Time)",
+                    "Person ID": "UserID (Person Identifier)",
+                    "Device name": "DoorID (Device Name)",
+                    "Access result": "Access Result",
+                }
+            )
             print(f"🔧 Columns after manual mapping: {list(df.columns)}")
 
         # SIMPLE ANALYTICS PROCESSOR - BYPASS BROKEN FILE
         print("🔧 Using simple analytics processor...")
-        
+
         # Convert timestamp to datetime
-        if 'Timestamp (Event Time)' in df.columns:
-            df['Timestamp (Event Time)'] = pd.to_datetime(df['Timestamp (Event Time)'], errors='coerce')
-            df = df.dropna(subset=['Timestamp (Event Time)'])
+        if "Timestamp (Event Time)" in df.columns:
+            df["Timestamp (Event Time)"] = pd.to_datetime(
+                df["Timestamp (Event Time)"], errors="coerce"
+            )
+            df = df.dropna(subset=["Timestamp (Event Time)"])
 
         date_range = ""
-        if 'Timestamp (Event Time)' in df.columns and not df.empty:
-            min_date = df['Timestamp (Event Time)'].min().date()
-            max_date = df['Timestamp (Event Time)'].max().date()
-            date_range = f"{min_date.strftime('%d.%m.%Y')} - {max_date.strftime('%d.%m.%Y')}"
-        
+        if "Timestamp (Event Time)" in df.columns and not df.empty:
+            min_date = df["Timestamp (Event Time)"].min().date()
+            max_date = df["Timestamp (Event Time)"].max().date()
+            date_range = (
+                f"{min_date.strftime('%d-%m-%Y')} - {max_date.strftime('%d-%m-%Y')}"
+            )
+
         # Calculate basic metrics
         total_events = len(df)
         unique_users = (
-
-            df['UserID (Person Identifier)'].nunique()
-            if 'UserID (Person Identifier)' in df.columns
+            df["UserID (Person Identifier)"].nunique()
+            if "UserID (Person Identifier)" in df.columns
             else 0
         )
         most_active_user = (
-            df['UserID (Person Identifier)'].value_counts().index[0]
-            if len(df) > 0 and 'UserID (Person Identifier)' in df.columns
-            else 'N/A'
+            df["UserID (Person Identifier)"].value_counts().index[0]
+            if len(df) > 0 and "UserID (Person Identifier)" in df.columns
+            else "N/A"
         )
-        avg_events_per_user = (
-            total_events / unique_users if unique_users > 0 else 0
-
-        )
+        avg_events_per_user = total_events / unique_users if unique_users > 0 else 0
         total_devices_count = (
-            df['DoorID (Device Name)'].nunique()
-            if 'DoorID (Device Name)' in df.columns
+            df["DoorID (Device Name)"].nunique()
+            if "DoorID (Device Name)" in df.columns
             else 0
         )
 
         peak_hour = (
-            df['Timestamp (Event Time)'].dt.hour.mode()[0]
-            if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
-            else 'N/A'
+            df["Timestamp (Event Time)"].dt.hour.mode()[0]
+            if len(df) > 0 and "Timestamp (Event Time)" in df.columns
+            else "N/A"
         )
         peak_day = (
-
-            df['Timestamp (Event Time)'].dt.day_name().mode()[0]
-            if len(df) > 0 and 'Timestamp (Event Time)' in df.columns
-            else 'N/A'
+            df["Timestamp (Event Time)"].dt.day_name().mode()[0]
+            if len(df) > 0 and "Timestamp (Event Time)" in df.columns
+            else "N/A"
         )
 
-        activity_intensity = 'High' if len(df) > 1000 else 'Medium' if len(df) > 100 else 'Low'
+        activity_intensity = (
+            "High" if len(df) > 1000 else "Medium" if len(df) > 100 else "Low"
+        )
 
         events_per_day = 0
-        if 'Timestamp (Event Time)' in df.columns and not df.empty:
-            events_per_day = df.groupby(df['Timestamp (Event Time)'].dt.date).size().mean()
+        if "Timestamp (Event Time)" in df.columns and not df.empty:
+            events_per_day = round(
+                df.groupby(df["Timestamp (Event Time)"].dt.date).size().mean(), 2
+            )
 
         security_score = None
-        if 'Access Result' in df.columns and len(df) > 0:
-            denied = df['Access Result'].str.contains('DENIED|FAILED', case=False, na=False).sum()
+        if "Access Result" in df.columns and len(df) > 0:
+            denied = (
+                df["Access Result"]
+                .str.contains("DENIED|FAILED", case=False, na=False)
+                .sum()
+            )
             security_score = round(100 - ((denied / len(df)) * 100), 2)
 
         devices_active_today = 0
         if (
-            'DoorID (Device Name)' in df.columns
-            and 'Timestamp (Event Time)' in df.columns
+            "DoorID (Device Name)" in df.columns
+            and "Timestamp (Event Time)" in df.columns
             and not df.empty
         ):
             today = datetime.now().date()
-            today_df = df[df['Timestamp (Event Time)'].dt.date == today]
-            devices_active_today = today_df['DoorID (Device Name)'].nunique()
+            today_df = df[df["Timestamp (Event Time)"].dt.date == today]
+            devices_active_today = today_df["DoorID (Device Name)"].nunique()
 
         most_active_devices = []
-        if 'DoorID (Device Name)' in df.columns:
+        if "DoorID (Device Name)" in df.columns:
             most_active_devices = (
-                df['DoorID (Device Name)'].value_counts().head(5).reset_index().values.tolist()
+                df["DoorID (Device Name)"]
+                .value_counts()
+                .head(5)
+                .reset_index()
+                .values.tolist()
             )
 
-        entry_exit_ratio = 'N/A'
-        if 'EventType (Access Result)' in df.columns:
-            entries = df['EventType (Access Result)'].str.contains('entry', case=False, na=False).sum()
-            exits = df['EventType (Access Result)'].str.contains('exit', case=False, na=False).sum()
+        entry_exit_ratio = "N/A"
+        if "EventType (Access Result)" in df.columns:
+            entries = (
+                df["EventType (Access Result)"]
+                .str.contains("entry", case=False, na=False)
+                .sum()
+            )
+            exits = (
+                df["EventType (Access Result)"]
+                .str.contains("exit", case=False, na=False)
+                .sum()
+            )
             total_dir = entries + exits
             if total_dir > 0:
                 entry_exit_ratio = f"{entries}:{exits}"
 
-        weekend_vs_weekday = 'N/A'
-        if 'Timestamp (Event Time)' in df.columns and not df.empty:
-            weekend = df[df['Timestamp (Event Time)'].dt.weekday >= 5]
-            weekday = df[df['Timestamp (Event Time)'].dt.weekday < 5]
+        weekend_vs_weekday = "N/A"
+        if "Timestamp (Event Time)" in df.columns and not df.empty:
+            weekend = df[df["Timestamp (Event Time)"].dt.weekday >= 5]
+            weekday = df[df["Timestamp (Event Time)"].dt.weekday < 5]
             weekend_vs_weekday = f"{len(weekday)} weekday / {len(weekend)} weekend"
 
-        busiest_floor = 'N/A'
+        busiest_floor = "N/A"
         security_breakdown = {}
         if device_attrs is not None and not device_attrs.empty:
-            if 'floor' in device_attrs.columns:
-                floor_counts = device_attrs['floor'].value_counts()
+            if "floor" in device_attrs.columns:
+                floor_counts = device_attrs["floor"].value_counts()
                 if not floor_counts.empty:
                     busiest_floor = str(floor_counts.idxmax())
-            if 'SecurityLevel' in device_attrs.columns:
-                security_breakdown = device_attrs['SecurityLevel'].value_counts().to_dict()
+            if "SecurityLevel" in device_attrs.columns:
+                security_breakdown = (
+                    device_attrs["SecurityLevel"].value_counts().to_dict()
+                )
 
         enhanced_metrics = {
-            'total_events': total_events,
-            'unique_users': unique_users,
-            'most_active_user': most_active_user,
-            'most_active_user_count': df['UserID (Person Identifier)'].value_counts().iloc[0] if len(df) > 0 and 'UserID (Person Identifier)' in df.columns else 0,
-            'avg_events_per_user': avg_events_per_user,
-            'total_devices_count': total_devices_count,
-            'devices_active_today': devices_active_today,
-            'most_active_devices': most_active_devices,
-            'events_per_day': events_per_day,
-            'peak_hour': peak_hour,
-            'peak_day': peak_day,
-            'busiest_floor': busiest_floor,
-            'entry_exit_ratio': entry_exit_ratio,
-            'weekend_vs_weekday': weekend_vs_weekday,
-            'activity_intensity': activity_intensity,
-            'date_range': date_range,
-            'security_breakdown': security_breakdown,
-
-            'security_score': security_score,
+            "total_events": total_events,
+            "unique_users": unique_users,
+            "most_active_user": most_active_user,
+            "most_active_user_count": (
+                df["UserID (Person Identifier)"].value_counts().iloc[0]
+                if len(df) > 0 and "UserID (Person Identifier)" in df.columns
+                else 0
+            ),
+            "avg_events_per_user": avg_events_per_user,
+            "total_devices_count": total_devices_count,
+            "devices_active_today": devices_active_today,
+            "most_active_devices": most_active_devices,
+            "events_per_day": events_per_day,
+            "peak_hour": peak_hour,
+            "peak_day": peak_day,
+            "busiest_floor": busiest_floor,
+            "entry_exit_ratio": entry_exit_ratio,
+            "weekend_vs_weekday": weekend_vs_weekday,
+            "activity_intensity": activity_intensity,
+            "date_range": date_range,
+            "security_breakdown": security_breakdown,
+            "security_score": security_score,
         }
-        
+
         print(f"✅ Simple analytics calculated: {len(enhanced_metrics)} metrics")
         return enhanced_metrics
-        
+
     except Exception as e:
         print(f"❌ Error in simple analytics: {e}")
         import traceback
+
         traceback.print_exc()
         return {}
+
 
 # Chart type selector callback
 @app.callback(
@@ -1691,7 +1906,11 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
         return dash.no_update
 
     df = pd.DataFrame()
-    if processed_data and isinstance(processed_data, dict) and "dataframe" in processed_data:
+    if (
+        processed_data
+        and isinstance(processed_data, dict)
+        and "dataframe" in processed_data
+    ):
         df = pd.DataFrame(processed_data["dataframe"])
         ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
         if ts_col in df.columns:
@@ -1716,6 +1935,7 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
         return stats_component.create_activity_heatmap(df)
     else:
         return stats_component.create_hourly_activity_chart(df)
+
 
 # Export callback
 @app.callback(
@@ -1764,7 +1984,12 @@ def handle_export_actions(
         if chart_fig:
             try:
                 img_bytes = pio.to_image(chart_fig, format="png")
-                return no_update, dict(content=img_bytes, filename="charts.png"), no_update, "📈 Charts exported as PNG!"
+                return (
+                    no_update,
+                    dict(content=img_bytes, filename="charts.png"),
+                    no_update,
+                    "📈 Charts exported as PNG!",
+                )
             except Exception:
                 pass
     elif button_id == "generate-pdf-report":
@@ -1806,25 +2031,21 @@ def display_node_data(data: Optional[Dict[str, Any]]) -> str:
         return f"Node information unavailable: {str(e)}"
 
 
-
-def build_onion_security_model(doors_data: List[str], classifications: Dict[str, Any], processed_data: Any = None) -> List[Dict]:
+def build_onion_security_model(
+    doors_data: List[str], classifications: Dict[str, Any], processed_data: Any = None
+) -> List[Dict]:
     """Build onion security model from access control data"""
     nodes = []
     edges = []
 
     security_colors = {
-        'green': '#4CAF50',
-        'yellow': '#FFC107',
-        'orange': '#FF9800',
-        'red': '#F44336'
+        "green": "#4CAF50",
+        "yellow": "#FFC107",
+        "orange": "#FF9800",
+        "red": "#F44336",
     }
 
-    security_levels = {
-        'green': 1,
-        'yellow': 3,
-        'orange': 7,
-        'red': 10
-    }
+    security_levels = {"green": 1, "yellow": 3, "orange": 7, "red": 10}
 
     print(f"🏗️ Building onion model with {len(doors_data)} doors")
 
@@ -1835,36 +2056,50 @@ def build_onion_security_model(doors_data: List[str], classifications: Dict[str,
     for i, door_id in enumerate(doors_data):
         classification = classifications.get(door_id, {})
 
-        security_color = classification.get('security', 'green')
-        security_level = classification.get('security_level', security_levels.get(security_color, 1))
+        security_color = classification.get("security", "green")
+        security_level = classification.get(
+            "security_level", security_levels.get(security_color, 1)
+        )
 
-        is_entrance = classification.get('is_ee', False)
-        is_stair = classification.get('is_stair', False)
-        floor = classification.get('floor', 1)
+        is_entrance = classification.get("is_ee", False)
+        is_stair = classification.get("is_stair", False)
+        floor = classification.get("floor", 1)
 
         if is_entrance:
-            node_type = 'entrance'
-            color = '#2E7D32'
-            shape = 'rectangle'
+            node_type = "entrance"
+            color = "#2E7D32"
+            shape = "rectangle"
             size = 80
             entrance_nodes.append(door_id)
         elif is_stair:
-            node_type = 'stair'
-            color = '#757575'
-            shape = 'triangle'
+            node_type = "stair"
+            color = "#757575"
+            shape = "triangle"
             size = 60
             stair_nodes.append(door_id)
         else:
-            node_type = 'device'
-            color = security_colors.get(security_color, '#2196F3')
-            shape = 'ellipse'
+            node_type = "device"
+            color = security_colors.get(security_color, "#2196F3")
+            shape = "ellipse"
             size = 50 + (security_level * 3)
             regular_nodes.append(door_id)
 
         layer = min(security_level // 3, 3)
 
-        nodes_in_layer = len([d for d in doors_data if classifications.get(d, {}).get('security_level', 1) // 3 == layer])
-        layer_index = len([d for d in doors_data[:i] if classifications.get(d, {}).get('security_level', 1) // 3 == layer])
+        nodes_in_layer = len(
+            [
+                d
+                for d in doors_data
+                if classifications.get(d, {}).get("security_level", 1) // 3 == layer
+            ]
+        )
+        layer_index = len(
+            [
+                d
+                for d in doors_data[:i]
+                if classifications.get(d, {}).get("security_level", 1) // 3 == layer
+            ]
+        )
 
         if nodes_in_layer > 0:
             angle = (layer_index * 2 * math.pi) / nodes_in_layer
@@ -1877,24 +2112,33 @@ def build_onion_security_model(doors_data: List[str], classifications: Dict[str,
         y = radius * math.sin(angle)
 
         if is_entrance:
-            entrance_angle = (len(entrance_nodes) * 2 * math.pi) / max(len([d for d in doors_data if classifications.get(d, {}).get('is_ee', False)]), 1)
+            entrance_angle = (len(entrance_nodes) * 2 * math.pi) / max(
+                len(
+                    [
+                        d
+                        for d in doors_data
+                        if classifications.get(d, {}).get("is_ee", False)
+                    ]
+                ),
+                1,
+            )
             x = 250 * math.cos(entrance_angle)
             y = 250 * math.sin(entrance_angle)
 
         node = {
-            'data': {
-                'id': str(door_id),
-                'label': str(door_id)[:8],
-                'type': node_type,
-                'security_level': security_level,
-                'security_color': security_color,
-                'floor': floor,
-                'is_entrance': is_entrance,
-                'is_stair': is_stair,
-                'layer': layer,
-                'full_label': str(door_id)
+            "data": {
+                "id": str(door_id),
+                "label": str(door_id)[:8],
+                "type": node_type,
+                "security_level": security_level,
+                "security_color": security_color,
+                "floor": floor,
+                "is_entrance": is_entrance,
+                "is_stair": is_stair,
+                "layer": layer,
+                "full_label": str(door_id),
             },
-            'position': {'x': x, 'y': y}
+            "position": {"x": x, "y": y},
         }
 
         nodes.append(node)
@@ -1904,50 +2148,51 @@ def build_onion_security_model(doors_data: List[str], classifications: Dict[str,
     for i, door1 in enumerate(doors_data):
         class1 = classifications.get(door1, {})
 
-        for j, door2 in enumerate(doors_data[i+1:], i+1):
+        for j, door2 in enumerate(doors_data[i + 1 :], i + 1):
             class2 = classifications.get(door2, {})
 
-            floor1 = int(class1.get('floor', 1))
-            floor2 = int(class2.get('floor', 1))
-            level1 = class1.get('security_level', 1)
-            level2 = class2.get('security_level', 1)
-            is_entrance1 = class1.get('is_ee', False)
-            is_entrance2 = class2.get('is_ee', False)
+            floor1 = int(class1.get("floor", 1))
+            floor2 = int(class2.get("floor", 1))
+            level1 = class1.get("security_level", 1)
+            level2 = class2.get("security_level", 1)
+            is_entrance1 = class1.get("is_ee", False)
+            is_entrance2 = class2.get("is_ee", False)
 
             should_connect = False
-            edge_type = 'normal'
+            edge_type = "normal"
 
             if floor1 == floor2:
                 if abs(level1 - level2) <= 3:
                     should_connect = True
-                    edge_type = 'floor'
+                    edge_type = "floor"
                 elif is_entrance1 or is_entrance2:
                     should_connect = True
-                    edge_type = 'entrance'
+                    edge_type = "entrance"
 
             elif abs(floor1 - floor2) == 1:
-                if class1.get('is_stair') or class2.get('is_stair'):
+                if class1.get("is_stair") or class2.get("is_stair"):
                     should_connect = True
-                    edge_type = 'stair'
+                    edge_type = "stair"
 
             elif is_entrance1 and level2 <= 5:
                 should_connect = True
-                edge_type = 'access'
+                edge_type = "access"
 
             elif is_entrance2 and level1 <= 5:
                 should_connect = True
-                edge_type = 'access'
+                edge_type = "access"
 
             if should_connect and (
-                edge_type in ['entrance', 'stair', 'access'] or hash(f"{door1}_{door2}") % 3 == 0
+                edge_type in ["entrance", "stair", "access"]
+                or hash(f"{door1}_{door2}") % 3 == 0
             ):
                 edge = {
-                    'data': {
-                        'id': f"edge_{door1}_{door2}",
-                        'source': str(door1),
-                        'target': str(door2),
-                        'type': edge_type,
-                        'weight': abs(level1 - level2) + 1
+                    "data": {
+                        "id": f"edge_{door1}_{door2}",
+                        "source": str(door1),
+                        "target": str(door2),
+                        "type": edge_type,
+                        "weight": abs(level1 - level2) + 1,
                     }
                 }
                 edges.append(edge)
@@ -1956,27 +2201,27 @@ def build_onion_security_model(doors_data: List[str], classifications: Dict[str,
 
     all_elements = nodes + edges
 
-    high_security = [n for n in nodes if n['data'].get('security_level', 0) >= 8]
+    high_security = [n for n in nodes if n["data"].get("security_level", 0) >= 8]
     if high_security:
         core_node = {
-            'data': {
-                'id': 'security_core',
-                'label': 'CORE',
-                'type': 'core',
-                'security_level': 10,
-                'layer': 0
+            "data": {
+                "id": "security_core",
+                "label": "CORE",
+                "type": "core",
+                "security_level": 10,
+                "layer": 0,
             },
-            'position': {'x': 0, 'y': 0}
+            "position": {"x": 0, "y": 0},
         }
         all_elements.append(core_node)
 
         for node in high_security[:3]:
             core_edge = {
-                'data': {
-                    'id': f"core_edge_{node['data']['id']}",
-                    'source': 'security_core',
-                    'target': node['data']['id'],
-                    'type': 'core'
+                "data": {
+                    "id": f"core_edge_{node['data']['id']}",
+                    "source": "security_core",
+                    "target": node["data"]["id"],
+                    "type": "core",
                 }
             }
             all_elements.append(core_edge)
@@ -1987,11 +2232,10 @@ def build_onion_security_model(doors_data: List[str], classifications: Dict[str,
 def test_simple_graph():
     """Test function to verify graph works with minimal data"""
     test_elements = [
-        {'data': {'id': 'entrance', 'label': 'Main Entrance', 'type': 'entrance'}},
-        {'data': {'id': 'lobby', 'label': 'Lobby', 'type': 'device'}},
-        {'data': {'id': 'secure', 'label': 'Secure Area', 'type': 'device'}},
-        {'data': {'id': 'edge1', 'source': 'entrance', 'target': 'lobby'}},
-        {'data': {'id': 'edge2', 'source': 'lobby', 'target': 'secure'}}
+        {"data": {"id": "entrance", "label": "Main Entrance", "type": "entrance"}},
+        {"data": {"id": "lobby", "label": "Lobby", "type": "device"}},
+        {"data": {"id": "secure", "label": "Secure Area", "type": "device"}},
+        {"data": {"id": "edge1", "source": "entrance", "target": "lobby"}},
+        {"data": {"id": "edge2", "source": "lobby", "target": "secure"}},
     ]
     return test_elements
-
