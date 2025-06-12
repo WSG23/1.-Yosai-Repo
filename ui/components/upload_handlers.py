@@ -226,7 +226,7 @@ class UploadHandlers:
             from ui.components.mapping import create_mapping_component
             mapping_component = create_mapping_component()
             loaded_col_map_prefs = mapping_result['current_preferences']
-            return mapping_component.create_mapping_dropdowns(headers, loaded_col_map_prefs)
+            return mapping_component._create_mapping_dropdowns(headers, loaded_col_map_prefs)
         except ImportError:
             return [html.P("Mapping component not available", style={'color': 'orange'})]
     

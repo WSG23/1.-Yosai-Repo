@@ -13,7 +13,14 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import json
-from ui.themes.style_config import COLORS, SPACING, BORDER_RADIUS, SHADOWS, TYPOGRAPHY
+from ui.themes.style_config import (
+    COLORS,
+    SPACING,
+    BORDER_RADIUS,
+    SHADOWS,
+    TYPOGRAPHY,
+    CHART_HEIGHT,
+)
 from config.settings import REQUIRED_INTERNAL_COLUMNS, SECURITY_LEVELS
 
 
@@ -649,7 +656,7 @@ class EnhancedStatsComponent:
                             [
                                 dcc.Graph(
                                     id="main-analytics-chart",
-                                    style={"height": "400px"},
+                                    style={"height": f"{CHART_HEIGHT}px"},
                                     config={
                                         "displayModeBar": True,
                                         "displaylogo": False,

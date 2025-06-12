@@ -1361,16 +1361,6 @@ register_all_callbacks_safely(app)
 
 
 # Advanced view toggle callback
-# @app.callback(  # Disabled old callback
-#     [
-#         Output("stats-panels-container", "style", allow_duplicate=True),
-#         Output("advanced-analytics-panels-container", "style"),
-#         Output("enhanced-stats-header", "style"),
-#         Output("advanced-view-button", "children"),
-#     ],
-#     Input("advanced-view-button", "n_clicks"),
-#     prevent_initial_call=True,
-# )
 def toggle_advanced_view(
     n_clicks: Optional[int],
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], str]:
@@ -1409,16 +1399,6 @@ def toggle_advanced_view(
 
 
 # FIXED: Debug callback with complete type safety
-# @app.callback(  # Disabled old callback
-#     [
-#         Output("debug-metrics-count", "children"),
-#         Output("debug-metrics-keys", "children"),
-#         Output("debug-processed-data", "children"),
-#         Output("debug-calculation-status", "children"),
-#     ],
-#     [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
-#     prevent_initial_call=True,
-# )
 def update_debug_info(
     metrics_data: Any, processed_data: Any
 ) -> Tuple[str, str, str, str]:
@@ -1460,14 +1440,6 @@ def update_debug_info(
 
 
 # FIXED: Container sync callback with complete type safety
-# @app.callback(  # Disabled old callback
-#     [
-#         Output("core-row-with-sidebar", "children"),
-#         Output("advanced-analytics-panels-container", "children"),
-#     ],
-#     Input("enhanced-stats-data-store", "data"),
-#     prevent_initial_call=True,
-# )
 def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
     """Keep container layouts stable when stats update."""
 
@@ -1481,13 +1453,6 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
 
 
 # FIXED: Enhanced stats store callback with complete validation
-# @app.callback(  # Disabled old callback
-#     Output("enhanced-stats-data-store", "data"),
-#     Input("status-message-store", "data"),
-#     State("processed-data-store", "data"),
-#     State("manual-door-classifications-store", "data"),
-#     prevent_initial_call=True,
-# )
 def update_enhanced_stats_store(
     status_message: Any, processed_data: Any, device_classifications: Any
 ) -> Dict[str, Any]:
@@ -1551,31 +1516,13 @@ def update_enhanced_stats_store(
 
 
 # Single callback to update the visible processing status message
-# @app.callback(  # Disabled old callback
-#     Output("processing-status", "children"),
-#     Input("status-message-store", "data"),
-#     prevent_initial_call=True,
-# )
 def display_status_message(message: Any) -> Any:
     """Display the latest processing status message."""
     return message
 
 
 # Main analysis callback - MODIFIED to avoid conflicts
-# @app.callback(  # Disabled old callback
-#     [
-#         Output("yosai-custom-header", "style", allow_duplicate=True),
-#         Output("stats-panels-container", "style", allow_duplicate=True),
-#         Output("status-message-store", "data", allow_duplicate=True),
-#     ],
-#     Input("confirm-and-generate-button", "n_clicks"),
-#     [
-#         State("uploaded-file-store", "data"),
-#         State("processed-data-store", "data"),
-#         State("manual-door-classifications-store", "data"),
-#     ],
-#     prevent_initial_call=True,
-# )
+# Main analysis callback - MODIFIED to avoid conflicts
 def generate_enhanced_analysis(
     n_clicks: Optional[int],
     file_data: Any,
@@ -1885,13 +1832,6 @@ def process_uploaded_data(
 
 
 # Chart type selector callback
-# @app.callback(  # Disabled old callback
-#     Output("main-analytics-chart", "figure", allow_duplicate=True),
-#     Input("chart-type-selector", "value"),
-#     State("processed-data-store", "data"),
-#     State("device-attrs-store", "data"),
-#     prevent_initial_call=True,
-# )
 def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
     """Update main analytics chart based on dropdown selection"""
     import pandas as pd
@@ -1936,23 +1876,6 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
 
 
 # Export callback
-# @app.callback(  # Disabled old callback
-#     [
-#         Output("download-stats-csv", "data"),
-#         Output("download-charts", "data"),
-#         Output("download-report", "data"),
-#         Output("export-status", "children"),
-#     ],
-#     [
-#         Input("export-stats-csv", "n_clicks"),
-#         Input("export-charts-png", "n_clicks"),
-#         Input("generate-pdf-report", "n_clicks"),
-#         Input("refresh-analytics", "n_clicks"),
-#     ],
-#     State("enhanced-stats-data-store", "data"),
-#     State("main-analytics-chart", "figure"),
-#     prevent_initial_call=True,
-# )
 def handle_export_actions(
     csv_clicks: Optional[int],
     png_clicks: Optional[int],

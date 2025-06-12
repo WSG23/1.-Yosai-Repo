@@ -53,7 +53,7 @@ class MappingComponent:
             style=MAPPING_STYLES['confirm_button']
         )
     
-    def create_mapping_dropdowns(self, headers, loaded_col_map_prefs=None):
+    def _create_mapping_dropdowns(self, headers, loaded_col_map_prefs=None):
         """
         Creates dropdown components for column mapping with improved layout
         
@@ -300,7 +300,7 @@ def create_mapping_section():
     component = MappingComponent()
     return component.create_mapping_section()
 
-def create_mapping_dropdowns(headers, saved_preferences=None):
+def _create_mapping_dropdowns(headers, saved_preferences=None):
     """Create mapping dropdowns"""
     component = MappingComponent()
-    return component.create_mapping_dropdowns(headers, saved_preferences)
+    return component._create_mapping_dropdowns(headers, saved_preferences)
