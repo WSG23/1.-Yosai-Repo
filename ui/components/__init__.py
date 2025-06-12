@@ -11,6 +11,15 @@ from .upload import (
 )
 from .graph import create_graph_component
 from .graph_handlers import create_graph_handlers, GraphHandlers
+from .enhanced_stats import (
+    EnhancedStatsComponent,
+    create_enhanced_stats_component,
+)
+from .enhanced_stats_handlers import (
+    EnhancedStatsHandlers,
+    create_enhanced_stats_handlers,
+)
+from .stats import create_stats_container, create_custom_header
 
 __all__ = [
     'EnhancedUploadComponent',
@@ -20,4 +29,10 @@ __all__ = [
     'create_graph_component',
     'create_graph_handlers',
     'GraphHandlers',
+    'EnhancedStatsComponent',
+    'create_enhanced_stats_component',
+    'create_enhanced_stats_handlers',
+    'EnhancedStatsHandlers',
+    'create_stats_container',
+    'create_custom_header',
 ]
