@@ -22,7 +22,7 @@ def create_stats_container():
     return component.create_enhanced_stats_container()
 
 
-def create_custom_header(main_logo_path):
+def create_custom_header():
     """Create the enhanced stats header."""
     component = EnhancedStatsComponent()
-    return component.create_custom_header(main_logo_path)
+    return component.create_custom_header()
