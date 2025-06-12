@@ -175,14 +175,10 @@ class AppFactory:
             ],
         }
         
-        if not is_production:
-            # Development-specific settings
-            config.update({
-                "dev_tools_hot_reload": True,
-                "dev_tools_ui": True,
-                "dev_tools_props_check": False,
-            })
-        
+
+        # Development tools are configured when running the server
+        # via run.py. The Dash constructor only contains core settings.
+
         return config
     
     def _get_server_config(self, is_production: bool) -> Dict[str, Any]:
