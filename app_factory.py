@@ -275,7 +275,7 @@ class AppFactory:
 
         # Add graph container that callbacks expect
         graph_containers = []
-        if CYTOSCAPE_AVAILABLE:
+        if CYTOSCAPE_AVAILABLE and cyto is not None:
             graph_containers.append(html.Div(
                 id="graph-output-container",
                 style={"display": "none", "margin": "20px auto", "padding": "20px"},
@@ -391,7 +391,7 @@ class AppFactory:
                         style={"height": "600px", "width": "100%"},
                         elements=[],
                         layout={'name': 'concentric'}
-                    ) if CYTOSCAPE_AVAILABLE else html.Div(
+                    ) if CYTOSCAPE_AVAILABLE and cyto is not None else html.Div(
                         id="onion-graph",
                         style={"height": "600px", "width": "100%", "border": "1px solid #ccc"},
                         children=html.P(
