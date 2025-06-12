@@ -133,47 +133,108 @@ class SecureFileValidator:
 
             try:
                 if is_json:
+                    # Validate JSON structure first
+                    json_validation = self._validate_json_structure(file_content)
+                    if not json_validation['valid']:
+                        return json_validation
+
                     df_preview = pd.read_json(temp_file_path, dtype=str)
                 else:
                     # Read CSV with limited preview (first 1000 rows)
                     df_preview = pd.read_csv(temp_file_path, nrows=1000, dtype=str)
-                
-                # Basic structure checks
+
+                # Common validation for both formats
                 if df_preview.empty:
-                    return {'valid': False, 'errors': ['File is empty']}
+                    return {
+                        'valid': False,
+                        'errors': [f"{filename} contains no data rows"]
+                    }
 
                 if len(df_preview.columns) == 0:
-                    return {'valid': False, 'errors': ['File has no columns']}
-                
-                # Estimate total rows
-                estimated_rows = self._estimate_csv_rows(temp_file_path)
-                if estimated_rows > self.max_rows:
                     return {
-                        'valid': False, 
-                        'errors': [f'Too many rows: ~{estimated_rows:,} (max: {self.max_rows:,})']
+                        'valid': False,
+                        'errors': [f"{filename} contains no columns"]
                     }
-                
+
+                if len(df_preview.columns) > 1000:
+                    return {
+                        'valid': False,
+                        'errors': [f"{filename} has too many columns (>1000)"]
+                    }
+
                 return {
                     'valid': True,
-                    'row_count': estimated_rows,
-                    'column_count': len(df_preview.columns)
+                    'row_count': len(df_preview),
+                    'column_count': len(df_preview.columns),
+                    'column_names': df_preview.columns.tolist()[:10]
                 }
-                
+
             except Exception as e:
-                logger.error(f"File parsing error: {str(e)}")
-                return {'valid': False, 'errors': [f'File parsing error: {str(e)}']}
-                
-        except Exception as e:
-            logger.error(f"File handling error: {str(e)}")
-            return {'valid': False, 'errors': [f'File handling error: {str(e)}']}
-            
+                return {
+                    'valid': False,
+                    'errors': [f"Failed to parse {filename}: {str(e)}"]
+                }
+
         finally:
-            # Clean up temp file
-            if temp_file_path:
+            if temp_file_path and os.path.exists(temp_file_path):
                 try:
                     os.unlink(temp_file_path)
-                except OSError as e:
-                    logger.warning(f"Could not delete temp file {temp_file_path}: {str(e)}")
+                except OSError:
+                    pass
+
+    def _validate_json_structure(self, file_content: bytes) -> Dict[str, Any]:
+        """Validate JSON file structure and content"""
+        import json
+
+        try:
+            # First check if it's valid JSON
+            decoded_string = file_content.decode('utf-8')
+            json_data = json.loads(decoded_string)
+
+            # Check if it's an array of objects (table-like structure)
+            if isinstance(json_data, list):
+                if not json_data:
+                    return {
+                        'valid': False,
+                        'errors': ['JSON array is empty']
+                    }
+
+                if not all(isinstance(item, dict) for item in json_data):
+                    return {
+                        'valid': False,
+                        'errors': ['JSON array contains non-object elements']
+                    }
+
+                if len(json_data) > 1:
+                    first_keys = set(json_data[0].keys())
+                    for i, item in enumerate(json_data[1:], 1):
+                        if set(item.keys()) != first_keys:
+                            return {
+                                'valid': False,
+                                'errors': [f'Inconsistent schema at row {i+1}']
+                            }
+
+            elif isinstance(json_data, dict):
+                # Single object - convert to list for consistency
+                pass
+            else:
+                return {
+                    'valid': False,
+                    'errors': ['JSON must contain an array of objects or a single object']
+                }
+
+            return {'valid': True}
+
+        except json.JSONDecodeError as e:
+            return {
+                'valid': False,
+                'errors': [f'Invalid JSON format: {str(e)}']
+            }
+        except UnicodeDecodeError:
+            return {
+                'valid': False,
+                'errors': ['JSON file contains invalid UTF-8 characters']
+            }
     
     def _estimate_csv_rows(self, file_path: str) -> int:
         """Estimate number of rows in a text-based file"""
@@ -206,21 +267,31 @@ class SecureFileValidator:
         try:
             # Convert to string for pattern matching
             content_str = file_content.decode('utf-8', errors='ignore')
-            
-            # Check for suspicious patterns
+
+            # Existing patterns + JSON-specific ones
             malicious_patterns = [
-                r'<script[^>]*>',  # JavaScript
-                r'javascript:',     # JavaScript URLs
-                r'vbscript:',      # VBScript
-                r'onload=',        # Event handlers
-                r'onerror=',
-                r'eval\(',         # Code execution
-                r'exec\(',
-                r'import\s+os',    # Python OS imports
-                r'subprocess',
-                r'__import__',
-                r'<\?php',         # PHP tags
-                r'<%.*%>',         # ASP/JSP tags
+                r'<script[^>]*>',
+                r'javascript:',
+                r'vbscript:',
+                r'onload\s*=',
+                r'onerror\s*=',
+                r'eval\s*\(',
+                r'setTimeout\s*\(',
+                r'setInterval\s*\(',
+                r'document\.cookie',
+                r'document\.write',
+                r'window\.location',
+                r'\.\.\/.*\.\./',
+                r'__import__\s*\(',
+                r'exec\s*\(',
+                r'system\s*\(',
+                r'shell_exec\s*\(',
+                r'<%.*%>',
+                r'"__proto__"\s*:',
+                r'"constructor"\s*:',
+                r'"\$where"\s*:',
+                r'"\$regex"\s*:',
+                r'"eval"\s*:'
             ]
             
             for pattern in malicious_patterns:
@@ -230,11 +301,16 @@ class SecureFileValidator:
                 except re.error as e:
                     logger.warning(f"Regex error checking pattern {pattern}: {str(e)}")
             
-            # Check for excessive special characters (potential binary data)
+            # Check for excessive nesting in JSON (potential DoS)
+            if content_str.strip().startswith('{') or content_str.strip().startswith('['):
+                nesting_level = self._check_json_nesting_depth(content_str)
+                if nesting_level > 10:
+                    threats.append(f"Excessive JSON nesting detected: {nesting_level} levels")
+
             if len(content_str) > 0:
                 special_char_count = sum(1 for c in content_str if ord(c) < 32 and c not in '\r\n\t')
                 special_char_ratio = special_char_count / len(content_str)
-                if special_char_ratio > 0.1:  # More than 10% special characters
+                if special_char_ratio > 0.1:
                     threats.append("High ratio of special characters detected")
             
         except UnicodeDecodeError:
@@ -247,6 +323,20 @@ class SecureFileValidator:
             'safe': len(threats) == 0,
             'threats': threats
         }
+
+    def _check_json_nesting_depth(self, json_str: str) -> int:
+        """Check JSON nesting depth to prevent DoS attacks"""
+        max_depth = 0
+        current_depth = 0
+
+        for char in json_str:
+            if char in '{[':
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+            elif char in '}]':
+                current_depth = max(0, current_depth - 1)
+
+        return max_depth
 
 # Export for easier importing
 __all__ = ['SecureFileValidator', 'SecurityError']

@@ -47,8 +47,11 @@ DEFAULT_ICONS = {
 SECURITY_CONFIG = {
     'enable_file_validation': True,
     'max_file_size': 50 * 1024 * 1024,  # 50MB
-    'allowed_extensions': {'.csv', '.txt'},
-    'allowed_mime_types': {'text/csv', 'text/plain', 'application/csv'},
+    'allowed_extensions': {'.csv', '.txt', '.json'},  # Added .json
+    'allowed_mime_types': {
+        'text/csv', 'text/plain', 'application/csv',
+        'application/json', 'text/json'  # Added JSON MIME types
+    },
     'enable_content_scanning': True,
     'log_security_events': True
 }
@@ -57,7 +60,7 @@ SECURITY_CONFIG = {
 FILE_LIMITS = {
     'max_file_size': SECURITY_CONFIG['max_file_size'],
     'max_rows': 1_000_000,
-    'allowed_extensions': SECURITY_CONFIG['allowed_extensions']
+    'allowed_extensions': SECURITY_CONFIG['allowed_extensions']  # Now includes .json
 }
 
 # ============================================================================

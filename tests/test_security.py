@@ -17,3 +17,25 @@ def test_basic_security():
     valid_content = "user_id,door_id\n1,101"
     result = validate_upload_security(valid_content.encode('utf-8'), 'test.exe')
     assert not result['is_valid']
+
+
+def test_json_security():
+    # Valid JSON
+    valid_json = '{"user_id": 1, "door_id": 101, "timestamp": "2023-01-01 10:00:00"}'
+    result = validate_upload_security(valid_json.encode('utf-8'), 'test.json')
+    assert result['is_valid']
+
+    # Malicious JSON with prototype pollution
+    malicious_json = '{"__proto__": {"isAdmin": true}, "user_id": 1}'
+    result = validate_upload_security(malicious_json.encode('utf-8'), 'malicious.json')
+    assert not result['is_valid']
+
+    # Excessive nesting
+    deeply_nested = '{"a":' * 15 + '{}' + '}' * 15
+    result = validate_upload_security(deeply_nested.encode('utf-8'), 'nested.json')
+    assert not result['is_valid']
+
+    # Invalid JSON
+    invalid_json = '{"user_id": 1, "door_id": 101'
+    result = validate_upload_security(invalid_json.encode('utf-8'), 'invalid.json')
+    assert not result['is_valid']
