@@ -19,3 +19,12 @@ MODE=prod python run.py
 ```
 
 The script will start the development server when run in `dev` mode.  When `prod` is specified it uses Waitress to serve the app.
+
+## Testing
+
+A small test suite using `pytest` and `dash[testing]` ensures the application UI works as expected.  Install the additional testing dependencies and run the tests with:
+
+```bash
+pip install dash[testing] pytest
+pytest
+```
