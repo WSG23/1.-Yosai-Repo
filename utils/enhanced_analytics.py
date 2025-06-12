@@ -858,3 +858,14 @@ def generate_trend_indicator(values: List[float]) -> str:
         return "📉"
     else:
         return "📊"
+
+from .enhanced_analytics_complete import EnhancedDataProcessorComplete
+
+__all__ = [
+    "EnhancedDataProcessor",
+    "EnhancedDataProcessorComplete",
+    "create_enhanced_data_processor",
+    "create_enhanced_export_manager",
+    "create_enhanced_anomaly_detector",
+    "create_enhanced_analytics_processor",
+]

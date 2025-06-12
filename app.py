@@ -1648,249 +1648,46 @@ def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Union[int, str]]:
     return metrics
 
 
-# IMPROVED: Enhanced process_uploaded_data function with type safety
-# FIXED: Simple process_uploaded_data function that bypasses broken analytics file
-def process_uploaded_data(
-    df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None
-) -> Dict[str, Any]:
-    """Process uploaded data and compute enhanced metrics - TYPE-SAFE"""
+def process_uploaded_data(df: pd.DataFrame, device_attrs: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+    """Enhanced processing with all missing variables - FIXED VERSION"""
+    from utils.enhanced_analytics import EnhancedDataProcessorComplete
+
     try:
-        # Validate DataFrame
-        if df is None or df.empty:
-            print("⚠️ Empty or invalid DataFrame provided")
-            return {}
+        processor = EnhancedDataProcessorComplete()
+        enhanced_metrics = processor.process_complete_analytics(df, device_attrs)
 
-        print(f"🔍 DataFrame shape: {df.shape}")
-        print(f"🔍 DataFrame columns: {list(df.columns)}")
+        print(f"✅ Complete analytics calculated: {len(enhanced_metrics)} metrics")
+        print(f"📊 Key metrics: {list(enhanced_metrics.keys())[:10]}")
 
-        # Manual column mapping fix
-        if "Timestamp" in df.columns and "Timestamp (Event Time)" not in df.columns:
-            print("🔧 Manually applying column mapping...")
-            df = df.rename(
-                columns={
-                    "Timestamp": "Timestamp (Event Time)",
-                    "Person ID": "UserID (Person Identifier)",
-                    "Device name": "DoorID (Device Name)",
-                    "Access result": "Access Result",
-                }
-            )
-            print(f"🔧 Columns after manual mapping: {list(df.columns)}")
-
-        # SIMPLE ANALYTICS PROCESSOR - BYPASS BROKEN FILE
-        print("🔧 Using simple analytics processor...")
-
-        # Convert timestamp to datetime
-        if "Timestamp (Event Time)" in df.columns:
-            df["Timestamp (Event Time)"] = pd.to_datetime(
-                df["Timestamp (Event Time)"], errors="coerce"
-            )
-            df = df.dropna(subset=["Timestamp (Event Time)"])
-
-        date_range = ""
-        if "Timestamp (Event Time)" in df.columns and not df.empty:
-            min_date = df["Timestamp (Event Time)"].min().date()
-            max_date = df["Timestamp (Event Time)"].max().date()
-            date_range = (
-                f"{min_date.strftime('%d-%m-%Y')} - {max_date.strftime('%d-%m-%Y')}"
-            )
-
-        # Calculate basic metrics
-        total_events = len(df)
-        unique_users = (
-            df["UserID (Person Identifier)"].nunique()
-            if "UserID (Person Identifier)" in df.columns
-            else 0
-        )
-        most_active_user = (
-            df["UserID (Person Identifier)"].value_counts().index[0]
-            if len(df) > 0 and "UserID (Person Identifier)" in df.columns
-            else "N/A"
-        )
-        avg_events_per_user = total_events / unique_users if unique_users > 0 else 0
-        total_devices_count = (
-            df["DoorID (Device Name)"].nunique()
-            if "DoorID (Device Name)" in df.columns
-            else 0
-        )
-
-        peak_hour = (
-            df["Timestamp (Event Time)"].dt.hour.mode()[0]
-            if len(df) > 0 and "Timestamp (Event Time)" in df.columns
-            else "N/A"
-        )
-        peak_day = (
-            df["Timestamp (Event Time)"].dt.day_name().mode()[0]
-            if len(df) > 0 and "Timestamp (Event Time)" in df.columns
-            else "N/A"
-        )
-
-        activity_intensity = (
-            "High" if len(df) > 1000 else "Medium" if len(df) > 100 else "Low"
-        )
-
-        events_per_day = 0
-        if "Timestamp (Event Time)" in df.columns and not df.empty:
-            events_per_day = round(
-                df.groupby(df["Timestamp (Event Time)"].dt.date).size().mean(), 2
-            )
-
-        security_score = None
-        if "Access Result" in df.columns and len(df) > 0:
-            denied = (
-                df["Access Result"]
-                .str.contains("DENIED|FAILED", case=False, na=False)
-                .sum()
-            )
-            security_score = round(100 - ((denied / len(df)) * 100), 2)
-
-        devices_active_today = 0
-        if (
-            "DoorID (Device Name)" in df.columns
-            and "Timestamp (Event Time)" in df.columns
-            and not df.empty
-        ):
-            today = datetime.now().date()
-            today_df = df[df["Timestamp (Event Time)"].dt.date == today]
-            devices_active_today = today_df["DoorID (Device Name)"].nunique()
-
-        most_active_devices = []
-        if "DoorID (Device Name)" in df.columns:
-            most_active_devices = (
-                df["DoorID (Device Name)"]
-                .value_counts()
-                .head(5)
-                .reset_index()
-                .values.tolist()
-            )
-
-        entry_exit_ratio = "N/A"
-        if "EventType (Access Result)" in df.columns:
-            entries = (
-                df["EventType (Access Result)"]
-                .str.contains("entry", case=False, na=False)
-                .sum()
-            )
-            exits = (
-                df["EventType (Access Result)"]
-                .str.contains("exit", case=False, na=False)
-                .sum()
-            )
-            total_dir = entries + exits
-            if total_dir > 0:
-                entry_exit_ratio = f"{entries}:{exits}"
-
-        weekend_vs_weekday = "N/A"
-        if "Timestamp (Event Time)" in df.columns and not df.empty:
-            weekend = df[df["Timestamp (Event Time)"].dt.weekday >= 5]
-            weekday = df[df["Timestamp (Event Time)"].dt.weekday < 5]
-            weekend_vs_weekday = f"{len(weekday)} weekday / {len(weekend)} weekend"
-
-        busiest_floor = "N/A"
-        security_breakdown = {}
-        if device_attrs is not None and not device_attrs.empty:
-            if "floor" in device_attrs.columns:
-                floor_counts = device_attrs["floor"].value_counts()
-                if not floor_counts.empty:
-                    busiest_floor = str(floor_counts.idxmax())
-            if "SecurityLevel" in device_attrs.columns:
-                security_breakdown = device_attrs["SecurityLevel"].value_counts().to_dict()
-
-        hourly_distribution = {}
-        daily_distribution = {}
-        if "Timestamp (Event Time)" in df.columns and not df.empty:
-            hourly_distribution = (
-                df["Timestamp (Event Time)"].dt.hour.value_counts().sort_index().to_dict()
-            )
-            daily_distribution = (
-                df["Timestamp (Event Time)"].dt.day_name().value_counts().to_dict()
-            )
-
-        floor_distribution = {}
-        security_level_distribution = {}
-        device_type_distribution = {}
-        if device_attrs is not None and not device_attrs.empty:
-            if "floor" in device_attrs.columns:
-                floor_distribution = device_attrs["floor"].value_counts().to_dict()
-            if "security" in device_attrs.columns:
-                security_level_distribution = device_attrs["security"].value_counts().to_dict()
-            elif "SecurityLevel" in device_attrs.columns:
-                security_level_distribution = device_attrs["SecurityLevel"].value_counts().to_dict()
-            if "door_type" in device_attrs.columns:
-                device_type_distribution = device_attrs["door_type"].value_counts().to_dict()
-        else:
-            # Fallback to event dataframe if no device attributes provided
-            for col in ["security", "SecurityLevel", "Security Level", "security_level"]:
-                if col in df.columns:
-                    security_level_distribution = df[col].value_counts().to_dict()
-                    break
-            for col in ["door_type", "Door Type", "Device Type", "device_type"]:
-                if col in df.columns:
-                    device_type_distribution = df[col].value_counts().to_dict()
-                    break
-
-        enhanced_metrics = {
-            "total_events": total_events,
-            "unique_users": unique_users,
-            "most_active_user": most_active_user,
-            "most_active_user_count": (
-                df["UserID (Person Identifier)"].value_counts().iloc[0]
-                if len(df) > 0 and "UserID (Person Identifier)" in df.columns
-                else 0
-            ),
-            "avg_events_per_user": avg_events_per_user,
-            "total_devices_count": total_devices_count,
-            "devices_active_today": devices_active_today,
-            "most_active_devices": most_active_devices,
-            "events_per_day": events_per_day,
-            "peak_hour": peak_hour,
-            "peak_day": peak_day,
-            "busiest_floor": busiest_floor,
-            "entry_exit_ratio": entry_exit_ratio,
-            "weekend_vs_weekday": weekend_vs_weekday,
-            "activity_intensity": activity_intensity,
-            "date_range": date_range,
-            "security_breakdown": security_breakdown,
-            "security_score": security_score,
-            "hourly_distribution": hourly_distribution,
-            "daily_distribution": daily_distribution,
-            "floor_distribution": floor_distribution,
-            "security_level_distribution": security_level_distribution,
-            "device_type_distribution": device_type_distribution,
-        }
-
-        print(f"✅ Simple analytics calculated: {len(enhanced_metrics)} metrics")
         return enhanced_metrics
 
     except Exception as e:
-        print(f"❌ Error in simple analytics: {e}")
+        print(f"❌ Error in complete analytics: {e}")
         import traceback
-
         traceback.print_exc()
         return {}
 
 
 # Chart type selector callback
 def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
-    """Update main analytics chart based on dropdown selection"""
+    """Updated main analytics chart with complete metrics"""
     import pandas as pd
+    from utils.enhanced_analytics import EnhancedDataProcessorComplete
 
     stats_component = component_instances.get("enhanced_stats")
-    if not stats_component and create_enhanced_stats_component:
-        stats_component = create_enhanced_stats_component()
     if not stats_component:
-        print("!! Enhanced stats component not available")
+        print("❌ Enhanced stats component not available")
         return dash.no_update
 
     df = pd.DataFrame()
-    if (
-        processed_data
-        and isinstance(processed_data, dict)
-        and "dataframe" in processed_data
-    ):
+    if processed_data and isinstance(processed_data, dict) and "dataframe" in processed_data:
         df = pd.DataFrame(processed_data["dataframe"])
         ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
         if ts_col in df.columns:
             df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
+
+    processor = EnhancedDataProcessorComplete()
+    complete_metrics = processor.process_complete_analytics(df, device_attrs)
 
     attrs_df = None
     if device_attrs and isinstance(device_attrs, dict):
@@ -1901,16 +1698,46 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
         except Exception:
             attrs_df = None
 
-    if chart_type == "daily":
+    if chart_type == "timeline":
+        hourly_data = complete_metrics.get('hourly_distribution', {})
+        if hourly_data:
+            main_fig = go.Figure()
+            hours = list(hourly_data.keys())
+            counts = list(hourly_data.values())
+            main_fig.add_trace(go.Scatter(
+                x=hours, y=counts, mode='lines+markers',
+                name='Activity Timeline',
+                line=dict(color=COLORS["accent"], width=3)
+            ))
+            main_fig.update_layout(
+                title="Activity Timeline",
+                xaxis_title="Hour",
+                yaxis_title="Events"
+            )
+            return main_fig
+
+    elif chart_type == "daily":
         return stats_component.create_daily_trends_chart(df)
-    elif chart_type == "security":
-        return stats_component.create_security_distribution_chart(attrs_df)
-    elif chart_type in ("devices", "users"):
-        return stats_component.create_device_usage_chart(df)
-    elif chart_type in ("heatmap", "floor"):
+    elif chart_type == "heatmap":
         return stats_component.create_activity_heatmap(df)
-    else:
-        return stats_component.create_hourly_activity_chart(df)
+    elif chart_type == "floor":
+        floor_data = complete_metrics.get('floor_distribution', {})
+        if floor_data:
+            main_fig = go.Figure()
+            main_fig.add_trace(go.Bar(
+                x=list(floor_data.keys()),
+                y=list(floor_data.values()),
+                marker_color=COLORS["warning"],
+                name='Floor Activity'
+            ))
+            main_fig.update_layout(
+                title="Floor Activity",
+                xaxis_title="Floor",
+                yaxis_title="Events"
+            )
+            return main_fig
+
+    return stats_component.create_hourly_activity_chart(df)
 
 
 # Export callback
