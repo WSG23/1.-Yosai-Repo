@@ -211,10 +211,10 @@ class UploadHandlers:
                 )
 
             file_extension = filename.lower().split('.')[-1] if '.' in filename else ''
-            allowed_extensions = ['csv', 'txt']
+            allowed_extensions = ['csv', 'txt', 'json']  # Added 'json'
             if file_extension not in allowed_extensions:
                 raise ValueError(
-                    f"Unsupported file type: '.{file_extension}'. Please upload a CSV file."
+                    f"Unsupported file type: '.{file_extension}'. Please upload a CSV or JSON file."
                 )
 
             try:
@@ -225,16 +225,23 @@ class UploadHandlers:
                     logger.warning("File %s used latin1 encoding, converted to UTF-8", filename)
                 except UnicodeDecodeError as e:
                     raise UnicodeDecodeError(e.encoding, e.object, e.start, e.end,
-                                             "Unable to decode file. Please save as UTF-8 encoding.")
+                                         "Unable to decode file. Please save as UTF-8 encoding.")
 
+            # Parse file based on extension
             try:
-                df = pd.read_csv(io.StringIO(decoded_string))
+                if file_extension == 'json':
+                    df = pd.read_json(io.StringIO(decoded_string))
+                else:
+                    df = pd.read_csv(io.StringIO(decoded_string))
             except pd.errors.EmptyDataError:
-                raise pd.errors.EmptyDataError("CSV file is empty or contains no data")
-            except pd.errors.ParserError as e:
-                raise pd.errors.ParserError(f"CSV format error: {str(e)}")
+                raise pd.errors.EmptyDataError(f"{file_extension.upper()} file is empty or contains no data")
+            except ValueError as e:
+                if file_extension == 'json':
+                    raise ValueError(f"JSON format error: {str(e)}")
+                else:
+                    raise pd.errors.ParserError(f"CSV format error: {str(e)}")
             except Exception as e:
-                raise DataProcessingError(f"Unable to read CSV data: {str(e)}") from e
+                raise DataProcessingError(f"Unable to read {file_extension.upper()} data: {str(e)}") from e
 
             if df.empty:
                 raise ValidationError("CSV file contains no data rows")
