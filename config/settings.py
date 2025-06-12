@@ -43,8 +43,14 @@ DEFAULT_ICONS = {
 SECURITY_CONFIG = {
     'enable_file_validation': True,
     'max_file_size': 50 * 1024 * 1024,  # 50MB
-    'allowed_extensions': {'.csv', '.txt'},
-    'allowed_mime_types': {'text/csv', 'text/plain', 'application/csv'},
+    'allowed_extensions': {'.csv', '.txt', '.json'},
+    'allowed_mime_types': {
+        'text/csv',
+        'text/plain',
+        'application/csv',
+        'application/json',
+        'text/json',
+    },
     'enable_content_scanning': True,
     'log_security_events': True
 }
