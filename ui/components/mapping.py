@@ -210,26 +210,69 @@ class MappingComponent:
 
 
 class MappingValidator:
-    """Validates mapping completeness and correctness"""
+    """Validates mapping completeness and correctness for CSV column mapping.
+
+    This class ensures that all required columns are properly mapped from CSV headers
+    to internal column names, and provides automatic suggestions using fuzzy matching
+    when exact matches are not found.
+
+    Attributes:
+        required_columns (Dict[str, str]): Mapping of internal keys to display names
+            for all columns that must be present in the final mapping.
+
+    Example:
+        >>> validator = MappingValidator({'UserID': 'User ID', 'DoorID': 'Door ID'})
+        >>> result = validator.validate_mapping({'user_col': 'UserID', 'door_col': 'DoorID'})
+        >>> print(result['is_valid'])  # True
+    """
     
-    def __init__(self, required_columns: Dict[str, str]) -> None:
+    def __init__(self, required_columns):
+        """Initialize the mapping validator with required columns.
+
+        Args:
+            required_columns: Dictionary mapping internal column keys to their
+                display names. For example: ``{'UserID': 'User ID', 'DoorID': 'Door ID'}``
+
+        Raises:
+            ValueError: If ``required_columns`` is empty or ``None``.
+            TypeError: If ``required_columns`` is not a dictionary.
+        """
+        if not isinstance(required_columns, dict):
+            raise TypeError("required_columns must be a dictionary")
+        if not required_columns:
+            raise ValueError("required_columns cannot be empty")
+
         self.required_columns = required_columns
         # Initialize cache for fuzzy matching results
         self._fuzzy_cache = {}
     
-    def validate_mapping(self, mapping_dict: Dict[str, str]) -> Dict[str, Any]:
-        """
-        Validates that all required columns are mapped
+    def validate_mapping(self, mapping_dict):
+        """Validate that all required columns are properly mapped.
+
+        Checks that the provided mapping dictionary contains valid mappings for all
+        required internal columns. Returns detailed validation results including
+        any missing mappings and appropriate error messages.
+
 
         Args:
-            mapping_dict: Dict of {csv_column: internal_key}
+            mapping_dict: Dictionary mapping CSV column names to internal column keys.
+                Example: ``{'user_column': 'UserID', 'door_column': 'DoorID'}``
 
         Returns:
-            Dict with 'is_valid', 'missing_columns', 'message'
+            Dictionary with validation results containing:
+                - ``is_valid`` (bool): ``True`` if all required columns are mapped
+                - ``missing_columns`` (List[str]): Display names of unmapped required columns
+                - ``message`` (str): Human-readable validation message
 
         Raises:
-            TypeError: If mapping_dict is not a dictionary
-            ValueError: If mapping_dict contains invalid data types
+            TypeError: If ``mapping_dict`` is not a dictionary
+            ValueError: If ``mapping_dict`` contains invalid key/value types
+
+        Example:
+            >>> validator = MappingValidator({'UserID': 'User ID'})
+            >>> result = validator.validate_mapping({'user_col': 'UserID'})
+            >>> print(result)
+            {'is_valid': True, 'missing_columns': [], 'message': 'All required columns mapped successfully'}
         """
 
         # INPUT VALIDATION - NEW SECTION
@@ -349,15 +392,41 @@ class MappingValidator:
             'message': f'Valid mapping: {csv_column} -> {internal_key}'
         }
     
-    def suggest_mappings(self, csv_headers: List[str]) -> Dict[str, str]:
-        """
-        Suggests automatic mappings based on fuzzy matching
+    def suggest_mappings(self, csv_headers):
+        """Generate automatic mapping suggestions using fuzzy string matching.
+
+        Analyzes CSV column headers and suggests appropriate mappings to required
+        internal columns using exact matching first, then fuzzy matching with
+        configurable similarity thresholds.
+
+        The algorithm works as follows:
+        1. Try exact matches between CSV headers and display names
+        2. Try exact matches between CSV headers and internal keys
+        3. Use fuzzy matching on display names (cutoff: 0.6)
+        4. Use fuzzy matching on internal keys (cutoff: 0.6)
 
         Args:
-            csv_headers: List of CSV column headers
+            csv_headers: List of column header names from the uploaded CSV file.
+                Must be non-empty and contain only string values.
+
 
         Returns:
-            Dict of suggested mappings {csv_header: internal_key}
+            Dictionary mapping CSV headers to suggested internal keys.
+            Example: ``{'user_id_col': 'UserID', 'door_name': 'DoorID'}``
+
+        Raises:
+            TypeError: If ``csv_headers`` is not a list
+            ValueError: If ``csv_headers`` is empty or contains non-string values
+
+        Example:
+            >>> validator = MappingValidator({'UserID': 'User ID', 'DoorID': 'Door ID'})
+            >>> suggestions = validator.suggest_mappings(['user_id', 'door_name', 'timestamp'])
+            >>> print(suggestions)
+            {'user_id': 'UserID', 'door_name': 'DoorID'}
+
+        Note:
+            This method uses caching to improve performance on repeated calls
+            with similar header sets. Cache can be cleared using ``clear_fuzzy_cache()``.
         """
         from difflib import get_close_matches
 
