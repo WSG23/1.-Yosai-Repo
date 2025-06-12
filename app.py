@@ -126,11 +126,11 @@ print("🔍 Detecting available components...")
 
 # Enhanced stats component
 try:
-    from ui.components.enhanced_stats import (
+    from enhanced_stats import (
         create_enhanced_stats_component,
         EnhancedStatsComponent,
+        get_consolidated_analytics_layout,
     )
-    from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
 
     components_available["enhanced_stats"] = True
     component_instances["enhanced_stats"] = create_enhanced_stats_component()
@@ -1244,6 +1244,10 @@ current_layout = create_fixed_layout_with_required_elements(
     app, MAIN_LOGO_PATH, ICON_UPLOAD_DEFAULT
 )
 
+# Create consolidated analytics component
+analytics_component = create_enhanced_stats_component()
+analytics_container = analytics_component.create_enhanced_stats_container()
+
 # EMERGENCY FIX: Add missing elements directly to layout
 missing_elements = [
     html.P(
@@ -1268,10 +1272,10 @@ app.layout = html.Div(
         dcc.Store(id="manual-door-classifications-store", storage_type="local"),
         dcc.Store(id="num-floors-store", data=1),
         dcc.Store(id="stats-data-store"),
-        dcc.Store(id="enhanced-stats-data-store"),
-        dcc.Store(id="chart-data-store"),
         # Your existing layout
         current_layout,
+        # Consolidated analytics container
+        analytics_container,
         # Inject emergency placeholders for callbacks expecting these IDs
         *missing_elements,
     ]
@@ -1335,12 +1339,7 @@ def register_all_callbacks_safely(app):
         classification_handlers.register_callbacks()
         print("   ✅ Classification callbacks registered (includes floor slider)")
 
-        if globals().get("components_available", {}).get("enhanced_stats"):
-            from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
 
-            stats_handlers = EnhancedStatsHandlers(app)
-            stats_handlers.register_callbacks()
-            print("   ✅ Enhanced stats callbacks registered")
 
         CALLBACKS_REGISTERED = True
         print("🎉 All callbacks registered successfully - no conflicts!")
@@ -1362,16 +1361,16 @@ register_all_callbacks_safely(app)
 
 
 # Advanced view toggle callback
-@app.callback(
-    [
-        Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("advanced-analytics-panels-container", "style"),
-        Output("enhanced-stats-header", "style"),
-        Output("advanced-view-button", "children"),
-    ],
-    Input("advanced-view-button", "n_clicks"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     [
+#         Output("stats-panels-container", "style", allow_duplicate=True),
+#         Output("advanced-analytics-panels-container", "style"),
+#         Output("enhanced-stats-header", "style"),
+#         Output("advanced-view-button", "children"),
+#     ],
+#     Input("advanced-view-button", "n_clicks"),
+#     prevent_initial_call=True,
+# )
 def toggle_advanced_view(
     n_clicks: Optional[int],
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], str]:
@@ -1410,16 +1409,16 @@ def toggle_advanced_view(
 
 
 # FIXED: Debug callback with complete type safety
-@app.callback(
-    [
-        Output("debug-metrics-count", "children"),
-        Output("debug-metrics-keys", "children"),
-        Output("debug-processed-data", "children"),
-        Output("debug-calculation-status", "children"),
-    ],
-    [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     [
+#         Output("debug-metrics-count", "children"),
+#         Output("debug-metrics-keys", "children"),
+#         Output("debug-processed-data", "children"),
+#         Output("debug-calculation-status", "children"),
+#     ],
+#     [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
+#     prevent_initial_call=True,
+# )
 def update_debug_info(
     metrics_data: Any, processed_data: Any
 ) -> Tuple[str, str, str, str]:
@@ -1461,14 +1460,14 @@ def update_debug_info(
 
 
 # FIXED: Container sync callback with complete type safety
-@app.callback(
-    [
-        Output("core-row-with-sidebar", "children"),
-        Output("advanced-analytics-panels-container", "children"),
-    ],
-    Input("enhanced-stats-data-store", "data"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     [
+#         Output("core-row-with-sidebar", "children"),
+#         Output("advanced-analytics-panels-container", "children"),
+#     ],
+#     Input("enhanced-stats-data-store", "data"),
+#     prevent_initial_call=True,
+# )
 def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
     """Keep container layouts stable when stats update."""
 
@@ -1482,13 +1481,13 @@ def sync_containers_with_stats(enhanced_metrics: Any) -> Tuple[Any, Any]:
 
 
 # FIXED: Enhanced stats store callback with complete validation
-@app.callback(
-    Output("enhanced-stats-data-store", "data"),
-    Input("status-message-store", "data"),
-    State("processed-data-store", "data"),
-    State("manual-door-classifications-store", "data"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     Output("enhanced-stats-data-store", "data"),
+#     Input("status-message-store", "data"),
+#     State("processed-data-store", "data"),
+#     State("manual-door-classifications-store", "data"),
+#     prevent_initial_call=True,
+# )
 def update_enhanced_stats_store(
     status_message: Any, processed_data: Any, device_classifications: Any
 ) -> Dict[str, Any]:
@@ -1552,32 +1551,31 @@ def update_enhanced_stats_store(
 
 
 # Single callback to update the visible processing status message
-@app.callback(
-    Output("processing-status", "children"),
-    Input("status-message-store", "data"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     Output("processing-status", "children"),
+#     Input("status-message-store", "data"),
+#     prevent_initial_call=True,
+# )
 def display_status_message(message: Any) -> Any:
     """Display the latest processing status message."""
     return message
 
 
 # Main analysis callback - MODIFIED to avoid conflicts
-@app.callback(
-    [
-        # Only handle visibility and status - let enhanced stats handlers manage the data
-        Output("yosai-custom-header", "style", allow_duplicate=True),
-        Output("stats-panels-container", "style", allow_duplicate=True),
-        Output("status-message-store", "data", allow_duplicate=True),
-    ],
-    Input("confirm-and-generate-button", "n_clicks"),
-    [
-        State("uploaded-file-store", "data"),
-        State("processed-data-store", "data"),
-        State("manual-door-classifications-store", "data"),
-    ],
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     [
+#         Output("yosai-custom-header", "style", allow_duplicate=True),
+#         Output("stats-panels-container", "style", allow_duplicate=True),
+#         Output("status-message-store", "data", allow_duplicate=True),
+#     ],
+#     Input("confirm-and-generate-button", "n_clicks"),
+#     [
+#         State("uploaded-file-store", "data"),
+#         State("processed-data-store", "data"),
+#         State("manual-door-classifications-store", "data"),
+#     ],
+#     prevent_initial_call=True,
+# )
 def generate_enhanced_analysis(
     n_clicks: Optional[int],
     file_data: Any,
@@ -1887,13 +1885,13 @@ def process_uploaded_data(
 
 
 # Chart type selector callback
-@app.callback(
-    Output("main-analytics-chart", "figure", allow_duplicate=True),
-    Input("chart-type-selector", "value"),
-    State("processed-data-store", "data"),
-    State("device-attrs-store", "data"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     Output("main-analytics-chart", "figure", allow_duplicate=True),
+#     Input("chart-type-selector", "value"),
+#     State("processed-data-store", "data"),
+#     State("device-attrs-store", "data"),
+#     prevent_initial_call=True,
+# )
 def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
     """Update main analytics chart based on dropdown selection"""
     import pandas as pd
@@ -1938,23 +1936,23 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
 
 
 # Export callback
-@app.callback(
-    [
-        Output("download-stats-csv", "data"),
-        Output("download-charts", "data"),
-        Output("download-report", "data"),
-        Output("export-status", "children"),
-    ],
-    [
-        Input("export-stats-csv", "n_clicks"),
-        Input("export-charts-png", "n_clicks"),
-        Input("generate-pdf-report", "n_clicks"),
-        Input("refresh-analytics", "n_clicks"),
-    ],
-    State("enhanced-stats-data-store", "data"),
-    State("main-analytics-chart", "figure"),
-    prevent_initial_call=True,
-)
+# @app.callback(  # Disabled old callback
+#     [
+#         Output("download-stats-csv", "data"),
+#         Output("download-charts", "data"),
+#         Output("download-report", "data"),
+#         Output("export-status", "children"),
+#     ],
+#     [
+#         Input("export-stats-csv", "n_clicks"),
+#         Input("export-charts-png", "n_clicks"),
+#         Input("generate-pdf-report", "n_clicks"),
+#         Input("refresh-analytics", "n_clicks"),
+#     ],
+#     State("enhanced-stats-data-store", "data"),
+#     State("main-analytics-chart", "figure"),
+#     prevent_initial_call=True,
+# )
 def handle_export_actions(
     csv_clicks: Optional[int],
     png_clicks: Optional[int],
@@ -2239,3 +2237,409 @@ def test_simple_graph():
         {"data": {"id": "edge2", "source": "lobby", "target": "secure"}},
     ]
     return test_elements
+
+
+# ============================================================================
+# CONSOLIDATED ANALYTICS CALLBACKS
+# ============================================================================
+
+# Show/hide analytics container and update status message
+@app.callback(
+    [
+        Output("analytic-stats-container", "style", allow_duplicate=True),
+        Output("status-message-store", "data", allow_duplicate=True),
+    ],
+    Input("confirm-and-generate-button", "n_clicks"),
+    [
+        State("uploaded-file-store", "data"),
+        State("processed-data-store", "data"),
+        State("manual-door-classifications-store", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def generate_enhanced_analysis_updated(n_clicks, file_data, processed_data, device_classifications):
+    """Updated analysis callback for consolidated container"""
+
+    if not n_clicks or not file_data:
+        hide_style = {"display": "none"}
+        return hide_style, "Click generate to start analysis"
+
+    try:
+        processed_dict = safe_dict_access(processed_data)
+        if processed_dict and "dataframe" in processed_dict:
+            df = pd.DataFrame(processed_dict["dataframe"])
+
+            timestamp_col = "Timestamp (Event Time)"
+            if timestamp_col in df.columns:
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
+
+            device_attrs = None
+            classifications_dict = safe_dict_access(device_classifications)
+            if classifications_dict:
+                device_attrs = pd.DataFrame.from_dict(classifications_dict, orient="index")
+                device_attrs.reset_index(inplace=True)
+                device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
+
+            enhanced_metrics = process_uploaded_data(df, device_attrs)
+
+            show_style = {
+                "display": "block",
+                "width": "95%",
+                "margin": "20px auto",
+                "backgroundColor": COLORS["background"],
+                "borderRadius": "12px",
+                "padding": "20px",
+                "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+            }
+
+            return show_style, "Analysis complete! Enhanced metrics calculated."
+
+        else:
+            hide_style = {"display": "none"}
+            return hide_style, "Error: Invalid processed data format"
+
+    except Exception as e:
+        print(f"Error in analysis: {e}")
+        hide_style = {"display": "none"}
+        return hide_style, f"Error: {str(e)}"
+
+
+# Store enhanced stats data for consolidated container
+@app.callback(
+    Output("enhanced-stats-data-store", "data"),
+    Input("status-message-store", "data"),
+    State("processed-data-store", "data"),
+    State("manual-door-classifications-store", "data"),
+    prevent_initial_call=True,
+)
+def update_enhanced_stats_store_fixed(status_message, processed_data, device_classifications):
+    """Store enhanced stats data for the consolidated display"""
+
+    if not status_message or "Analysis complete" not in str(status_message):
+        return {}
+
+    try:
+        processed_dict = safe_dict_access(processed_data)
+        if not processed_dict or "dataframe" not in processed_dict:
+            return {}
+
+        df = pd.DataFrame(processed_dict["dataframe"])
+
+        timestamp_col = "Timestamp (Event Time)"
+        if timestamp_col in df.columns:
+            df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
+
+        device_attrs = None
+        classifications_dict = safe_dict_access(device_classifications)
+        if classifications_dict:
+            device_attrs = pd.DataFrame.from_dict(classifications_dict, orient="index")
+            device_attrs.reset_index(inplace=True)
+            device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
+
+        enhanced_metrics = process_uploaded_data(df, device_attrs)
+        metrics_dict = safe_dict_access(enhanced_metrics)
+
+        if not metrics_dict:
+            return {}
+
+        print(f"✅ Enhanced stats stored: {len(metrics_dict)} metrics")
+        return metrics_dict
+
+    except Exception as e:
+        print(f"❌ Error storing enhanced stats: {e}")
+        return {}
+
+
+# Update ALL analytics in the consolidated container
+@app.callback(
+    [
+        Output("analytic-stats-container", "style"),
+        Output("total-access-events-H1", "children"),
+        Output("event-date-range-P", "children"),
+        Output("events-trend-indicator", "children"),
+        Output("avg-events-per-day", "children"),
+        Output("stats-unique-users", "children"),
+        Output("stats-avg-events-per-user", "children"),
+        Output("stats-most-active-user", "children"),
+        Output("stats-devices-per-user", "children"),
+        Output("total-devices-count", "children"),
+        Output("entrance-devices-count", "children"),
+        Output("high-security-devices", "children"),
+        Output("device-utilization-rate", "children"),
+        Output("peak-hour-display", "children"),
+        Output("peak-day-display", "children"),
+        Output("busiest-floor", "children"),
+        Output("weekend-vs-weekday", "children"),
+        Output("security-score-insight", "children"),
+        Output("anomaly-insight", "children"),
+        Output("compliance-score", "children"),
+        Output("entry-exit-ratio", "children"),
+        Output("traffic-pattern-insight", "children"),
+        Output("behavioral-insight", "children"),
+        Output("efficiency-insight", "children"),
+        Output("trend-insight", "children"),
+        Output("unique-card-holders", "children"),
+        Output("avg-session-duration", "children"),
+        Output("peak-concurrent-users", "children"),
+        Output("security-events-count", "children"),
+        Output("maintenance-alerts", "children"),
+        Output("system-uptime", "children"),
+        Output("most-active-devices-table-body", "children"),
+    ],
+    [
+        Input("enhanced-stats-data-store", "data"),
+        Input("confirm-and-generate-button", "n_clicks"),
+    ],
+    prevent_initial_call=True,
+)
+def update_consolidated_analytics(enhanced_metrics, generate_clicks):
+    """Update ALL analytics in the consolidated container"""
+
+    if not enhanced_metrics or not generate_clicks:
+        hide_style = {"display": "none"}
+        empty_values = ["N/A"] * 29
+        return [hide_style] + empty_values + [[]]
+
+    show_style = {
+        "display": "block",
+        "width": "95%",
+        "margin": "20px auto",
+        "backgroundColor": COLORS["background"],
+        "borderRadius": "12px",
+        "padding": "20px",
+        "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+    }
+
+    metrics = enhanced_metrics or {}
+
+    total_events = f"{metrics.get('total_events', 0):,}"
+    date_range = metrics.get('date_range', 'No data available')
+
+    events_count = metrics.get('total_events', 0)
+    if events_count > 1000:
+        trend_indicator = "📈 High Activity"
+    elif events_count > 100:
+        trend_indicator = "📊 Normal Activity"
+    else:
+        trend_indicator = "📉 Low Activity"
+
+    avg_per_day = f"Avg: {metrics.get('avg_events_per_day', 0):.1f} events/day"
+
+    unique_users = f"Users: {metrics.get('unique_users', 0):,}"
+    avg_events_user = f"Avg: {metrics.get('avg_events_per_user', 0):.1f} events/user"
+    most_active = f"Most active: {metrics.get('most_active_user', 'N/A')}"
+    devices_per_user = f"Avg: {metrics.get('avg_users_per_device', 0):.2f} users/device"
+
+    total_devices = f"Total: {metrics.get('num_devices', 0):,} devices"
+    entrance_devices = f"Entrances: {metrics.get('entrance_devices_count', 0):,}"
+    high_security = f"High security: {metrics.get('high_security_devices', 0):,}"
+    utilization = f"Utilization: {metrics.get('device_utilization_rate', 0):.1f}%"
+
+    peak_hour = f"Peak hour: {metrics.get('peak_hour', 'N/A')}"
+    peak_day = f"Peak day: {metrics.get('peak_day', 'N/A')}"
+    busiest_floor_val = f"Busiest floor: {metrics.get('busiest_floor', 'N/A')}"
+    weekend_weekday = f"Weekend vs Weekday: {metrics.get('weekend_vs_weekday_ratio', 'N/A')}"
+
+    security_score = f"Security score: {metrics.get('security_score', 0):.1f}%"
+    anomalies = f"Anomalies: {metrics.get('anomaly_count', 0)} detected"
+    compliance = f"Compliance: {metrics.get('compliance_score', 0):.1f}%"
+    entry_exit = f"Entry/Exit: {metrics.get('entry_exit_ratio', 'N/A')}"
+
+    traffic_pattern = f"Pattern: {metrics.get('dominant_pattern', 'Normal business hours')}"
+    behavioral = f"Behavior: {metrics.get('behavioral_pattern', 'Standard access patterns')}"
+    efficiency = f"Efficiency: {metrics.get('efficiency_score', 0):.1f}%"
+    trend = f"Trend: {metrics.get('overall_trend', 'Stable')}"
+
+    card_holders = f"Card holders: {metrics.get('unique_card_holders', 0):,}"
+    session_duration = f"Avg session: {metrics.get('avg_session_duration', 0):.1f} min"
+    concurrent_users = f"Peak concurrent: {metrics.get('peak_concurrent_users', 0):,}"
+    security_events = f"Security events: {metrics.get('security_events_count', 0):,}"
+    maintenance = f"Maintenance: {metrics.get('maintenance_alerts', 0):,}"
+    uptime = f"Uptime: {metrics.get('system_uptime', 100):.1f}%"
+
+    table_rows = []
+    most_active_devices = metrics.get('most_active_devices', [])
+    if isinstance(most_active_devices, list) and most_active_devices:
+        for i, device in enumerate(most_active_devices[:5]):
+            if isinstance(device, dict):
+                device_name = device.get('device', f'Device {i+1}')
+                event_count = device.get('events', 0)
+            else:
+                device_name = str(device)
+                event_count = 0
+
+            table_rows.append(
+                html.Tr([
+                    html.Td(device_name, style={"padding": "5px", "color": COLORS["text_primary"]}),
+                    html.Td(f"{event_count:,}", style={"padding": "5px", "color": COLORS["accent"]}),
+                ])
+            )
+
+    if not table_rows:
+        table_rows = [
+            html.Tr([
+                html.Td("No device data", style={"padding": "5px", "color": COLORS["text_secondary"]}),
+                html.Td("0", style={"padding": "5px", "color": COLORS["text_secondary"]}),
+            ])
+        ]
+
+    return [
+        show_style,
+        total_events, date_range, trend_indicator, avg_per_day,
+        unique_users, avg_events_user, most_active, devices_per_user,
+        total_devices, entrance_devices, high_security, utilization,
+        peak_hour, peak_day, busiest_floor_val, weekend_weekday,
+        security_score, anomalies, compliance, entry_exit,
+        traffic_pattern, behavioral, efficiency, trend,
+        card_holders, session_duration, concurrent_users, security_events, maintenance, uptime,
+        table_rows,
+    ]
+
+
+# Charts update callback
+@app.callback(
+    [
+        Output("main-analytics-chart", "figure"),
+        Output("security-pie-chart", "figure"),
+        Output("device-distribution-chart", "figure"),
+    ],
+    [
+        Input("enhanced-stats-data-store", "data"),
+        Input("chart-type-selector", "value"),
+    ],
+    prevent_initial_call=True,
+)
+def update_consolidated_charts(enhanced_metrics, chart_type):
+    """Update all charts in the consolidated container"""
+
+    if not enhanced_metrics:
+        empty_fig = go.Figure()
+        empty_fig.update_layout(
+            template="plotly_dark",
+            paper_bgcolor=COLORS["surface"],
+            plot_bgcolor=COLORS["background"],
+            font_color=COLORS["text_primary"],
+            title="No data available",
+        )
+        return empty_fig, empty_fig, empty_fig
+
+    metrics = enhanced_metrics or {}
+
+    main_fig = go.Figure()
+
+    if chart_type == "timeline":
+        hourly_data = metrics.get('hourly_distribution', {})
+        if hourly_data:
+            hours = list(hourly_data.keys())
+            counts = list(hourly_data.values())
+            main_fig.add_trace(go.Scatter(x=hours, y=counts, mode='lines+markers', name='Activity Timeline', line=dict(color=COLORS["accent"], width=3)))
+            main_fig.update_layout(title="Activity Timeline", xaxis_title="Hour", yaxis_title="Events")
+    elif chart_type == "hourly":
+        hourly_data = metrics.get('hourly_distribution', {})
+        if hourly_data:
+            main_fig.add_trace(go.Bar(x=list(hourly_data.keys()), y=list(hourly_data.values()), marker_color=COLORS["accent"], name='Hourly Activity'))
+            main_fig.update_layout(title="Hourly Distribution", xaxis_title="Hour", yaxis_title="Events")
+    elif chart_type == "daily":
+        daily_data = metrics.get('daily_distribution', {})
+        if daily_data:
+            main_fig.add_trace(go.Bar(x=list(daily_data.keys()), y=list(daily_data.values()), marker_color=COLORS["success"], name='Daily Activity'))
+            main_fig.update_layout(title="Daily Patterns", xaxis_title="Day", yaxis_title="Events")
+    elif chart_type == "floor":
+        floor_data = metrics.get('floor_distribution', {})
+        if floor_data:
+            main_fig.add_trace(go.Bar(x=list(floor_data.keys()), y=list(floor_data.values()), marker_color=COLORS["warning"], name='Floor Activity'))
+            main_fig.update_layout(title="Floor Activity", xaxis_title="Floor", yaxis_title="Events")
+
+    main_fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor=COLORS["surface"],
+        plot_bgcolor=COLORS["background"],
+        font_color=COLORS["text_primary"],
+        height=350,
+        margin=dict(l=40, r=40, t=40, b=40),
+    )
+
+    security_fig = go.Figure()
+    security_distribution = metrics.get('security_level_distribution', {})
+    if security_distribution:
+        security_fig.add_trace(go.Pie(labels=list(security_distribution.keys()), values=list(security_distribution.values()), hole=.3, marker_colors=[COLORS["success"], COLORS["warning"], COLORS["critical"]]))
+    security_fig.update_layout(title="Security Levels", template="plotly_dark", paper_bgcolor=COLORS["surface"], plot_bgcolor=COLORS["background"], font_color=COLORS["text_primary"], height=180, margin=dict(l=20, r=20, t=30, b=20))
+
+    device_fig = go.Figure()
+    device_types = metrics.get('device_type_distribution', {})
+    if device_types:
+        device_fig.add_trace(go.Pie(labels=list(device_types.keys()), values=list(device_types.values()), hole=.3, marker_colors=[COLORS["accent"], COLORS["accent_light"], COLORS["success"]]))
+    device_fig.update_layout(title="Device Types", template="plotly_dark", paper_bgcolor=COLORS["surface"], plot_bgcolor=COLORS["background"], font_color=COLORS["text_primary"], height=180, margin=dict(l=20, r=20, t=30, b=20))
+
+    return main_fig, security_fig, device_fig
+
+
+# Export callbacks for consolidated container
+@app.callback(
+    Output("export-status", "children"),
+    [
+        Input("export-csv-btn", "n_clicks"),
+        Input("export-charts-btn", "n_clicks"),
+        Input("export-report-btn", "n_clicks"),
+    ],
+    State("enhanced-stats-data-store", "data"),
+    prevent_initial_call=True,
+)
+def handle_exports(csv_clicks, charts_clicks, report_clicks, enhanced_metrics):
+    """Handle export button clicks"""
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return "Ready to export"
+
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == "export-csv-btn" and csv_clicks:
+        return "CSV export initiated..."
+    elif button_id == "export-charts-btn" and charts_clicks:
+        return "Chart export initiated..."
+    elif button_id == "export-report-btn" and report_clicks:
+        return "Report generation initiated..."
+
+    return "Ready to export"
+
+
+# Manual refresh callback
+@app.callback(
+    Output("enhanced-stats-data-store", "data", allow_duplicate=True),
+    Input("refresh-stats-btn", "n_clicks"),
+    State("processed-data-store", "data"),
+    State("manual-door-classifications-store", "data"),
+    prevent_initial_call=True,
+)
+def refresh_analytics_data(refresh_clicks, processed_data, device_classifications):
+    """Refresh analytics data when refresh button is clicked"""
+
+    if not refresh_clicks:
+        return dash.no_update
+
+    try:
+        processed_dict = safe_dict_access(processed_data)
+        if not processed_dict or "dataframe" not in processed_dict:
+            return {}
+
+        df = pd.DataFrame(processed_dict["dataframe"])
+
+        timestamp_col = "Timestamp (Event Time)"
+        if timestamp_col in df.columns:
+            df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
+
+        device_attrs = None
+        classifications_dict = safe_dict_access(device_classifications)
+        if classifications_dict:
+            device_attrs = pd.DataFrame.from_dict(classifications_dict, orient="index")
+            device_attrs.reset_index(inplace=True)
+            device_attrs.rename(columns={"index": "Door Number"}, inplace=True)
+
+        enhanced_metrics = process_uploaded_data(df, device_attrs)
+
+        return safe_dict_access(enhanced_metrics) or {}
+
+    except Exception as e:
+        print(f"Error refreshing analytics: {e}")
+        return {}
+
