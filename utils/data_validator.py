@@ -229,9 +229,9 @@ class DataQualityAnalyzer:
         analysis = {
             'basic_stats': self._get_basic_stats(df),
             'missing_data': self._analyze_missing_data(df),
-            'data_types': self._analyze_data_types(df),
-            'duplicates': self._analyze_duplicates(df),
-            'outliers': self._detect_outliers(df),
+            'data_types': self._analyze_data_types_optimized(df),
+            'duplicates': self._analyze_duplicates_optimized(df),
+            'outliers': self._detect_outliers_optimized(df),
             'recommendations': []
         }
         
@@ -252,88 +252,103 @@ class DataQualityAnalyzer:
         }
     
     def _analyze_missing_data(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze missing data patterns"""
-        missing_stats = {}
-        total_cells = len(df) * len(df.columns)
-        
-        for col in df.columns:
-            missing_count = df[col].isna().sum()
-            missing_stats[col] = {
-                'missing_count': missing_count,
-                'missing_percentage': (missing_count / len(df)) * 100 if len(df) > 0 else 0
+        """Analyze missing data patterns using vectorized operations"""
+        total_rows = len(df)
+        total_cells = total_rows * len(df.columns)
+
+        missing_counts = df.isna().sum()
+        missing_percentages = df.isna().mean() * 100
+
+        missing_stats = {
+            col: {
+                'missing_count': int(missing_counts[col]),
+                'missing_percentage': float(missing_percentages[col]) if total_rows > 0 else 0.0,
             }
-        
+            for col in df.columns
+        }
+
+        total_missing_cells = int(missing_counts.sum())
+        total_missing_percentage = (
+            (total_missing_cells / total_cells) * 100 if total_cells > 0 else 0.0
+        )
+
         return {
             'by_column': missing_stats,
-            'total_missing_cells': sum(stats['missing_count'] for stats in missing_stats.values()),
-            'total_missing_percentage': (sum(stats['missing_count'] for stats in missing_stats.values()) / total_cells) * 100 if total_cells > 0 else 0
+            'total_missing_cells': total_missing_cells,
+            'total_missing_percentage': total_missing_percentage,
         }
     
-    def _analyze_data_types(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze data types and suggest improvements"""
+    def _analyze_data_types_optimized(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze data types and suggest improvements (vectorized)"""
+        dtypes = df.dtypes.astype(str)
+        unique_counts = df.nunique()
+        total_count = len(df)
+
         type_analysis = {}
-        
         for col in df.columns:
-            dtype = str(df[col].dtype)
-            unique_count = df[col].nunique()
-            total_count = len(df)
-            
-            # Suggest categorical conversion for low cardinality string columns
+            dtype = dtypes[col]
+            unique_count = int(unique_counts[col])
+
             should_be_categorical = (
-                dtype == 'object' and 
-                unique_count < total_count * 0.1 and  # Less than 10% unique values
-                unique_count < 50  # And less than 50 unique values
+                dtype == 'object'
+                and unique_count < total_count * 0.1
+                and unique_count < 50
             )
-            
+
             type_analysis[col] = {
                 'current_type': dtype,
                 'unique_values': unique_count,
-                'should_be_categorical': should_be_categorical
+                'should_be_categorical': should_be_categorical,
             }
-        
+
         return type_analysis
     
-    def _analyze_duplicates(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze duplicate data"""
+    def _analyze_duplicates_optimized(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze duplicate data using vectorized operations"""
         total_rows = len(df)
-        duplicate_rows = df.duplicated().sum()
-        
-        # Check for duplicates in key columns
+        duplicate_rows = int(df.duplicated().sum())
+
         key_column_duplicates = {}
-        potential_key_columns = ['id', 'user_id', 'userid', 'door_id', 'doorid']
-        
-        for col in df.columns:
-            if col.lower() in potential_key_columns:
-                duplicate_count = df[col].duplicated().sum()
-                key_column_duplicates[col] = duplicate_count
-        
+        potential_key_columns = {'id', 'user_id', 'userid', 'door_id', 'doorid'}
+        key_cols = [c for c in df.columns if c.lower() in potential_key_columns]
+
+        for col in key_cols:
+            key_column_duplicates[col] = int(df[col].duplicated().sum())
+
         return {
             'total_duplicate_rows': duplicate_rows,
-            'duplicate_percentage': (duplicate_rows / total_rows) * 100 if total_rows > 0 else 0,
-            'key_column_duplicates': key_column_duplicates
+            'duplicate_percentage': (duplicate_rows / total_rows) * 100 if total_rows > 0 else 0.0,
+            'key_column_duplicates': key_column_duplicates,
         }
     
-    def _detect_outliers(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Detect outliers in numeric columns"""
+    def _detect_outliers_optimized(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Detect outliers in numeric columns using vectorized operations"""
+        numeric_df = df.select_dtypes(include=['number'])
+        if numeric_df.empty:
+            return {}
+
+        q1 = numeric_df.quantile(0.25)
+        q3 = numeric_df.quantile(0.75)
+        iqr = q3 - q1
+
+        lower_bounds = q1 - 1.5 * iqr
+        upper_bounds = q3 + 1.5 * iqr
+
+        mask_lower = numeric_df.lt(lower_bounds, axis=1)
+        mask_upper = numeric_df.gt(upper_bounds, axis=1)
+        outlier_counts = (mask_lower | mask_upper).sum()
+
         outlier_analysis = {}
-        
-        for col in df.select_dtypes(include=['number']).columns:
-            q1 = df[col].quantile(0.25)
-            q3 = df[col].quantile(0.75)
-            iqr = q3 - q1
-            
-            lower_bound = q1 - 1.5 * iqr
-            upper_bound = q3 + 1.5 * iqr
-            
-            outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
-            
+        total_rows = len(df)
+        for col in numeric_df.columns:
+            outlier_count = int(outlier_counts[col])
             outlier_analysis[col] = {
-                'outlier_count': len(outliers),
-                'outlier_percentage': (len(outliers) / len(df)) * 100 if len(df) > 0 else 0,
-                'lower_bound': lower_bound,
-                'upper_bound': upper_bound
+                'outlier_count': outlier_count,
+                'outlier_percentage': (outlier_count / total_rows) * 100 if total_rows > 0 else 0.0,
+                'lower_bound': lower_bounds[col],
+                'upper_bound': upper_bounds[col],
             }
-        
+
         return outlier_analysis
     
     def _generate_recommendations(self, analysis: Dict[str, Any]) -> List[str]:
