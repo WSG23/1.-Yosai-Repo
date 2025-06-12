@@ -71,7 +71,15 @@ class EnhancedDataValidator:
         missing_keys: List[str] = []
         
         try:
-            validation = self.mapping_validator.validate_mapping(mapping)
+            try:
+                validation = self.mapping_validator.validate_mapping(mapping)
+            except (TypeError, ValueError) as e:
+                return {
+                    'success': False,
+                    'error': f"Invalid mapping format: {str(e)}",
+                    'missing_mappings': []
+                }
+
             if not validation.get('is_valid'):
                 missing_keys = validation.get('missing_columns', [])
                 raise ValidationError(validation.get('message', 'Invalid mapping'))

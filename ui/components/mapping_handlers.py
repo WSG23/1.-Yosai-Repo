@@ -93,7 +93,14 @@ class MappingHandlers:
             }
             
             # Validate mapping
-            validation_result = self.validator.validate_mapping(mapping)
+            try:
+                validation_result = self.validator.validate_mapping(mapping)
+            except (TypeError, ValueError) as e:
+                return {
+                    'success': False,
+                    'error': f"Invalid mapping data: {str(e)}",
+                    'missing_columns': []
+                }
             
             if not validation_result['is_valid']:
                 return {
