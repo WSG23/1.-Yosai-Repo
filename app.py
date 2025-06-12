@@ -264,7 +264,7 @@ print(f">> Assets loaded: {ICON_UPLOAD_DEFAULT}")
 def _create_fallback_stats_container():
     """Create fallback stats container with all required callback elements"""
     return html.Div(
-        id="stats-panels-container",
+        id="analytic-stats-container",
         style={"display": "block", "minHeight": "200px"},
         children=[
             html.Div(
@@ -852,83 +852,6 @@ def _create_complete_fixed_layout(
         html.Div(
             id="tab-content",
             children=[
-                # Your 3 panels container
-                html.Div(
-                    id="stats-panels-container",
-                    style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
-                    children=[
-                        # Panel 1: Access Events
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("Access Events"),
-                                html.H1(id="total-access-events-H1", children="0"),
-                                html.P(id="event-date-range-P", children="No data"),
-                            ],
-                        ),
-                        # Panel 2: User Stats
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("User Analytics"),
-                                html.P(id="stats-unique-users", children="0 users"),
-                                html.P(
-                                    id="stats-avg-events-per-user",
-                                    children="Avg: 0 events/user",
-                                ),
-                                html.P(id="stats-most-active-user", children="No data"),
-                                html.P(
-                                    id="stats-devices-per-user",
-                                    children="Avg: 0 users/device",
-                                ),
-                                html.P(id="stats-peak-hour", children="Peak: N/A"),
-                                html.P(id="total-devices-count", children="0 devices"),
-                                html.P(
-                                    id="entrance-devices-count", children="0 entrances"
-                                ),
-                                html.P(
-                                    id="high-security-devices",
-                                    children="0 high security",
-                                ),
-                            ],
-                        ),
-                        # Panel 3: Activity Insights
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("Activity Insights"),
-                                html.P(id="peak-hour-display", children="Peak: N/A"),
-                                html.P(id="busiest-floor", children="Floor: N/A"),
-                                html.P(
-                                    id="traffic-pattern-insight",
-                                    children="Pattern: N/A",
-                                ),
-                                html.P(
-                                    id="security-score-insight", children="Score: N/A"
-                                ),
-                                html.P(id="anomaly-insight", children="Alerts: 0"),
-                            ],
-                        ),
-                    ],
-                ),
                 # All required elements for callbacks (initially hidden)
                 *enhanced_stats_layout,
                 _create_fallback_analytics_section(),
@@ -1190,7 +1113,7 @@ def _add_missing_elements_to_existing_layout(
         # FIXED: Add other required elements that might be missing
         required_elements = {
             "enhanced-stats-header": _create_fallback_enhanced_header(),
-            "stats-panels-container": _create_fallback_stats_container(),
+            "analytic-stats-container": _create_fallback_stats_container(),
             "advanced-analytics-panels-container": _create_advanced_analytics_container(),
             "analytics-section": _create_fallback_analytics_section(),
             "charts-section": _create_fallback_charts_section(),

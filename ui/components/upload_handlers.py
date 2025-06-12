@@ -54,7 +54,7 @@ class UploadHandlers:
                 Output('entrance-verification-ui-section', 'style', allow_duplicate=True),
                 Output('door-classification-table-container', 'style', allow_duplicate=True),
                 Output('graph-output-container', 'style', allow_duplicate=True),
-                Output('stats-panels-container', 'style', allow_duplicate=True),
+                Output('analytic-stats-container', 'style', allow_duplicate=True),
                 Output('yosai-custom-header', 'style', allow_duplicate=True),
                 Output('onion-graph', 'elements', allow_duplicate=True),
                 Output('all-doors-from-csv-store', 'data'),
@@ -247,6 +247,7 @@ class UploadHandlers:
             self.icons['default'],  # upload icon src
             upload_styles['initial'],  # upload box style
             hide_style, hide_style, show_graph_style, hide_style,  # various containers
+
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
@@ -281,6 +282,7 @@ class UploadHandlers:
             self.icons['success'],  # upload icon src
             upload_styles['success'],  # upload box style
             hide_style, hide_style, show_graph_style, hide_style,  # various containers
+
             hide_style,  # yosai header
             [],  # graph elements
             result['all_unique_doors'],  # all doors store
@@ -310,6 +312,7 @@ class UploadHandlers:
             self.icons['fail'],  # upload icon src
             upload_styles['error'],  # upload box style
             hide_style, hide_style, show_graph_style, hide_style,  # various containers
+
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
