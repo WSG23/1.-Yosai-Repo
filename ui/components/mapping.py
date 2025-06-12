@@ -10,6 +10,8 @@ import dash_bootstrap_components as dbc
 
 from ui.themes.style_config import COLORS, MAPPING_STYLES, get_validation_message_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
+from functools import lru_cache
+from typing import List, Dict, Tuple
 
 
 class MappingComponent:
@@ -202,6 +204,8 @@ class MappingValidator:
     
     def __init__(self, required_columns):
         self.required_columns = required_columns
+        # Initialize cache for fuzzy matching results
+        self._fuzzy_cache = {}
     
     def validate_mapping(self, mapping_dict):
         """
@@ -335,49 +339,72 @@ class MappingValidator:
             'message': f'Valid mapping: {csv_column} -> {internal_key}'
         }
     
-    def suggest_mappings(self, csv_headers):
+    def suggest_mappings(self, csv_headers: List[str]) -> Dict[str, str]:
         """
         Suggests automatic mappings based on fuzzy matching
-        
+
         Args:
             csv_headers: List of CSV column headers
-            
+
         Returns:
             Dict of suggested mappings {csv_header: internal_key}
         """
         from difflib import get_close_matches
-        
-        suggestions = {}
-        
+
+        suggestions: Dict[str, str] = {}
+
         for internal_key, display_name in self.required_columns.items():
-            # Try exact match first
+            # Try exact match first (no caching needed - this is fast)
             if display_name in csv_headers:
                 suggestions[display_name] = internal_key
                 continue
-                
+
             if internal_key in csv_headers:
                 suggestions[internal_key] = internal_key
                 continue
-            
-            # Fuzzy match on display name
-            matches = get_close_matches(display_name.lower(), 
-                                      [h.lower() for h in csv_headers], 
-                                      n=1, cutoff=0.6)
-            if matches:
-                # Find original case header
-                original_header = next(h for h in csv_headers if h.lower() == matches[0])
+
+            # OPTIMIZATION: Cache expensive fuzzy matching operations
+            display_matches = self._get_cached_fuzzy_matches(
+                display_name.lower(),
+                tuple(h.lower() for h in csv_headers),
+                cutoff=0.6
+            )
+            if display_matches:
+                original_header = next(h for h in csv_headers if h.lower() == display_matches[0])
                 suggestions[original_header] = internal_key
                 continue
-            
-            # Fuzzy match on internal key
-            matches = get_close_matches(internal_key.lower(), 
-                                      [h.lower() for h in csv_headers], 
-                                      n=1, cutoff=0.6)
-            if matches:
-                original_header = next(h for h in csv_headers if h.lower() == matches[0])
+
+            internal_matches = self._get_cached_fuzzy_matches(
+                internal_key.lower(),
+                tuple(h.lower() for h in csv_headers),
+                cutoff=0.6
+            )
+            if internal_matches:
+                original_header = next(h for h in csv_headers if h.lower() == internal_matches[0])
                 suggestions[original_header] = internal_key
-        
+
         return suggestions
+
+    @lru_cache(maxsize=256)
+    def _get_cached_fuzzy_matches(self, target: str, candidates_tuple: Tuple[str, ...], cutoff: float = 0.6) -> List[str]:
+        """Cached fuzzy matching to avoid recomputing expensive string comparisons"""
+        from difflib import get_close_matches
+
+        return get_close_matches(target, list(candidates_tuple), n=1, cutoff=cutoff)
+
+    def clear_fuzzy_cache(self) -> None:
+        """Clear the fuzzy matching cache (useful for testing or memory management)"""
+        self._get_cached_fuzzy_matches.cache_clear()
+
+    def get_cache_stats(self) -> Dict[str, int]:
+        """Get cache performance statistics"""
+        cache_info = self._get_cached_fuzzy_matches.cache_info()
+        return {
+            'hits': cache_info.hits,
+            'misses': cache_info.misses,
+            'current_size': cache_info.currsize,
+            'max_size': cache_info.maxsize
+        }
 
 
 # Factory functions for easy component creation
