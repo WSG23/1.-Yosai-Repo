@@ -507,6 +507,13 @@ def _create_mini_graph_container():
 
 def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) -> None:
     """Add missing callback elements as hidden placeholders"""
+
+    # If the enhanced stats component is available, it already provides
+    # all of these callback targets. Skip adding duplicates that would
+    # otherwise hide the visible elements.
+    if components_available.get("enhanced_stats"):
+        print(">> Enhanced stats component detected - skipping placeholder injection")
+        return
     callback_targets = [
         "stats-unique-users",
         "stats-avg-events-per-user",
