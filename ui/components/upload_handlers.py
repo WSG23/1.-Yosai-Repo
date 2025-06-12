@@ -26,7 +26,12 @@ class UploadHandlers:
     def __init__(self, app, upload_component, icon_paths, *, secure: bool = False, max_file_size: int | None = None):
         self.app = app
         self.upload_component = upload_component
-        self.icons = icon_paths
+        # Normalize icon dictionary keys for backward compatibility
+        self.icons = {
+            'default': icon_paths.get('default', icon_paths.get('upload_default')),
+            'success': icon_paths.get('success', icon_paths.get('upload_success')),
+            'fail': icon_paths.get('fail', icon_paths.get('upload_fail')),
+        }
         self.secure = secure
         self.max_file_size = max_file_size
         logger.info(
