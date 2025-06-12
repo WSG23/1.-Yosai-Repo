@@ -555,6 +555,20 @@ class EnhancedStatsComponent:
                                 "marginBottom": "15px",
                             },
                         ),
+                        html.P(
+                            id="avg-users-per-device",
+                            style={
+                                "color": COLORS["text_secondary"],
+                                "marginBottom": "8px",
+                            },
+                        ),
+                        html.P(
+                            id="security-events-count",
+                            style={
+                                "color": COLORS["text_secondary"],
+                                "marginBottom": "8px",
+                            },
+                        ),
                     ]
                 ),
                 # Behavior insights
