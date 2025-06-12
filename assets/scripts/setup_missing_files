@@ -102,7 +102,7 @@ from dash import html
 def create_enhanced_stats_component():
     """Create basic stats component"""
     return html.Div([
-        html.Div(id='analytic-stats-container', style={'display': 'none'})
+        html.Div(id='stats-panels-container', style={'display': 'none'})
     ])
 
 class EnhancedStatsComponent:
