@@ -10,6 +10,7 @@ from .enhanced_stats import create_enhanced_stats_component
 from ui.themes.style_config import COLORS, TYPOGRAPHY
 from config.settings import REQUIRED_INTERNAL_COLUMNS
 
+
 class EnhancedStatsHandlers:
     """Handles enhanced statistics callbacks"""
 
@@ -42,7 +43,7 @@ class EnhancedStatsHandlers:
                 Output("enhanced-stats-data-store", "data", allow_duplicate=True),
             ],
             [
-                Input("enhanced-metrics-store", "data"),
+                Input("enhanced-stats-data-store", "data"),
                 Input("stats-refresh-interval", "n_intervals"),
                 Input("refresh-stats-btn", "n_clicks"),
             ],
@@ -69,7 +70,7 @@ class EnhancedStatsHandlers:
                         date_range,
                         trend_value,
                         trend_style,
-                        f"Avg: {events_per_day:.1f} events/day",
+                        f"Avg: {events_per_day:.2f} events/day",
                         enhanced_metrics,
                     )
                 else:
@@ -99,7 +100,7 @@ class EnhancedStatsHandlers:
                 if enhanced_metrics:
                     return (
                         f"Most Active: {enhanced_metrics.get('most_active_user', 'N/A')}",
-                        f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.1f}",
+                        f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.2f}",
                         f"Unique Users: {enhanced_metrics.get('unique_users', 0):,}",
                     )
                 else:
@@ -360,7 +361,9 @@ class EnhancedStatsHandlers:
             State("main-analytics-chart", "figure"),
             prevent_initial_call=True,
         )
-        def handle_export_actions(pdf_clicks, excel_clicks, charts_clicks, json_clicks, stats_data, chart_fig):
+        def handle_export_actions(
+            pdf_clicks, excel_clicks, charts_clicks, json_clicks, stats_data, chart_fig
+        ):
             """Handle export button clicks and provide downloadable files"""
             from dash import ctx
             from utils.enhanced_analytics import create_enhanced_export_manager
@@ -374,32 +377,63 @@ class EnhancedStatsHandlers:
             manager = create_enhanced_export_manager()
 
             if button_id == "export-pdf-btn":
-                report = manager.export_comprehensive_report(stats_data or {}, format="PDF")
+                report = manager.export_comprehensive_report(
+                    stats_data or {}, format="PDF"
+                )
                 if report.get("download_ready"):
                     data = dict(content=report["content"], filename=report["filename"])
-                    return data, no_update, no_update, no_update, "📄 PDF report generated successfully!"
+                    return (
+                        data,
+                        no_update,
+                        no_update,
+                        no_update,
+                        "📄 PDF report generated successfully!",
+                    )
             elif button_id == "export-excel-btn":
-                report = manager.export_comprehensive_report(stats_data or {}, format="Excel")
+                report = manager.export_comprehensive_report(
+                    stats_data or {}, format="Excel"
+                )
                 if report.get("download_ready"):
                     content = base64.b64decode(report["content"])
-                    return no_update, dict(content=content, filename=report["filename"]), no_update, no_update, "📊 Excel data exported successfully!"
+                    return (
+                        no_update,
+                        dict(content=content, filename=report["filename"]),
+                        no_update,
+                        no_update,
+                        "📊 Excel data exported successfully!",
+                    )
             elif button_id == "export-charts-btn":
                 if chart_fig:
                     try:
                         img_bytes = pio.to_image(chart_fig, format="png")
-                        return no_update, no_update, dict(content=img_bytes, filename="chart.png"), no_update, "📈 Charts exported as PNG!"
+                        return (
+                            no_update,
+                            no_update,
+                            dict(content=img_bytes, filename="chart.png"),
+                            no_update,
+                            "📈 Charts exported as PNG!",
+                        )
                     except Exception:
                         pass
             elif button_id == "export-json-btn":
-                report = manager.export_comprehensive_report(stats_data or {}, format="JSON")
+                report = manager.export_comprehensive_report(
+                    stats_data or {}, format="JSON"
+                )
                 if report.get("download_ready"):
                     content = base64.b64decode(report["content"])
-                    return no_update, no_update, no_update, dict(content=content, filename=report["filename"]), "💾 Raw data exported as JSON!"
+                    return (
+                        no_update,
+                        no_update,
+                        no_update,
+                        dict(content=content, filename=report["filename"]),
+                        "💾 Raw data exported as JSON!",
+                    )
 
             return [no_update, no_update, no_update, no_update, "Export completed"]
 
     def _register_basic_stats_callback(self):
         """Update legacy stats elements"""
+
         @self.app.callback(
             [
                 Output("total-access-events-H1", "children", allow_duplicate=True),
@@ -420,20 +454,20 @@ class EnhancedStatsHandlers:
         def _update_basic(enhanced_metrics):
             metrics = enhanced_metrics or {}
 
-            total_events = str(metrics.get("total_events", "0"))
-            date_range = metrics.get('date_range', 'N/A')
-            unique_users = f"{metrics.get('unique_users', 0)} users"
-            avg_events = f"Avg: {metrics.get('avg_events_per_user', 0)} events/user"
+            total_events = f"{metrics.get('total_events', 0):,}"
+            date_range = metrics.get("date_range", "N/A")
+            unique_users = f"{metrics.get('unique_users', 0):,} users"
+            avg_events = f"Avg: {metrics.get('avg_events_per_user', 0):.2f} events/user"
 
             most_active = f"Most Active: {metrics.get('most_active_user', 'N/A')}"
-            total_devices = f"{metrics.get('total_devices_count', 0)} devices"
+            total_devices = f"{metrics.get('total_devices_count', 0):,} devices"
             peak_hour = f"Peak: {metrics.get('peak_hour', 'N/A')}:00"
             busiest_floor = f"Busiest Day: {metrics.get('peak_day', 'N/A')}"
-            activity_intensity = metrics.get('activity_intensity', 'N/A')
+            activity_intensity = metrics.get("activity_intensity", "N/A")
             traffic_pattern = f"Activity: {activity_intensity}"
-            sec = metrics.get('security_score')
+            sec = metrics.get("security_score")
             security_score = f"Score: {sec}" if sec is not None else "Score: N/A"
-            anomaly_insight = f"Sessions: {metrics.get('total_events', '0')}"
+            anomaly_insight = f"Sessions: {metrics.get('total_events', 0):,}"
 
             return (
                 total_events,
@@ -465,10 +499,30 @@ class EnhancedStatsHandlers:
         def _update_additional(metrics):
             metrics = metrics or {}
 
-            devices_per_user = metrics.get("avg_users_per_device", "N/A")
-            entrance_count = metrics.get("entrance_devices_count", "N/A")
-            high_sec = metrics.get("high_security_devices", "N/A")
-            efficiency = metrics.get("efficiency_score", "N/A")
+            devices_per_user = metrics.get("avg_users_per_device")
+            entrance_count = metrics.get("entrance_devices_count")
+            high_sec = metrics.get("high_security_devices")
+            efficiency = metrics.get("efficiency_score")
+
+            if isinstance(devices_per_user, (int, float)):
+                devices_per_user = f"{devices_per_user:.2f}"
+            else:
+                devices_per_user = devices_per_user or "N/A"
+
+            if isinstance(entrance_count, (int, float)):
+                entrance_count = f"{entrance_count:,}"
+            else:
+                entrance_count = entrance_count or "N/A"
+
+            if isinstance(high_sec, (int, float)):
+                high_sec = f"{high_sec:,}"
+            else:
+                high_sec = high_sec or "N/A"
+
+            if isinstance(efficiency, (int, float)):
+                efficiency = f"{efficiency:.2f}"
+            else:
+                efficiency = efficiency or "N/A"
             return (
                 devices_per_user,
                 entrance_count,
