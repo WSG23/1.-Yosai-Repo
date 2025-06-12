@@ -344,8 +344,6 @@ def create_results_section():
             ]
         ),
 
-        # Statistics Panels (hidden)
-        create_stats_panels(),
 
         # Graph Container (hidden)
         # Removed duplicate onion graph component. The graph
@@ -381,56 +379,6 @@ def create_results_section():
         )
     ])
 
-
-def create_stats_panels():
-    """Statistics panels"""
-    panel_style = get_card_container_style(padding=SPACING['lg'], margin_bottom='0')
-    panel_style.update({
-        'flex': '1',
-        'margin': f"0 {SPACING['sm']}",
-        'textAlign': 'center',
-        'minWidth': '200px'
-    })
-
-    return html.Div(
-        id='stats-panels-container',
-        style={'display': 'none'},
-        children=[
-            # Access Events Panel
-            html.Div([
-                html.H3("Access Events", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
-                html.H1(id="total-access-events-H1", style={'color': COLORS['accent'], 'margin': f"{SPACING['sm']} 0"}),
-                html.P(id="event-date-range-P", style={'color': COLORS['text_secondary'], 'fontSize': '0.9rem'}),
-                html.Table([html.Tbody(id='most-active-devices-table-body')])
-            ], style=panel_style),
-
-            # User Analytics Panel
-            html.Div([
-                html.H3("User Analytics", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
-                html.P(id="stats-unique-users", style={'color': COLORS['text_secondary']}),
-                html.P(id="stats-avg-events-per-user", style={'color': COLORS['text_secondary']}),
-                html.P(id="stats-most-active-user", style={'color': COLORS['text_secondary']}),
-                html.P(id="stats-devices-per-user", style={'color': COLORS['text_secondary']}),
-                html.P(id="stats-peak-hour", style={'color': COLORS['text_secondary']}),
-                html.P(id="total-devices-count", style={'color': COLORS['text_secondary']}),
-                html.P(id="entrance-devices-count", style={'color': COLORS['text_secondary']}),
-                html.P(id="high-security-devices", style={'color': COLORS['text_secondary']})
-            ], style=panel_style),
-
-            # Activity & Security Panel
-            html.Div([
-                html.H3("Activity & Security", style={'color': COLORS['text_primary'], 'marginBottom': SPACING['sm']}),
-                html.P(id="peak-hour-display", style={'color': COLORS['text_secondary']}),
-                html.P(id="peak-day-display", style={'color': COLORS['text_secondary']}),
-                html.P(id="busiest-floor", style={'color': COLORS['text_secondary']}),
-                html.P(id="entry-exit-ratio", style={'color': COLORS['text_secondary']}),
-                html.P(id="weekend-vs-weekday", style={'color': COLORS['text_secondary']}),
-                html.Div(id="security-level-breakdown", style={'color': COLORS['text_secondary']}),
-                html.P(id="compliance-score", style={'color': COLORS['text_secondary']}),
-                html.P(id="anomaly-alerts", style={'color': COLORS['text_secondary']})
-            ], style=panel_style)
-        ]
-    )
 
 
 def create_data_stores():
