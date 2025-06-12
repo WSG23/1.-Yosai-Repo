@@ -93,6 +93,9 @@ SHADOWS = {
     'outline': '0 0 0 3px rgba(33, 150, 243, 0.5)'  # Focus outline
 }
 
+# Default height for charts (px)
+CHART_HEIGHT = 400
+
 # Enhanced Typography - Building on existing
 ENHANCED_TYPOGRAPHY = {
     **TYPOGRAPHY,
@@ -683,6 +686,7 @@ __all__ = [
     'SPACING',
     'BORDER_RADIUS',
     'SHADOWS',
+    'CHART_HEIGHT',
     'COMPONENT_STYLES',
     'UPLOAD_STYLES',
     'MAPPING_STYLES',
