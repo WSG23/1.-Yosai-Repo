@@ -11,18 +11,12 @@ from dash import Input, Output, State, html
 from ui.themes.style_config import UPLOAD_STYLES, get_interactive_setup_style, COLORS
 from ui.themes.graph_styles import upload_icon_img_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
-from prometheus_client import Counter, Histogram
 
 
 from utils.logging_config import get_logger
 from utils.error_handler import ValidationError
 from utils.helpers import process_large_csv
-
-logger = get_logger(__name__)
-
-# Add application metrics
-upload_counter = Counter('file_uploads_total', 'Total file uploads')
-processing_time = Histogram('processing_duration_seconds', 'Processing time')
+logger = get_logger(__name__)                 
 
 class UploadHandlers:
     """Handle upload-related callbacks with optional security checks."""
@@ -74,21 +68,8 @@ class UploadHandlers:
         def handle_upload_and_show_header_mapping(contents, filename, saved_col_mappings_json):
             return self._process_upload(contents, filename, saved_col_mappings_json)
     
-    def _process_upload(self, contents: str, filename: str, saved_col_mappings_json):
-        """Process uploaded file and return validation results.
-
-        Args:
-            contents: Base64 encoded file contents
-            filename: Original filename
-            saved_col_mappings_json: Stored column mapping preferences
-
-        Returns:
-            Dict containing success status, processed data, and any errors
-
-        Raises:
-            ValidationError: When file format is invalid
-            SecurityError: When file contains suspicious content
-        """
+    def _process_upload(self, contents, filename, saved_col_mappings_json):
+        """Core upload processing logic"""
         # Get styles from upload component
         upload_styles = self.upload_component.get_upload_styles()
 
@@ -98,31 +79,28 @@ class UploadHandlers:
         if contents is None:
             return initial_values
 
-        upload_counter.inc()
+        try:
+            logger.info("Processing upload: %s", filename)
 
-        with processing_time.time():
-            try:
-                logger.info("Processing upload: %s", filename)
+            # Process the uploaded file
+            result = self._process_csv_file(contents, filename, saved_col_mappings_json)
 
-                # Process the uploaded file
-                result = self._process_csv_file(contents, filename, saved_col_mappings_json)
+            if result['success']:
+                return self._create_success_response(result, upload_styles, filename)
+            else:
+                return self._create_error_response(result, upload_styles, filename)
 
-                if result['success']:
-                    return self._create_success_response(result, upload_styles, filename)
-                else:
-                    return self._create_error_response(result, upload_styles, filename)
-
-            except FileNotFoundError:
-                return self._create_error_response({'error': 'File not found', 'success': False}, upload_styles, filename)
-            except pd.errors.EmptyDataError:
-                return self._create_error_response({'error': 'Empty CSV file', 'success': False}, upload_styles, filename)
-            except ValidationError as e:
-                return self._create_error_response({'error': str(e), 'success': False}, upload_styles, filename)
-            except Exception as e:
-                logger.error("Upload error for %s: %s", filename, e)
-                traceback.print_exc()
-                error_result = {'error': str(e), 'success': False}
-                return self._create_error_response(error_result, upload_styles, filename)
+        except FileNotFoundError:
+            return self._create_error_response({'error': 'File not found', 'success': False}, upload_styles, filename)
+        except pd.errors.EmptyDataError:
+            return self._create_error_response({'error': 'Empty CSV file', 'success': False}, upload_styles, filename)
+        except ValidationError as e:
+            return self._create_error_response({'error': str(e), 'success': False}, upload_styles, filename)
+        except Exception as e:
+            logger.error("Upload error for %s: %s", filename, e)
+            traceback.print_exc()
+            error_result = {'error': str(e), 'success': False}
+            return self._create_error_response(error_result, upload_styles, filename)
     
     def _process_csv_file(self, contents, filename, saved_col_mappings_json):
         """Process and validate uploaded CSV or JSON file"""

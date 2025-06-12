@@ -19,5 +19,3 @@ MODE=prod python run.py
 ```
 
 The script will start the development server when run in `dev` mode.  When `prod` is specified it uses Waitress to serve the app.
-
-See [docs/SETUP.md](docs/SETUP.md) for full installation instructions and troubleshooting tips.
