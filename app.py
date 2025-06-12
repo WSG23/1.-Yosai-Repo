@@ -2397,7 +2397,10 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
 
     if not enhanced_metrics or not generate_clicks:
         hide_style = {"display": "none"}
-        empty_values = ["N/A"] * 29
+        # Return placeholders matching the number of outputs
+        # There are 31 outputs besides the style, with the last
+        # being the most-active-devices table rows.
+        empty_values = ["N/A"] * 30
         return [hide_style] + empty_values + [[]]
 
     show_style = {
