@@ -1354,6 +1354,11 @@ def register_all_callbacks_safely(app):
         raise
 
 
+def register_enhanced_callbacks_once(app):
+    """Compatibility wrapper for production imports."""
+    register_all_callbacks_safely(app)
+
+
 # Register callbacks safely
 register_all_callbacks_safely(app)
 
