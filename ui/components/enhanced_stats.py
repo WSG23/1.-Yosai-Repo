@@ -1026,7 +1026,7 @@ class EnhancedStatsComponent:
         return fig
 
     def create_activity_heatmap(self, df):
-        """Creates day/hour activity heatmap"""
+        """Fixed heatmap creation with proper data structure"""
         if df is None or df.empty:
             return self._create_empty_chart("No data for heatmap")
 
@@ -1034,31 +1034,20 @@ class EnhancedStatsComponent:
         if timestamp_col not in df.columns:
             return self._create_empty_chart("Timestamp data not available")
 
-        df_copy = df.copy()
-        df_copy["Hour"] = df_copy[timestamp_col].dt.hour
-        df_copy["DayOfWeek"] = df_copy[timestamp_col].dt.day_name()
+        from utils.enhanced_analytics import EnhancedDataProcessorComplete
+        processor = EnhancedDataProcessorComplete()
+        heatmap_data = processor._calculate_complete_heatmap_data(df)
 
-        heatmap_data = (
-            df_copy.groupby(["DayOfWeek", "Hour"]).size().unstack(fill_value=0)
-        )
-        days_order = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-        ]
-        heatmap_data = heatmap_data.reindex(days_order)
+        if not heatmap_data or not heatmap_data.get('heatmap_values'):
+            return self._create_empty_chart("Could not generate heatmap data")
 
         fig = go.Figure(
             data=go.Heatmap(
-                z=heatmap_data.values,
-                x=list(range(24)),
-                y=days_order,
+                z=heatmap_data['heatmap_values'],
+                x=heatmap_data['heatmap_hours'],
+                y=heatmap_data['heatmap_days'],
                 colorscale="Blues",
-                text=heatmap_data.values,
+                text=heatmap_data['heatmap_values'],
                 texttemplate="%{text}",
                 textfont={"size": 10},
             )
