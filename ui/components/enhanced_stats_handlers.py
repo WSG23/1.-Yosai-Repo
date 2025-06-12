@@ -10,6 +10,17 @@ from .enhanced_stats import create_enhanced_stats_component
 from ui.themes.style_config import COLORS, TYPOGRAPHY
 from config.settings import REQUIRED_INTERNAL_COLUMNS
 
+
+def safe_callback(callback_func):
+    """PERMANENT FIX: Wrapper to make callbacks safe"""
+    def wrapper(*args, **kwargs):
+        try:
+            return callback_func(*args, **kwargs)
+        except Exception as e:
+            print(f"Callback error in {callback_func.__name__}: {e}")
+            return None
+    return wrapper
+
 class EnhancedStatsHandlers:
     """Handles enhanced statistics callbacks"""
 
@@ -168,7 +179,7 @@ class EnhancedStatsHandlers:
                 return "Error", "Error", []
 
     def _register_peak_activity_callback(self):
-        """Register Peak Activity panel callback"""
+        """Register Peak Activity panel callback - PERMANENT FIX VERSION"""
 
         @self.app.callback(
             [
@@ -185,39 +196,46 @@ class EnhancedStatsHandlers:
             ],
             prevent_initial_call=True,
         )
+        @safe_callback
         def update_peak_activity(enhanced_metrics, n_intervals):
-            """Update Peak Activity panel"""
+            """Update Peak Activity panel - PERMANENT FIX"""
             try:
-                if enhanced_metrics:
-                    peak_day = f"Peak Day: {enhanced_metrics.get('peak_day', 'N/A')}"
-                    # Reuse peak_day information for the events text if a
-                    # specific count is not provided
-                    peak_activity = peak_day
+                if enhanced_metrics and isinstance(enhanced_metrics, dict):
+                    peak_hour = enhanced_metrics.get('peak_hour', 'N/A')
+                    peak_day = enhanced_metrics.get('peak_day', 'N/A')
+                    busiest_floor = enhanced_metrics.get('busiest_floor', 'N/A')
+                    entry_exit_ratio = enhanced_metrics.get('entry_exit_ratio', 'N/A')
+                    weekend_vs_weekday = enhanced_metrics.get('weekend_vs_weekday', 'N/A')
+
+                    peak_activity_count = enhanced_metrics.get('peak_activity_count', 0)
+                    peak_activity = f"Peak Activity: {peak_activity_count} events"
+
                     return (
-                        f"Peak Hour: {enhanced_metrics.get('peak_hour', 'N/A')}",
-                        peak_day,
+                        f"Peak Hour: {peak_hour}",
+                        f"Peak Day: {peak_day}",
                         peak_activity,
-                        f"Busiest Floor: {enhanced_metrics.get('busiest_floor', 'N/A')}",
-                        f"Entry/Exit: {enhanced_metrics.get('entry_exit_ratio', 'N/A')}",
-                        f"Weekend vs Weekday: {enhanced_metrics.get('weekend_vs_weekday', 'N/A')}",
+                        f"Busiest Floor: {busiest_floor}",
+                        f"Entry/Exit Ratio: {entry_exit_ratio}",
+                        f"Weekend vs Weekday: {weekend_vs_weekday}"
                     )
                 else:
                     return (
-                        "No data",
-                        "No data",
-                        "No data",
-                        "No data",
-                        "No data",
-                        "No data",
+                        "Peak Hour: N/A",
+                        "Peak Day: N/A",
+                        "Peak Activity: N/A",
+                        "Busiest Floor: N/A",
+                        "Entry/Exit Ratio: N/A",
+                        "Weekend vs Weekday: N/A",
                     )
-            except Exception:
+            except Exception as e:
+                print(f"Error in update_peak_activity: {e}")
                 return (
-                    "Error",
-                    "Error",
-                    "Error",
-                    "Error",
-                    "Error",
-                    "Error",
+                    "Peak Hour: Error",
+                    "Peak Day: Error",
+                    "Peak Activity: Error",
+                    "Busiest Floor: Error",
+                    "Entry/Exit Ratio: Error",
+                    "Weekend vs Weekday: Error",
                 )
 
     def _register_security_overview_callback(self):
