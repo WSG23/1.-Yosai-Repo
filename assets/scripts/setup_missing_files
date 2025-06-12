@@ -29,7 +29,7 @@ cat > ui/components/__init__.py << 'EOF'
 # ui/components/__init__.py
 """UI components package."""
 from .upload import create_enhanced_upload_component
-from .stats import create_enhanced_stats_component
+from .enhanced_stats import create_enhanced_stats_component
 
 __all__ = [
     'create_enhanced_upload_component',
@@ -95,8 +95,8 @@ class EnhancedUploadComponent:
         return create_enhanced_upload_component()
 EOF
 
-cat > ui/components/stats.py << 'EOF'
-# ui/components/stats.py - Minimal version
+cat > ui/components/enhanced_stats.py << 'EOF'
+# ui/components/enhanced_stats.py - Minimal version
 from dash import html
 
 def create_enhanced_stats_component():
@@ -108,7 +108,7 @@ def create_enhanced_stats_component():
 class EnhancedStatsComponent:
     def __init__(self):
         pass
-    
+
     def create_layout(self):
         return create_enhanced_stats_component()
 EOF

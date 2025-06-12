@@ -19,7 +19,6 @@ from .enhanced_stats_handlers import (
     EnhancedStatsHandlers,
     create_enhanced_stats_handlers,
 )
-from .stats import create_stats_container, create_custom_header
 
 __all__ = [
     'EnhancedUploadComponent',
@@ -33,6 +32,4 @@ __all__ = [
     'create_enhanced_stats_component',
     'create_enhanced_stats_handlers',
     'EnhancedStatsHandlers',
-    'create_stats_container',
-    'create_custom_header',
 ]
