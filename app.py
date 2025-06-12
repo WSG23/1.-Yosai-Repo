@@ -306,6 +306,242 @@ def _create_fallback_stats_container():
     )
 
 
+# ============================================================================
+# REFACTORED: Break down large function into focused, testable pieces
+# ============================================================================
+
+def create_fixed_layout_with_required_elements(
+    app_instance, main_logo_path: str, icon_upload_default: str
+):
+    """Create layout that maintains current design but includes all required callback elements"""
+    print(">> Creating FIXED layout with all required elements...")
+
+    # Step 1: Attempt to load base layout
+    base_layout = _load_base_layout(app_instance, main_logo_path, icon_upload_default)
+
+    # Step 2: Build final layout based on what we have
+    if base_layout:
+        return _enhance_existing_layout(base_layout, main_logo_path, icon_upload_default)
+    else:
+        return _create_complete_fallback_layout(app_instance, main_logo_path, icon_upload_default)
+
+
+def _load_base_layout(app_instance, main_logo_path: str, icon_upload_default: str):
+    """Attempt to load the main layout, with error handling"""
+    if not (components_available.get("main_layout") and create_main_layout):
+        print(">> Main layout not available, will create fallback")
+        return None
+
+    try:
+        base_layout = create_main_layout(app_instance, main_logo_path, icon_upload_default)
+        print(">> Base main layout loaded successfully")
+        return base_layout
+    except Exception as e:
+        print(f"!! Error loading main layout: {e}")
+        return None
+
+
+def _enhance_existing_layout(base_layout, main_logo_path: str, icon_upload_default: str):
+    """Add missing elements to existing layout while preserving design"""
+    try:
+        # Get base layout children
+        base_children = _extract_layout_children(base_layout)
+
+        # Track existing IDs to avoid duplicates
+        existing_ids = _collect_all_element_ids(base_children)
+        print(f">> Found existing IDs: {len(existing_ids)} total")
+
+        # Add missing elements
+        enhanced_children = _add_required_missing_elements(base_children, existing_ids)
+
+        # Ensure all callback targets exist
+        _add_missing_callback_elements(enhanced_children, existing_ids)
+
+        print(">> Successfully enhanced existing layout")
+        return _wrap_final_layout(enhanced_children, base_layout)
+
+    except Exception as e:
+        print(f"!! Error enhancing layout: {e}")
+        return _create_complete_fallback_layout(None, main_logo_path, icon_upload_default)
+
+
+def _extract_layout_children(base_layout):
+    """Extract children from layout, handling different structure types"""
+    if hasattr(base_layout, "children"):
+        children = base_layout.children
+        return list(children) if isinstance(children, list) else [children] if children else []
+    return []
+
+
+def _collect_all_element_ids(elements):
+    """Recursively collect all element IDs from layout tree"""
+    existing_ids = set()
+
+    def collect_ids(element):
+        if hasattr(element, "id") and element.id:
+            existing_ids.add(element.id)
+        if hasattr(element, "children"):
+            children = (
+                element.children
+                if isinstance(element.children, list)
+                else [element.children] if element.children else []
+            )
+            for child in children:
+                collect_ids(child)
+
+    for element in elements:
+        collect_ids(element)
+
+    return existing_ids
+
+
+def _add_required_missing_elements(base_children, existing_ids):
+    """Add specific missing elements that are required for callbacks"""
+    enhanced_children = list(base_children)
+
+    # Define required elements mapping
+    required_elements = {
+        "enhanced-stats-header": _create_fallback_enhanced_header,
+        "stats-panels-container": _create_fallback_stats_container,
+        "advanced-analytics-panels-container": _create_advanced_analytics_container,
+        "analytics-section": _create_fallback_analytics_section,
+        "charts-section": _create_fallback_charts_section,
+        "export-section": _create_fallback_export_section,
+        "graph-output-container": _create_graph_output_container,
+        "mini-graph-container": _create_mini_graph_container,
+        "debug-panel": create_debug_panel,
+    }
+
+    # Add missing elements
+    for element_id, creator_func in required_elements.items():
+        if element_id not in existing_ids and creator_func:
+            print(f">> Adding missing element: {element_id}")
+            enhanced_children.append(creator_func())
+
+    return enhanced_children
+
+
+def _create_graph_output_container():
+    """Create graph output container if needed"""
+    try:
+        return create_graph_container() if create_graph_container else html.Div(
+            id="graph-output-container", style={"display": "none"}
+        )
+    except Exception:
+        return html.Div(id="graph-output-container", style={"display": "none"})
+
+
+def _wrap_final_layout(children, base_layout=None):
+    """Wrap children in final layout div with appropriate styling"""
+    style = _get_layout_style(base_layout)
+    return html.Div(children, style=style)
+
+
+def _get_layout_style(base_layout):
+    """Get appropriate styling for the layout"""
+    if base_layout and hasattr(base_layout, "style"):
+        return base_layout.style
+
+    return {
+        "backgroundColor": COLORS["background"],
+        "minHeight": "100vh",
+        "padding": "20px",
+        "fontFamily": "Inter, sans-serif",
+    }
+
+
+def _create_complete_fallback_layout(app_instance, main_logo_path: str, icon_upload_default: str):
+    """Create complete layout from scratch when base layout unavailable"""
+    print(">> Creating complete fallback layout")
+
+    # Create all required components
+    base_children = [
+        _create_fallback_header(main_logo_path),
+        _create_fallback_upload_section(icon_upload_default),
+        _create_fallback_stats_container(),
+        _create_fallback_analytics_section(),
+        create_debug_panel() if create_debug_panel else html.Div(),
+    ]
+
+    # Collect IDs and add missing elements
+    existing_ids = _collect_all_element_ids(base_children)
+    _add_missing_callback_elements(base_children, existing_ids)
+
+    return _wrap_final_layout(base_children)
+
+
+# ============================================================================
+# HELPER FUNCTIONS - Now focused and testable
+# ============================================================================
+
+def _create_fallback_header(main_logo_path: str):
+    """Create fallback header component"""
+    return html.Div([
+        html.Img(src=main_logo_path, style={"height": "40px"}),
+        html.H1("Yōsai Analytics Dashboard", id="dashboard-title")
+    ], style={"padding": "20px", "borderBottom": f"1px solid {COLORS['border']}"})
+
+
+def _create_fallback_upload_section(icon_upload_default: str):
+    """Create fallback upload section"""
+    return html.Div([
+        html.H2("Upload Data"),
+        dcc.Upload(
+            id='upload-data',
+            children=html.Div([
+                html.Img(src=icon_upload_default, style={"height": "50px"}),
+                html.P("Drag and Drop or Select Files")
+            ]),
+            style={
+                "width": "100%", "height": "60px", "lineHeight": "60px",
+                "borderWidth": "1px", "borderStyle": "dashed",
+                "borderRadius": "5px", "textAlign": "center", "margin": "10px"
+            }
+        )
+    ])
+
+
+# ============================================================================
+# TESTING HELPERS - Now each function can be tested independently
+# ============================================================================
+
+def test_collect_element_ids():
+    """Test the ID collection function"""
+    test_elements = [
+        html.Div(id="test-1", children=[
+            html.P(id="test-2"),
+            html.Span(id="test-3")
+        ]),
+        html.Div(id="test-4")
+    ]
+
+    ids = _collect_all_element_ids(test_elements)
+    expected = {"test-1", "test-2", "test-3", "test-4"}
+    assert ids == expected, f"Expected {expected}, got {ids}"
+    print("✅ ID collection test passed")
+
+
+def test_layout_children_extraction():
+    """Test extracting children from different layout types"""
+    # Test with list children
+    layout_with_list = html.Div(children=[html.P("test1"), html.P("test2")])
+    children = _extract_layout_children(layout_with_list)
+    assert len(children) == 2, f"Expected 2 children, got {len(children)}"
+
+    # Test with single child
+    layout_with_single = html.Div(children=html.P("single"))
+    children = _extract_layout_children(layout_with_single)
+    assert len(children) == 1, f"Expected 1 child, got {len(children)}"
+
+    print("✅ Layout children extraction test passed")
+
+
+if __name__ == "__main__":
+    # Run tests if script is executed directly
+    test_collect_element_ids()
+    test_layout_children_extraction()
+    print("🎉 All tests passed!")
+
 def _create_fallback_analytics_section():
     """Create fallback analytics section"""
     return html.Div(
@@ -633,610 +869,6 @@ def create_debug_panel():
             "maxWidth": "300px",
         },
     )
-
-
-def _create_complete_fixed_layout(
-    app_instance, main_logo_path: str, icon_upload_default: str
-):
-    """Create complete layout from scratch with all required elements"""
-
-    print(">> Creating complete layout from scratch with all required elements")
-
-    # Choose enhanced stats implementation if available
-    if components_available.get("enhanced_stats") and component_instances.get(
-        "enhanced_stats"
-    ):
-        enhanced_stats_layout = [
-            component_instances["enhanced_stats"].create_enhanced_stats_container(),
-        ]
-    else:
-        enhanced_stats_layout = [
-            _create_fallback_enhanced_header(),
-            _create_advanced_analytics_container(),
-        ]
-
-    base_children = [
-        # FIXED: yosai-custom-header (required by callbacks)
-        html.Div(
-            id="yosai-custom-header",
-            style=UI_VISIBILITY["show_header"],
-            children=[
-                html.Div(
-                    [
-                        html.Img(
-                            src=main_logo_path,
-                            style={"height": "24px", "marginRight": SPACING["sm"]},
-                        ),
-                        html.Span(
-                            "Enhanced Analytics Dashboard",
-                            style={
-                                "fontSize": TYPOGRAPHY["text_lg"],
-                                "color": COLORS["text_primary"],
-                                "fontWeight": TYPOGRAPHY["font_normal"],
-                            },
-                        ),
-                    ],
-                    style={
-                        "display": "flex",
-                        "alignItems": "center",
-                        "justifyContent": "center",
-                        "width": "100%",
-                    },
-                )
-            ],
-        ),
-        # Dashboard title (maintain existing design)
-        html.Div(
-            id="dashboard-title",
-            className="header-section",
-            children=[
-                html.H1("Yōsai Intel Dashboard", className="main-title"),
-                html.Button(
-                    "Advanced View",
-                    id="advanced-view-button",
-                    className="btn-secondary",
-                ),
-            ],
-        ),
-        # Top row with upload and controls
-        html.Div(
-            id="top-row",
-            className="row-layout",
-            children=[
-                # Upload section
-                html.Div(
-                    id="upload-section",
-                    className="upload-container",
-                    children=[
-                        dcc.Upload(
-                            id="upload-data",
-                            children=[
-                                html.Img(id="upload-icon", src=icon_upload_default),
-                                html.P(
-                                    "Drop your CSV or JSON file here or click to browse"
-                                ),
-                            ],
-                            className="upload-area",
-                            accept=".csv,.json",
-                        )
-                    ],
-                ),
-                # Chart controls
-                html.Div(
-                    id="chart-controls",
-                    className="controls-panel",
-                    children=[
-                        dcc.Dropdown(
-                            id="chart-type-selector",
-                            options=[
-                                {"label": "Timeline", "value": "timeline"},
-                                {"label": "Hourly Activity", "value": "hourly"},
-                                {"label": "Daily Patterns", "value": "daily"},
-                                {"label": "Floor Activity", "value": "floor"},
-                                {"label": "Activity Heatmap", "value": "heatmap"},
-                            ],
-                            value="timeline",
-                        ),
-                        html.Button("Apply Filters", id="filter-button"),
-                        html.Button("Time Range", id="timerange-button"),
-                    ],
-                ),
-            ],
-        ),
-        # Processing status
-        html.Div(
-            id="processing-status",
-            className="status-message",
-            children="Upload a CSV or JSON file to begin analysis",
-        ),
-        # Interactive setup container
-        html.Div(
-            id="interactive-setup-container",
-            style={"display": "none"},
-            children=[
-                # FIXED: mapping-ui-section with dropdown-mapping-area
-                html.Div(
-                    id="mapping-ui-section",
-                    style={"display": "none"},
-                    children=[
-                        html.H4(
-                            "Step 1: Map File Headers",
-                            style={
-                                "color": COLORS["text_primary"],
-                                "textAlign": "center",
-                                "marginBottom": "20px",
-                            },
-                        ),
-                        html.P(
-                            [
-                                "Map your file columns to the required fields. ",
-                                html.Strong(
-                                    "All four fields are required",
-                                    style={"color": COLORS["accent"]},
-                                ),
-                                " for analysis.",
-                            ],
-                            style={
-                                "color": COLORS["text_secondary"],
-                                "textAlign": "center",
-                                "marginBottom": "20px",
-                            },
-                        ),
-                        html.Div(id="dropdown-mapping-area"),
-                        html.Div(
-                            id="mapping-validation-message",
-                            style={"display": "none"},
-                        ),
-                        html.Button(
-                            "Confirm Header Mapping & Proceed",
-                            id="confirm-header-map-button",
-                            n_clicks=0,
-                            style={"display": "none"},
-                        ),
-                    ],
-                ),
-                # Entrance verification section
-                html.Div(
-                    id="entrance-verification-ui-section",
-                    style={"display": "none"},
-                    children=[
-                        html.H4("Step 2: Facility Setup"),
-                        html.Label("Number of floors:"),
-                        dcc.Slider(
-                            id="floor-slider",
-                            min=1,
-                            max=48,
-                            step=1,
-                            value=48,
-                            marks={**{i: str(i) for i in range(1, 20, 2)}, 48: "48"},
-                        ),
-                        html.Div(id="floor-slider-value", children="48 floors"),
-                        html.Label("Enable manual door classification?"),
-                        dcc.RadioItems(
-                            id="manual-map-toggle",
-                            options=[
-                                {"label": "No", "value": "no"},
-                                {"label": "Yes", "value": "yes"},
-                            ],
-                            value="no",
-                            inline=True,
-                        ),
-                        html.Div(
-                            id="door-classification-table-container",
-                            style={"display": "none"},
-                            children=[html.Div(id="door-classification-table")],
-                        ),
-                    ],
-                ),
-                # Generate button
-                html.Button(
-                    "Confirm Selections & Generate Analysis",
-                    id="confirm-and-generate-button",
-                    n_clicks=0,
-                    className="btn-primary",
-                ),
-            ],
-        ),
-        # Tabs container
-        html.Div(
-            id="tabs-container",
-            children=[
-                html.Button("Overview", id="tab-overview", className="tab active"),
-                html.Button("Advanced", id="tab-advanced", className="tab"),
-                html.Button("Export", id="tab-export", className="tab"),
-            ],
-        ),
-        # Tab content
-        html.Div(
-            id="tab-content",
-            children=[
-                # Your 3 panels container
-                html.Div(
-                    id="stats-panels-container",
-                    style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
-                    children=[
-                        # Panel 1: Access Events
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("Access Events"),
-                                html.H1(id="total-access-events-H1", children="0"),
-                                html.P(id="event-date-range-P", children="No data"),
-                            ],
-                        ),
-                        # Panel 2: User Stats
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("User Analytics"),
-                                html.P(id="stats-unique-users", children="0 users"),
-                                html.P(
-                                    id="stats-avg-events-per-user",
-                                    children="Avg: 0 events/user",
-                                ),
-                                html.P(id="stats-most-active-user", children="No data"),
-                                html.P(
-                                    id="stats-devices-per-user",
-                                    children="Avg: 0 users/device",
-                                ),
-                                html.P(id="stats-peak-hour", children="Peak: N/A"),
-                                html.P(id="total-devices-count", children="0 devices"),
-                                html.P(
-                                    id="entrance-devices-count", children="0 entrances"
-                                ),
-                                html.P(
-                                    id="high-security-devices",
-                                    children="0 high security",
-                                ),
-                            ],
-                        ),
-                        # Panel 3: Activity Insights
-                        html.Div(
-                            style={
-                                "flex": "1",
-                                "backgroundColor": COLORS["surface"],
-                                "padding": "20px",
-                                "borderRadius": "8px",
-                                "textAlign": "center",
-                            },
-                            children=[
-                                html.H3("Activity Insights"),
-                                html.P(id="peak-hour-display", children="Peak: N/A"),
-                                html.P(id="busiest-floor", children="Floor: N/A"),
-                                html.P(
-                                    id="traffic-pattern-insight",
-                                    children="Pattern: N/A",
-                                ),
-                                html.P(
-                                    id="security-score-insight", children="Score: N/A"
-                                ),
-                                html.P(id="anomaly-insight", children="Alerts: 0"),
-                            ],
-                        ),
-                    ],
-                ),
-                # All required elements for callbacks (initially hidden)
-                *enhanced_stats_layout,
-                _create_fallback_analytics_section(),
-                _create_fallback_charts_section(),
-                _create_fallback_export_section(),
-                (
-                    create_graph_container()
-                    if create_graph_container
-                    else html.Div(
-                        id="graph-output-container", style={"display": "none"}
-                    )
-                ),
-                _create_mini_graph_container(),
-                create_debug_panel(),
-            ],
-        ),
-    ]
-
-    existing_ids: set = set()
-
-    def collect_ids(element):
-        if hasattr(element, "id") and element.id:
-            existing_ids.add(element.id)
-        if hasattr(element, "children"):
-            children = (
-                element.children
-                if isinstance(element.children, list)
-                else [element.children] if element.children else []
-            )
-            for child in children:
-                collect_ids(child)
-
-    for child in base_children:
-        collect_ids(child)
-
-    _add_missing_callback_elements(base_children, existing_ids)
-
-    return html.Div(
-        base_children,
-        style={
-            "backgroundColor": COLORS["background"],
-            "minHeight": "100vh",
-            "padding": "20px",
-            "fontFamily": "Inter, sans-serif",
-        },
-    )
-
-
-# ============================================================================
-# FIXED LAYOUT CREATION - MAINTAINS CONSISTENCY + ADDS REQUIRED ELEMENTS
-# ============================================================================
-
-
-def create_fixed_layout_with_required_elements(
-    app_instance, main_logo_path: str, icon_upload_default: str
-):
-    """Create layout that maintains current design but includes all required callback elements"""
-
-    print(">> Creating FIXED layout with all required elements...")
-
-    # First try to use the main layout if available
-    base_layout = None
-    if components_available["main_layout"] and create_main_layout:
-        try:
-            # FIXED: Pass all required arguments to create_main_layout
-            base_layout = create_main_layout(
-                app_instance, main_logo_path, icon_upload_default
-            )
-            print(">> Base main layout loaded successfully")
-        except Exception as e:
-            print(f"!! Error loading main layout: {e}")
-            base_layout = None
-
-    if base_layout:
-        # FIXED: Add missing elements to existing layout
-        return _add_missing_elements_to_existing_layout(
-            base_layout, main_logo_path, icon_upload_default
-        )
-    else:
-        # Create complete layout from scratch with all required elements
-        return _create_complete_fixed_layout(
-            app_instance, main_logo_path, icon_upload_default
-        )
-
-
-def _add_missing_elements_to_existing_layout(
-    base_layout, main_logo_path: str, icon_upload_default: str
-):
-    """FIXED: Add missing callback elements to existing layout while preserving design"""
-
-    try:
-        # Get base layout children
-        base_children = (
-            list(base_layout.children) if hasattr(base_layout, "children") else []
-        )
-
-        # Track existing IDs to avoid duplicates
-        existing_ids = set()
-
-        def collect_ids(element):
-            if hasattr(element, "id") and element.id:
-                existing_ids.add(element.id)
-            if hasattr(element, "children"):
-                children = (
-                    element.children
-                    if isinstance(element.children, list)
-                    else [element.children] if element.children else []
-                )
-                for child in children:
-                    collect_ids(child)
-
-        for child in base_children:
-            collect_ids(child)
-
-        print(f">> Found existing IDs: {len(existing_ids)} total")
-
-        # FIXED: Add yosai-custom-header if dashboard-title exists but yosai-custom-header doesn't
-        if (
-            "dashboard-title" in existing_ids
-            and "yosai-custom-header" not in existing_ids
-        ):
-            print(">> Adding yosai-custom-header alias for dashboard-title")
-            # Add yosai-custom-header as a hidden element that mirrors dashboard-title styling
-            base_children.insert(
-                0,
-                html.Div(
-                    id="yosai-custom-header",
-                    style=UI_VISIBILITY["show_header"],
-                    children=[
-                        html.Div(
-                            [
-                                html.Img(
-                                    src=main_logo_path,
-                                    style={
-                                        "height": "24px",
-                                        "marginRight": SPACING["sm"],
-                                    },
-                                ),
-                                html.Span(
-                                    "Enhanced Analytics Dashboard",
-                                    style={
-                                        "fontSize": TYPOGRAPHY["text_lg"],
-                                        "color": COLORS["text_primary"],
-                                        "fontWeight": TYPOGRAPHY["font_normal"],
-                                    },
-                                ),
-                            ],
-                            style={
-                                "display": "flex",
-                                "alignItems": "center",
-                                "justifyContent": "center",
-                                "width": "100%",
-                            },
-                        )
-                    ],
-                ),
-            )
-
-        # FIXED: Add dropdown-mapping-area inside mapping-ui-section if it doesn't exist
-        def add_missing_mapping_elements(children):
-            new_children = []
-            for child in children:
-                if hasattr(child, "id") and child.id == "mapping-ui-section":
-                    # Check if dropdown-mapping-area exists in this section
-                    section_children = (
-                        child.children if hasattr(child, "children") else []
-                    )
-                    if isinstance(section_children, list):
-                        section_children = list(section_children)
-                    else:
-                        section_children = (
-                            [section_children] if section_children else []
-                        )
-
-                    # Look for dropdown-mapping-area in section children
-                    has_dropdown_area = False
-                    for section_child in section_children:
-                        if (
-                            hasattr(section_child, "id")
-                            and section_child.id == "dropdown-mapping-area"
-                        ):
-                            has_dropdown_area = True
-                            break
-
-                    if not has_dropdown_area:
-                        print(
-                            ">> Adding missing dropdown-mapping-area to mapping-ui-section"
-                        )
-                        # Add the missing dropdown-mapping-area
-                        section_children.extend(
-                            [
-                                html.H4(
-                                    "Step 1: Map File Headers",
-                                    style={
-                                        "color": COLORS["text_primary"],
-                                        "textAlign": "center",
-                                        "marginBottom": "20px",
-                                    },
-                                ),
-                                html.P(
-                                    [
-                                        "Map your file columns to the required fields. ",
-                                        html.Strong(
-                                            "All four fields are required",
-                                            style={"color": COLORS["accent"]},
-                                        ),
-                                        " for analysis.",
-                                    ],
-                                    style={
-                                        "color": COLORS["text_secondary"],
-                                        "textAlign": "center",
-                                        "marginBottom": "20px",
-                                    },
-                                ),
-                                html.Div(
-                                    id="dropdown-mapping-area"
-                                ),  # FIXED: Add missing element
-                                html.Div(
-                                    id="mapping-validation-message",
-                                    style={"display": "none"},
-                                ),
-                                html.Button(
-                                    "Confirm Header Mapping & Proceed",
-                                    id="confirm-header-map-button",
-                                    n_clicks=0,
-                                    style={
-                                        "display": "none",
-                                        "margin": "25px auto",
-                                        "padding": "12px 30px",
-                                        "backgroundColor": COLORS["accent"],
-                                        "color": "white",
-                                        "border": "none",
-                                        "borderRadius": "8px",
-                                        "cursor": "pointer",
-                                    },
-                                ),
-                            ]
-                        )
-
-                        # Update child with new children
-                        child.children = section_children
-
-                    new_children.append(child)
-                else:
-                    # Recursively process children
-                    if hasattr(child, "children") and child.children:
-                        child_list = (
-                            child.children
-                            if isinstance(child.children, list)
-                            else [child.children]
-                        )
-                        child.children = add_missing_mapping_elements(child_list)
-                    new_children.append(child)
-
-            return new_children
-
-        base_children = add_missing_mapping_elements(base_children)
-
-        # FIXED: Add other required elements that might be missing
-        required_elements = {
-            "enhanced-stats-header": _create_fallback_enhanced_header(),
-            "stats-panels-container": _create_fallback_stats_container(),
-            "advanced-analytics-panels-container": _create_advanced_analytics_container(),
-            "analytics-section": _create_fallback_analytics_section(),
-            "charts-section": _create_fallback_charts_section(),
-            "export-section": _create_fallback_export_section(),
-            "graph-output-container": (
-                create_graph_container()
-                if create_graph_container
-                else html.Div(id="graph-output-container", style={"display": "none"})
-            ),
-            "mini-graph-container": _create_mini_graph_container(),
-            "debug-panel": create_debug_panel(),
-            "onion-graph": None,  # Will be added to graph-output-container
-            "mini-onion-graph": None,  # Will be added to mini-graph-container
-        }
-
-        # Collect all IDs again after modifications
-        existing_ids.clear()
-        for child in base_children:
-            collect_ids(child)
-
-        # Add missing required elements (hidden by default to maintain layout)
-        for element_id, element_creator in required_elements.items():
-            if element_id not in existing_ids and element_creator:
-                print(f">> Adding missing element: {element_id}")
-                base_children.append(element_creator)
-
-        # FIXED: Ensure all required callback target elements exist
-        _add_missing_callback_elements(base_children, existing_ids)
-
-        print(">> Successfully added all missing elements to existing layout")
-
-        return html.Div(
-            base_children,
-            style=(
-                base_layout.style
-                if hasattr(base_layout, "style")
-                else {
-                    "backgroundColor": COLORS["background"],
-                    "minHeight": "100vh",
-                    "fontFamily": "Inter, sans-serif",
-                }
-            ),
-        )
-
-    except Exception as e:
-        print(f"!! Error adding missing elements: {e}")
-        traceback.print_exc()
-        return _create_complete_fixed_layout(None, main_logo_path, icon_upload_default)
 
 
 # FIXED: Create layout with all required elements and correct arguments
