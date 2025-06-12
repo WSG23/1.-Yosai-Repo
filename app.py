@@ -236,6 +236,65 @@ def _create_fallback_upload_section(icon_upload_default: str):
     )
 
 
+def _create_fallback_stats_container():
+    """Create fallback statistics panels container"""
+    panel_style = {
+        "backgroundColor": COLORS["surface"],
+        "padding": "20px",
+        "borderRadius": "8px",
+        "border": f"1px solid {COLORS['border']}",
+        "minWidth": "200px",
+        "textAlign": "center",
+        "flex": "1",
+        "margin": "10px",
+    }
+
+    return html.Div(
+        id="stats-panels-container",
+        style={"display": "none", "justifyContent": "space-around", "marginBottom": "30px"},
+        children=[
+            dcc.Store(id="enhanced-stats-data-store"),
+            html.Div(
+                [
+                    html.H3("Access Events"),
+                    html.H1(id="total-access-events-H1"),
+                    html.P(id="event-date-range-P"),
+                    html.Table([html.Tbody(id="most-active-devices-table-body")]),
+                ],
+                style=panel_style,
+            ),
+            html.Div(
+                [
+                    html.H3("User Analytics"),
+                    html.P(id="stats-unique-users"),
+                    html.P(id="stats-avg-events-per-user"),
+                    html.P(id="stats-most-active-user"),
+                    html.P(id="stats-devices-per-user"),
+                    html.P(id="stats-peak-hour"),
+                    html.P(id="total-devices-count"),
+                    html.P(id="entrance-devices-count"),
+                    html.P(id="high-security-devices"),
+                ],
+                style=panel_style,
+            ),
+            html.Div(
+                [
+                    html.H3("Activity & Security"),
+                    html.P(id="peak-hour-display"),
+                    html.P(id="peak-day-display"),
+                    html.P(id="busiest-floor"),
+                    html.P(id="entry-exit-ratio"),
+                    html.P(id="weekend-vs-weekday"),
+                    html.Div(id="security-level-breakdown"),
+                    html.P(id="compliance-score"),
+                    html.P(id="anomaly-alerts"),
+                ],
+                style=panel_style,
+            ),
+        ],
+    )
+
+
 def _create_fallback_analytics_section():
     """Create fallback analytics section"""
     return html.Div(
