@@ -87,8 +87,6 @@ class EnhancedStatsHandlers:
                 Output("most-active-user", "children"),
                 Output("avg-user-activity", "children"),
                 Output("unique-users-today", "children"),
-                Output("avg-users-per-device", "children"),
-                Output("security-events-count", "children"),
             ],
             [
                 Input("enhanced-stats-data-store", "data"),
@@ -104,13 +102,11 @@ class EnhancedStatsHandlers:
                         f"Most Active: {enhanced_metrics.get('most_active_user', 'N/A')}",
                         f"Avg Events/User: {enhanced_metrics.get('avg_events_per_user', 0):.2f}",
                         f"Unique Users: {enhanced_metrics.get('unique_users', 0):,}",
-                        f"Avg Users/Device: {enhanced_metrics.get('avg_users_per_device', 0):.2f}",
-                        f"Security Events: {enhanced_metrics.get('security_events_count', 0):,}",
                     )
                 else:
-                    return "No data", "No data", "No data", "No data", "No data"
+                    return "No data", "No data", "No data"
             except Exception:
-                return "Error", "Error", "Error", "Error", "Error"
+                return "Error", "Error", "Error"
 
     def _register_device_analytics_callback(self):
         """Register Device Analytics panel callback"""
