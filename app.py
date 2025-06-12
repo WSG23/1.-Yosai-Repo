@@ -1791,9 +1791,30 @@ def process_uploaded_data(
                 if not floor_counts.empty:
                     busiest_floor = str(floor_counts.idxmax())
             if "SecurityLevel" in device_attrs.columns:
-                security_breakdown = (
-                    device_attrs["SecurityLevel"].value_counts().to_dict()
-                )
+                security_breakdown = device_attrs["SecurityLevel"].value_counts().to_dict()
+
+        hourly_distribution = {}
+        daily_distribution = {}
+        if "Timestamp (Event Time)" in df.columns and not df.empty:
+            hourly_distribution = (
+                df["Timestamp (Event Time)"].dt.hour.value_counts().sort_index().to_dict()
+            )
+            daily_distribution = (
+                df["Timestamp (Event Time)"].dt.day_name().value_counts().to_dict()
+            )
+
+        floor_distribution = {}
+        security_level_distribution = {}
+        device_type_distribution = {}
+        if device_attrs is not None and not device_attrs.empty:
+            if "floor" in device_attrs.columns:
+                floor_distribution = device_attrs["floor"].value_counts().to_dict()
+            if "security" in device_attrs.columns:
+                security_level_distribution = device_attrs["security"].value_counts().to_dict()
+            elif "SecurityLevel" in device_attrs.columns:
+                security_level_distribution = device_attrs["SecurityLevel"].value_counts().to_dict()
+            if "door_type" in device_attrs.columns:
+                device_type_distribution = device_attrs["door_type"].value_counts().to_dict()
 
         enhanced_metrics = {
             "total_events": total_events,
@@ -1818,6 +1839,11 @@ def process_uploaded_data(
             "date_range": date_range,
             "security_breakdown": security_breakdown,
             "security_score": security_score,
+            "hourly_distribution": hourly_distribution,
+            "daily_distribution": daily_distribution,
+            "floor_distribution": floor_distribution,
+            "security_level_distribution": security_level_distribution,
+            "device_type_distribution": device_type_distribution,
         }
 
         print(f"✅ Simple analytics calculated: {len(enhanced_metrics)} metrics")
