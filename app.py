@@ -1247,6 +1247,8 @@ current_layout = create_fixed_layout_with_required_elements(
 )
 
 # Create consolidated analytics component
+if create_enhanced_stats_component is None:
+    raise ImportError("Enhanced stats component not available")
 analytics_component = create_enhanced_stats_component()
 analytics_container = analytics_component.create_enhanced_stats_container()
 
@@ -1673,6 +1675,8 @@ def update_main_chart(chart_type: str, processed_data: Any, device_attrs: Any):
     """Updated main analytics chart with complete metrics"""
     import pandas as pd
     from utils.enhanced_analytics import EnhancedDataProcessorComplete
+    if go is None:
+        raise ImportError("Plotly is not available")
 
     stats_component = component_instances.get("enhanced_stats")
     if not stats_component:
@@ -2318,6 +2322,8 @@ def update_consolidated_charts(enhanced_metrics, chart_type, processed_data):
     """Update all charts in the consolidated container"""
 
     import pandas as pd
+    if go is None:
+        raise ImportError("Plotly is not available")
 
     if not enhanced_metrics:
         empty_fig = go.Figure()
