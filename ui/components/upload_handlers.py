@@ -14,6 +14,8 @@ from config.settings import REQUIRED_INTERNAL_COLUMNS
 
 
 from utils.logging_config import get_logger
+from utils.error_handler import ValidationError
+from utils.helpers import process_large_csv
 logger = get_logger(__name__)                 
 
 class UploadHandlers:
@@ -88,6 +90,12 @@ class UploadHandlers:
             else:
                 return self._create_error_response(result, upload_styles, filename)
 
+        except FileNotFoundError:
+            return self._create_error_response({'error': 'File not found', 'success': False}, upload_styles, filename)
+        except pd.errors.EmptyDataError:
+            return self._create_error_response({'error': 'Empty CSV file', 'success': False}, upload_styles, filename)
+        except ValidationError as e:
+            return self._create_error_response({'error': str(e), 'success': False}, upload_styles, filename)
         except Exception as e:
             logger.error("Upload error for %s: %s", filename, e)
             traceback.print_exc()
@@ -106,7 +114,14 @@ class UploadHandlers:
                 )
             # Determine file type and load accordingly
             if filename.lower().endswith('.csv'):
-                df_full_for_doors = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+                # Stream large files to reduce memory footprint
+                if len(decoded) > 10 * 1024 * 1024:
+                    chunks = []
+                    for chunk in process_large_csv(io.BytesIO(decoded)):
+                        chunks.append(chunk)
+                    df_full_for_doors = pd.concat(chunks, ignore_index=True)
+                else:
+                    df_full_for_doors = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
             elif filename.lower().endswith('.json'):
                 df_full_for_doors = pd.read_json(io.StringIO(decoded.decode('utf-8')))
             else:
@@ -144,6 +159,21 @@ class UploadHandlers:
                 'processed_data': processed_data,
             }
             
+        except FileNotFoundError:
+            return {
+                'success': False,
+                'error': 'File not found'
+            }
+        except pd.errors.EmptyDataError:
+            return {
+                'success': False,
+                'error': 'Empty CSV file'
+            }
+        except ValidationError as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
         except Exception as e:
             return {
                 'success': False,
