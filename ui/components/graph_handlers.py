@@ -91,7 +91,7 @@ class GraphHandlers:
             try:
                 df = pd.DataFrame(processed_data.get("dataframe", []))
                 if df.empty:
-                    return [], {"display": "none"}, "No data to generate graph"
+                    return [], {"display": "block"}, "No data to generate graph"
 
                 door_col = "DoorID (Device Name)"
                 ts_col = "Timestamp (Event Time)"
@@ -142,7 +142,7 @@ class GraphHandlers:
                 elements = nodes + list(unique_edges.values())
                 return elements, {"display": "block"}, "Analysis complete"
             except Exception:
-                return [], {"display": "none"}, "Failed to generate graph"
+                return [], {"display": "block"}, "Failed to generate graph"
 
 
 # Factory function

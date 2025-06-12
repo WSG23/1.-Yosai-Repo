@@ -67,6 +67,16 @@ class EnhancedStatsComponent:
             children=[
                 # Header Section
                 self.create_analytics_header(),
+                # Error message container (initially hidden)
+                html.Div(
+                    id="analytics-error-message",
+                    style={
+                        "color": COLORS["critical"],
+                        "textAlign": "center",
+                        "marginBottom": "10px",
+                        "display": "none",
+                    },
+                ),
                 
                 # Row 1: Core Statistics (Access Events, Users, Devices)
                 html.Div(
