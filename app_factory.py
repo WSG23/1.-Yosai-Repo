@@ -24,6 +24,7 @@ try:
     import dash_cytoscape as cyto
     CYTOSCAPE_AVAILABLE = True
 except ImportError:
+    cyto = None  # type: ignore[assignment]
     CYTOSCAPE_AVAILABLE = False
 
 # Type-safe JSON serialization (moved from app.py)
@@ -141,6 +142,7 @@ class AppFactory:
         app = dash.Dash(**app_config)
         
         # Set server reference
+        assert app.server is not None
         app.server.config.update(self._get_server_config(is_production))
         
         # Get asset URLs
@@ -190,17 +192,18 @@ class AppFactory:
     
     def _get_server_config(self, is_production: bool) -> Dict[str, Any]:
         """Get Flask server configuration based on mode"""
-        config = {
+        config: Dict[str, Any] = {
             "SECRET_KEY": os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production"),
         }
-        
+
         if is_production:
-            config.update({
+            extra: Dict[str, Any] = {
                 "SESSION_COOKIE_SECURE": True,
                 "SESSION_COOKIE_HTTPONLY": True,
                 "SESSION_COOKIE_SAMESITE": "Lax",
-            })
-        
+            }
+            config.update(extra)
+
         return config
     
     def _get_asset_urls(self, app: dash.Dash) -> Dict[str, str]:
