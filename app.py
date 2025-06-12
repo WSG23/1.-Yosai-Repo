@@ -19,6 +19,22 @@ from typing import Dict, Any, Union, Optional, List, Tuple
 import math
 
 
+# Dependency validation helper
+def validate_graph_dependencies() -> bool:
+    """Check availability of graph libraries and warn if missing"""
+    missing = []
+    if not components_available.get("cytoscape"):
+        missing.append("dash_cytoscape")
+    if not components_available.get("plotly"):
+        missing.append("plotly")
+
+    if missing:
+        print(f"WARNING: Missing graph dependencies: {missing}")
+        print("Install with: pip install dash-cytoscape plotly")
+        return False
+    return True
+
+
 # Type-safe JSON serialization
 def make_json_serializable(
     data: Any,
@@ -226,6 +242,9 @@ print(f">> Component Detection Complete:")
 for component, available in components_available.items():
     status = "[ACTIVE]" if available else "[FALLBACK]"
     print(f"   {component}: {status}")
+
+if not validate_graph_dependencies():
+    print("Some graph features may not work")
 
 # ============================================================================
 # CREATE DASH APP WITH FIXED LAYOUT
@@ -501,7 +520,9 @@ def _create_mini_graph_container():
         )
 
     return html.Div(
-        id="mini-graph-container", style={"display": "none"}, children=[mini_graph]
+        id="mini-graph-container",
+        style={"display": "block"},
+        children=[mini_graph],
     )
 
 
@@ -579,7 +600,7 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
                 "security-pie-chart",
                 "heatmap-chart",
             ]:
-                element = dcc.Graph(id=element_id, style={"display": "none"})
+                element = dcc.Graph(id=element_id, style={"height": "400px"})
             elif element_id in [
                 "download-stats-csv",
                 "download-charts",
@@ -1196,7 +1217,10 @@ def _add_missing_elements_to_existing_layout(
             "graph-output-container": (
                 create_graph_container()
                 if create_graph_container
-                else html.Div(id="graph-output-container", style={"display": "none"})
+                else html.Div(
+                    id="graph-output-container",
+                    style={"display": "block"},
+                )
             ),
             "mini-graph-container": _create_mini_graph_container(),
             "debug-panel": create_debug_panel(),
