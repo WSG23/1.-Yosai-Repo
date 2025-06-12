@@ -532,7 +532,7 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
     # Choose enhanced stats implementation if available
     if components_available.get("enhanced_stats") and component_instances.get("enhanced_stats"):
         enhanced_stats_layout = [
-            component_instances["enhanced_stats"].create_enhanced_stats_container()
+            component_instances["enhanced_stats"].create_enhanced_stats_container(),
         ]
     else:
         enhanced_stats_layout = [
@@ -540,281 +540,295 @@ def _create_complete_fixed_layout(app_instance, main_logo_path: str, icon_upload
             _create_advanced_analytics_container(),
         ]
 
-    return html.Div(
-        [
-            # FIXED: yosai-custom-header (required by callbacks)
-            html.Div(
-                id="yosai-custom-header",
-                style=UI_VISIBILITY["show_header"],
-                children=[
-                    html.Div(
-                        [
-                            html.Img(
-                                src=main_logo_path,
-                                style={"height": "24px", "marginRight": SPACING["sm"]},
-                            ),
-                            html.Span(
-                                "Enhanced Analytics Dashboard",
-                                style={
-                                    "fontSize": TYPOGRAPHY["text_lg"],
-                                    "color": COLORS["text_primary"],
-                                    "fontWeight": TYPOGRAPHY["font_normal"],
-                                },
-                            ),
-                        ],
-                        style={
-                            "display": "flex",
-                            "alignItems": "center",
-                            "justifyContent": "center",
-                            "width": "100%",
-                        },
-                    )
-                ],
-            ),
-            # Dashboard title (maintain existing design)
-            html.Div(
-                id="dashboard-title",
-                className="header-section",
-                children=[
-                    html.H1("Yōsai Intel Dashboard", className="main-title"),
-                    html.Button(
-                        "Advanced View",
-                        id="advanced-view-button",
-                        className="btn-secondary",
-                    ),
-                ],
-            ),
-            # Top row with upload and controls
-            html.Div(
-                id="top-row",
-                className="row-layout",
-                children=[
-                    # Upload section
-                    html.Div(
-                        id="upload-section",
-                        className="upload-container",
-                        children=[
-                            dcc.Upload(
-                                id="upload-data",
-                                children=[
-                                    html.Img(id="upload-icon", src=icon_upload_default),
-                                    html.P(
-                                        "Drop your CSV or JSON file here or click to browse"
-                                    ),
-                                ],
-                                className="upload-area",
-                                accept=".csv,.json",
-                            )
-                        ],
-                    ),
-                    # Chart controls
-                    html.Div(
-                        id="chart-controls",
-                        className="controls-panel",
-                        children=[
-                            dcc.Dropdown(
-                                id="chart-type-dropdown",
-                                options=[
-                                    {"label": "Overview", "value": "overview"},
-                                    {"label": "Timeline", "value": "timeline"},
-                                    {"label": "Heatmap", "value": "heatmap"},
-                                ],
-                                value="overview",
-                            ),
-                            html.Button("Apply Filters", id="filter-button"),
-                            html.Button("Time Range", id="timerange-button"),
-                        ],
-                    ),
-                ],
-            ),
-            # Processing status
-            html.Div(
-                id="processing-status",
-                className="status-message",
-                children="Upload a CSV or JSON file to begin analysis",
-            ),
-            # Interactive setup container
-            html.Div(
-                id="interactive-setup-container",
-                style={"display": "none"},
-                children=[
-                    # FIXED: mapping-ui-section with dropdown-mapping-area
-                    html.Div(
-                        id="mapping-ui-section",
-                        style={"display": "none"},
-                        children=[
-                            html.H4(
-                                "Step 1: Map File Headers",
-                                style={
-                                    "color": COLORS["text_primary"],
-                                    "textAlign": "center",
-                                    "marginBottom": "20px",
-                                },
-                            ),
-                            html.P(
-                                [
-                                    "Map your file columns to the required fields. ",
-                                    html.Strong(
-                                        "All four fields are required",
-                                        style={"color": COLORS["accent"]},
-                                    ),
-                                    " for analysis.",
-                                ],
-                                style={
-                                    "color": COLORS["text_secondary"],
-                                    "textAlign": "center",
-                                    "marginBottom": "20px",
-                                },
-                            ),
-                            html.Div(
-                                id="dropdown-mapping-area"
-                            ),  # FIXED: Required by callbacks
-                            html.Div(
-                                id="mapping-validation-message",
-                                style={"display": "none"},
-                            ),
-                            html.Button(
-                                "Confirm Header Mapping & Proceed",
-                                id="confirm-header-map-button",
-                                n_clicks=0,
-                                style={"display": "none"},
-                            ),
-                        ],
-                    ),
-                    # Entrance verification section
-                    html.Div(
-                        id="entrance-verification-ui-section",
-                        style={"display": "none"},
-                        children=[
-                            html.H4("Step 2: Facility Setup"),
-                            html.Label("Number of floors:"),
-                            dcc.Slider(
-                                id="floor-slider",
-                                min=1,
-                                max=48,
-                                step=1,
-                                value=48,
-                                marks={
-                                    **{i: str(i) for i in range(1, 20, 2)},
-                                    48: "48",
-                                },
-                            ),
-                            html.Div(id="floor-slider-value", children="48 floors"),
-                            html.Label("Enable manual door classification?"),
-                            dcc.RadioItems(
-                                id="manual-map-toggle",
-                                options=[
-                                    {"label": "No", "value": "no"},
-                                    {"label": "Yes", "value": "yes"},
-                                ],
-                                value="no",
-                                inline=True,
-                            ),
-                            html.Div(
-                                id="door-classification-table-container",
-                                style={"display": "none"},
-                                children=[html.Div(id="door-classification-table")],
-                            ),
-                        ],
-                    ),
-                    # Generate button
-                    html.Button(
-                        "Confirm Selections & Generate Analysis",
-                        id="confirm-and-generate-button",
-                        n_clicks=0,
-                        className="btn-primary",
-                    ),
-                ],
-            ),
-            # Tabs container
-            html.Div(
-                id="tabs-container",
-                children=[
-                    html.Button("Overview", id="tab-overview", className="tab active"),
-                    html.Button("Advanced", id="tab-advanced", className="tab"),
-                    html.Button("Export", id="tab-export", className="tab"),
-                ],
-            ),
-            # Tab content
-html.Div(
-    id="tab-content",
-    children=[
-        # Your 3 panels container
+    base_children = [
+        # FIXED: yosai-custom-header (required by callbacks)
         html.Div(
-            id="stats-panels-container",
-            style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
+            id="yosai-custom-header",
+            style=UI_VISIBILITY["show_header"],
             children=[
-                # Panel 1: Access Events
                 html.Div(
+                    [
+                        html.Img(
+                            src=main_logo_path,
+                            style={"height": "24px", "marginRight": SPACING["sm"]},
+                        ),
+                        html.Span(
+                            "Enhanced Analytics Dashboard",
+                            style={
+                                "fontSize": TYPOGRAPHY["text_lg"],
+                                "color": COLORS["text_primary"],
+                                "fontWeight": TYPOGRAPHY["font_normal"],
+                            },
+                        ),
+                    ],
                     style={
-                        "flex": "1",
-                        "backgroundColor": COLORS["surface"],
-                        "padding": "20px",
-                        "borderRadius": "8px",
-                        "textAlign": "center"
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "width": "100%",
                     },
-                    children=[
-                        html.H3("Access Events"),
-                        html.H1(id="total-access-events-H1", children="0"),
-                        html.P(id="event-date-range-P", children="No data"),
-                    ]
-                ),
-                
-                # Panel 2: User Stats  
-                html.Div(
-                    style={
-                        "flex": "1",
-                        "backgroundColor": COLORS["surface"],
-                        "padding": "20px",
-                        "borderRadius": "8px",
-                        "textAlign": "center"
-                    },
-                    children=[
-                        html.H3("User Analytics"),
-                        html.P(id="stats-unique-users", children="0 users"),
-                        html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
-                        html.P(id="stats-most-active-user", children="No data"),
-                        html.P(id="stats-devices-per-user", children="Avg: 0 users/device"),
-                        html.P(id="stats-peak-hour", children="Peak: N/A"),
-                        html.P(id="total-devices-count", children="0 devices"),
-                        html.P(id="entrance-devices-count", children="0 entrances"),
-                        html.P(id="high-security-devices", children="0 high security"),
-                    ]
-                ),
-                
-                # Panel 3: Activity Insights
-                html.Div(
-                    style={
-                        "flex": "1", 
-                        "backgroundColor": COLORS["surface"],
-                        "padding": "20px",
-                        "borderRadius": "8px",
-                        "textAlign": "center"
-                    },
-                    children=[
-                        html.H3("Activity Insights"),
-                        html.P(id="peak-hour-display", children="Peak: N/A"),
-                        html.P(id="busiest-floor", children="Floor: N/A"),
-                        html.P(id="traffic-pattern-insight", children="Pattern: N/A"),
-                        html.P(id="security-score-insight", children="Score: N/A"),
-                        html.P(id="anomaly-insight", children="Alerts: 0"),
-                    ]
-                ),
-            ]
+                )
+            ],
         ),
-        # All required elements for callbacks (initially hidden)
-        *enhanced_stats_layout,
-        _create_fallback_analytics_section(),
-        _create_fallback_charts_section(),
-        _create_fallback_export_section(),
-        create_graph_container() if create_graph_container else html.Div(
-            id="graph-output-container", style={"display": "none"}
+        # Dashboard title (maintain existing design)
+        html.Div(
+            id="dashboard-title",
+            className="header-section",
+            children=[
+                html.H1("Yōsai Intel Dashboard", className="main-title"),
+                html.Button(
+                    "Advanced View",
+                    id="advanced-view-button",
+                    className="btn-secondary",
+                ),
+            ],
         ),
-        _create_mini_graph_container(),
-        create_debug_panel(),
-    ],
-),
-        ],
+        # Top row with upload and controls
+        html.Div(
+            id="top-row",
+            className="row-layout",
+            children=[
+                # Upload section
+                html.Div(
+                    id="upload-section",
+                    className="upload-container",
+                    children=[
+                        dcc.Upload(
+                            id="upload-data",
+                            children=[
+                                html.Img(id="upload-icon", src=icon_upload_default),
+                                html.P(
+                                    "Drop your CSV or JSON file here or click to browse"
+                                ),
+                            ],
+                            className="upload-area",
+                            accept=".csv,.json",
+                        )
+                    ],
+                ),
+                # Chart controls
+                html.Div(
+                    id="chart-controls",
+                    className="controls-panel",
+                    children=[
+                        dcc.Dropdown(
+                            id="chart-type-dropdown",
+                            options=[
+                                {"label": "Overview", "value": "overview"},
+                                {"label": "Timeline", "value": "timeline"},
+                                {"label": "Heatmap", "value": "heatmap"},
+                            ],
+                            value="overview",
+                        ),
+                        html.Button("Apply Filters", id="filter-button"),
+                        html.Button("Time Range", id="timerange-button"),
+                    ],
+                ),
+            ],
+        ),
+        # Processing status
+        html.Div(
+            id="processing-status",
+            className="status-message",
+            children="Upload a CSV or JSON file to begin analysis",
+        ),
+        # Interactive setup container
+        html.Div(
+            id="interactive-setup-container",
+            style={"display": "none"},
+            children=[
+                # FIXED: mapping-ui-section with dropdown-mapping-area
+                html.Div(
+                    id="mapping-ui-section",
+                    style={"display": "none"},
+                    children=[
+                        html.H4(
+                            "Step 1: Map File Headers",
+                            style={
+                                "color": COLORS["text_primary"],
+                                "textAlign": "center",
+                                "marginBottom": "20px",
+                            },
+                        ),
+                        html.P(
+                            [
+                                "Map your file columns to the required fields. ",
+                                html.Strong(
+                                    "All four fields are required",
+                                    style={"color": COLORS["accent"]},
+                                ),
+                                " for analysis.",
+                            ],
+                            style={
+                                "color": COLORS["text_secondary"],
+                                "textAlign": "center",
+                                "marginBottom": "20px",
+                            },
+                        ),
+                        html.Div(id="dropdown-mapping-area"),
+                        html.Div(
+                            id="mapping-validation-message",
+                            style={"display": "none"},
+                        ),
+                        html.Button(
+                            "Confirm Header Mapping & Proceed",
+                            id="confirm-header-map-button",
+                            n_clicks=0,
+                            style={"display": "none"},
+                        ),
+                    ],
+                ),
+                # Entrance verification section
+                html.Div(
+                    id="entrance-verification-ui-section",
+                    style={"display": "none"},
+                    children=[
+                        html.H4("Step 2: Facility Setup"),
+                        html.Label("Number of floors:"),
+                        dcc.Slider(
+                            id="floor-slider",
+                            min=1,
+                            max=48,
+                            step=1,
+                            value=48,
+                            marks={**{i: str(i) for i in range(1, 20, 2)}, 48: "48"},
+                        ),
+                        html.Div(id="floor-slider-value", children="48 floors"),
+                        html.Label("Enable manual door classification?"),
+                        dcc.RadioItems(
+                            id="manual-map-toggle",
+                            options=[
+                                {"label": "No", "value": "no"},
+                                {"label": "Yes", "value": "yes"},
+                            ],
+                            value="no",
+                            inline=True,
+                        ),
+                        html.Div(
+                            id="door-classification-table-container",
+                            style={"display": "none"},
+                            children=[html.Div(id="door-classification-table")],
+                        ),
+                    ],
+                ),
+                # Generate button
+                html.Button(
+                    "Confirm Selections & Generate Analysis",
+                    id="confirm-and-generate-button",
+                    n_clicks=0,
+                    className="btn-primary",
+                ),
+            ],
+        ),
+        # Tabs container
+        html.Div(
+            id="tabs-container",
+            children=[
+                html.Button("Overview", id="tab-overview", className="tab active"),
+                html.Button("Advanced", id="tab-advanced", className="tab"),
+                html.Button("Export", id="tab-export", className="tab"),
+            ],
+        ),
+        # Tab content
+        html.Div(
+            id="tab-content",
+            children=[
+                # Your 3 panels container
+                html.Div(
+                    id="stats-panels-container",
+                    style={"display": "flex", "gap": "20px", "marginBottom": "30px"},
+                    children=[
+                        # Panel 1: Access Events
+                        html.Div(
+                            style={
+                                "flex": "1",
+                                "backgroundColor": COLORS["surface"],
+                                "padding": "20px",
+                                "borderRadius": "8px",
+                                "textAlign": "center",
+                            },
+                            children=[
+                                html.H3("Access Events"),
+                                html.H1(id="total-access-events-H1", children="0"),
+                                html.P(id="event-date-range-P", children="No data"),
+                            ],
+                        ),
+                        # Panel 2: User Stats
+                        html.Div(
+                            style={
+                                "flex": "1",
+                                "backgroundColor": COLORS["surface"],
+                                "padding": "20px",
+                                "borderRadius": "8px",
+                                "textAlign": "center",
+                            },
+                            children=[
+                                html.H3("User Analytics"),
+                                html.P(id="stats-unique-users", children="0 users"),
+                                html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user"),
+                                html.P(id="stats-most-active-user", children="No data"),
+                                html.P(id="stats-devices-per-user", children="Avg: 0 users/device"),
+                                html.P(id="stats-peak-hour", children="Peak: N/A"),
+                                html.P(id="total-devices-count", children="0 devices"),
+                                html.P(id="entrance-devices-count", children="0 entrances"),
+                                html.P(id="high-security-devices", children="0 high security"),
+                            ],
+                        ),
+                        # Panel 3: Activity Insights
+                        html.Div(
+                            style={
+                                "flex": "1",
+                                "backgroundColor": COLORS["surface"],
+                                "padding": "20px",
+                                "borderRadius": "8px",
+                                "textAlign": "center",
+                            },
+                            children=[
+                                html.H3("Activity Insights"),
+                                html.P(id="peak-hour-display", children="Peak: N/A"),
+                                html.P(id="busiest-floor", children="Floor: N/A"),
+                                html.P(id="traffic-pattern-insight", children="Pattern: N/A"),
+                                html.P(id="security-score-insight", children="Score: N/A"),
+                                html.P(id="anomaly-insight", children="Alerts: 0"),
+                            ],
+                        ),
+                    ],
+                ),
+                # All required elements for callbacks (initially hidden)
+                *enhanced_stats_layout,
+                _create_fallback_analytics_section(),
+                _create_fallback_charts_section(),
+                _create_fallback_export_section(),
+                create_graph_container() if create_graph_container else html.Div(
+                    id="graph-output-container", style={"display": "none"}
+                ),
+                _create_mini_graph_container(),
+                create_debug_panel(),
+            ],
+        ),
+    ]
+
+    existing_ids: set = set()
+
+    def collect_ids(element):
+        if hasattr(element, "id") and element.id:
+            existing_ids.add(element.id)
+        if hasattr(element, "children"):
+            children = (
+                element.children
+                if isinstance(element.children, list)
+                else [element.children] if element.children else []
+            )
+            for child in children:
+                collect_ids(child)
+
+    for child in base_children:
+        collect_ids(child)
+
+    _add_missing_callback_elements(base_children, existing_ids)
+
+    return html.Div(
+        base_children,
         style={
             "backgroundColor": COLORS["background"],
             "minHeight": "100vh",
