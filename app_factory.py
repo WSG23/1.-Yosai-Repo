@@ -275,66 +275,14 @@ class AppFactory:
 
         # Add graph container that callbacks expect
         graph_containers = []
-        if CYTOSCAPE_AVAILABLE and cyto is not None:
-            graph_containers.append(html.Div(
-                id="graph-output-container",
-                style={"display": "none", "margin": "20px auto", "padding": "20px"},
-                children=[
-                    html.Div(id="onion-graph-container", children=[
-                        html.H3("Security Model Visualization", style={"color": "white", "textAlign": "center"}),
-
-                        # Graph controls
-                        html.Div([
-                            html.Label("Layout:", style={'color': 'white', 'marginRight': '10px'}),
-                            dcc.Dropdown(
-                                id='graph-layout-selector',
-                                options=[
-                                    {'label': 'COSE (Force-directed)', 'value': 'cose'},
-                                    {'label': 'Circle', 'value': 'circle'},
-                                    {'label': 'Grid', 'value': 'grid'},
-                                    {'label': 'Concentric', 'value': 'concentric'}
-                                ],
-                                value='cose',
-                                style={'width': '200px', 'display': 'inline-block', 'marginRight': '20px'}
-                            ),
-                            html.Label("Filters:", style={'color': 'white', 'marginRight': '10px'}),
-                            dcc.Checklist(
-                                id='graph-filters',
-                                options=[
-                                    {'label': ' Entrances Only', 'value': 'entrances_only'},
-                                    {'label': ' Critical Paths', 'value': 'critical_paths'},
-                                    {'label': ' Hide Low Security', 'value': 'hide_low_security'}
-                                ],
-                                value=[],
-                                style={'display': 'inline-block'},
-                                labelStyle={'display': 'inline-block', 'color': 'white', 'marginRight': '10px'}
-                            )
-                        ], style={'marginBottom': '20px', 'textAlign': 'center'}),
-
-                        # Main graph
-                        cyto.Cytoscape(
-                            id="onion-graph",
-                            style={"height": "600px", "width": "100%"},
-                            elements=[],
-                            layout={'name': 'concentric'}
-                        ),
-
-                        # Node info display
-                        html.Pre(
-                            id='tap-node-data-output',
-                            style={
-                                'textAlign': 'center',
-                                'color': 'white',
-                                'marginTop': '10px',
-                                'padding': '10px',
-                                'backgroundColor': '#2a2a2a',
-                                'borderRadius': '5px'
-                            },
-                            children="Upload a file and generate analysis. Tap any node for details."
-                        )
-                    ])
-                ]
-            ))
+        if CYTOSCAPE_AVAILABLE:
+            try:
+                from ui.components.graph import create_graph_container
+                graph_containers.append(create_graph_container())
+                print("   ✅ Original styled graph container loaded")
+            except Exception as e:
+                print(f"   ⚠️ Could not load styled graph container: {e}")
+                graph_containers.append(self._create_basic_graph_container())
         else:
             # Fallback without cytoscape
             graph_containers.append(html.Div(
@@ -352,7 +300,10 @@ class AppFactory:
                         html.Div(
                             id="onion-graph",
                             style={"height": "600px", "width": "100%", "border": "1px solid #ccc"},
-                            children=html.P("Graph visualization requires dash-cytoscape", style={"color": "white", "textAlign": "center", "paddingTop": "250px"})
+                            children=html.P(
+                                "Graph visualization requires dash-cytoscape",
+                                style={"color": "white", "textAlign": "center", "paddingTop": "250px"}
+                            )
                         )
                     ])
                 ]
@@ -368,6 +319,26 @@ class AppFactory:
     
     def _create_fallback_layout(self, asset_urls: Dict[str, str]):
         """Create a simple fallback layout when main layout fails"""
+        # Try to use the original graph container even in fallback
+        graph_container = None
+        if CYTOSCAPE_AVAILABLE:
+            try:
+                from ui.components.graph import create_graph_container
+                graph_container = create_graph_container()
+            except Exception:
+                graph_container = self._create_basic_graph_container()
+        else:
+            graph_container = html.Div(
+                id="graph-output-container",
+                style={"display": "none"},
+                children=[
+                    dcc.Dropdown(id='graph-layout-selector', style={'display': 'none'}),
+                    dcc.Checklist(id='graph-filters', style={'display': 'none'}),
+                    html.Pre(id='tap-node-data-output', style={'display': 'none'}),
+                    html.Div(id="onion-graph", children="Cytoscape not available")
+                ]
+            )
+
         return html.Div([
             # Required stores
             dcc.Store(id="uploaded-file-store"),
@@ -376,31 +347,8 @@ class AppFactory:
             dcc.Store(id="processed-data-store"),
             dcc.Store(id="enhanced-stats-data-store"),
 
-            # Graph container that callbacks expect
-            html.Div(
-                id="graph-output-container",
-                style={"display": "none", "margin": "20px auto", "padding": "20px"},
-                children=[
-                    # Graph controls (required by callbacks)
-                    dcc.Dropdown(id='graph-layout-selector', value='cose', style={'display': 'none'}),
-                    dcc.Checklist(id='graph-filters', value=[], style={'display': 'none'}),
-                    html.Pre(id='tap-node-data-output', style={'display': 'none'}),
-
-                    cyto.Cytoscape(
-                        id="onion-graph",
-                        style={"height": "600px", "width": "100%"},
-                        elements=[],
-                        layout={'name': 'concentric'}
-                    ) if CYTOSCAPE_AVAILABLE and cyto is not None else html.Div(
-                        id="onion-graph",
-                        style={"height": "600px", "width": "100%", "border": "1px solid #ccc"},
-                        children=html.P(
-                            "Graph requires dash-cytoscape",
-                            style={"color": "white", "textAlign": "center", "paddingTop": "250px"}
-                        )
-                    )
-                ]
-            ),
+            # Graph container with original styling
+            graph_container,
 
             # Missing callback targets
             html.P(id="entry-exit-ratio", children="Entry/Exit: N/A", style={"display": "none"}),
@@ -443,10 +391,19 @@ class AppFactory:
                     asset_urls["upload_success"],
                     asset_urls["upload_fail"],
                 )
-                
+
+                icon_paths = {
+                    "default": asset_urls["upload_default"],
+                    "success": asset_urls["upload_success"],
+                    "fail": asset_urls["upload_fail"],
+                }
+
                 upload_handlers = UploadHandlers(
-                    app, upload_component, asset_urls,
-                    secure=True, max_file_size=50 * 1024 * 1024,
+                    app,
+                    upload_component,
+                    icon_paths,
+                    secure=True,
+                    max_file_size=50 * 1024 * 1024,
                 )
                 upload_handlers.register_callbacks()
                 print("   ✅ Upload callbacks registered (fallback)")
@@ -471,6 +428,128 @@ class AppFactory:
             print("   ✅ Classification callbacks registered (fallback)")
         except Exception as e:
             print(f"   ❌ Classification callback fallback failed: {e}")
+
+        # Register enhanced stats handlers
+        try:
+            from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
+            stats_handlers = EnhancedStatsHandlers(app)
+            stats_handlers.register_callbacks()
+            print("   ✅ Enhanced stats callbacks registered (fallback)")
+        except Exception as e:
+            print(f"   ❌ Enhanced stats callback fallback failed: {e}")
+
+        # Register graph handlers
+        try:
+            from ui.components.graph_handlers import GraphHandlers
+            graph_handlers = GraphHandlers(app)
+            graph_handlers.register_callbacks()
+            print("   ✅ Graph callbacks registered (fallback)")
+        except Exception as e:
+            print(f"   ❌ Graph callback fallback failed: {e}")
+
+        # Register orchestrator callbacks
+        try:
+            from ui.orchestrator import main_data_orchestrator, update_graph_elements, update_container_visibility, update_status_display
+            print("   ✅ Orchestrator callbacks imported (fallback)")
+        except Exception as e:
+            print(f"   ❌ Orchestrator callback fallback failed: {e}")
+
+    def _create_basic_graph_container(self):
+        """Create basic graph container as fallback"""
+        return html.Div(
+            id="graph-output-container",
+            style={"display": "none", "margin": "20px auto", "padding": "20px"},
+            children=[
+                html.H2(
+                    "Area Layout Model",
+                    id="area-layout-model-title",
+                    style={
+                        'textAlign': 'center',
+                        'color': 'white',
+                        'marginBottom': '20px',
+                        'fontSize': '1.8rem'
+                    }
+                ),
+                html.Div(
+                    id='cytoscape-graphs-area',
+                    style={
+                        'width': '100%',
+                        'height': '600px',
+                        'display': 'flex',
+                        'justify-content': 'center',
+                        'align-items': 'center',
+                        'background-color': '#2a2a2a',
+                        'border-radius': '8px',
+                        'border': '1px solid #444',
+                        'box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        'position': 'relative',
+                        'overflow': 'hidden',
+                        'margin': '20px auto'
+                    },
+                    children=[
+                        cyto.Cytoscape(
+                            id="onion-graph",
+                            style={
+                                'width': '100%',
+                                'height': '100%',
+                                'background-color': '#1a1a1a',
+                                'border-radius': '6px'
+                            },
+                            elements=[],
+                            layout={'name': 'cose'},
+                            stylesheet=[
+                                {
+                                    'selector': 'node',
+                                    'style': {
+                                        'background-color': '#2a2a2a',
+                                        'border-color': '#444',
+                                        'border-width': 2,
+                                        'label': 'data(label)',
+                                        'text-valign': 'center',
+                                        'text-halign': 'center',
+                                        'font-size': '12px',
+                                        'color': 'white',
+                                        'width': 60,
+                                        'height': 60,
+                                    }
+                                },
+                                {
+                                    'selector': 'edge',
+                                    'style': {
+                                        'width': 3,
+                                        'line-color': '#666',
+                                        'target-arrow-color': '#666',
+                                        'target-arrow-shape': 'triangle',
+                                        'curve-style': 'bezier'
+                                    }
+                                }
+                            ],
+                            wheelSensitivity=1
+                        )
+                    ]
+                ),
+                html.Pre(
+                    id='tap-node-data-output',
+                    style={
+                        'border': '1px solid #444',
+                        'padding': '10px',
+                        'margin': '10px auto',
+                        'background-color': '#2a2a2a',
+                        'color': 'white',
+                        'font-size': '14px',
+                        'border-radius': '6px',
+                        'text-align': 'center',
+                        'white-space': 'pre-wrap',
+                        'overflow-wrap': 'break-word',
+                        'max-width': '800px'
+                    },
+                    children="Upload a file, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
+                ),
+                # Hidden controls for callbacks
+                dcc.Dropdown(id='graph-layout-selector', style={'display': 'none'}),
+                dcc.Checklist(id='graph-filters', style={'display': 'none'}),
+            ]
+        )
 
 # Factory instance
 app_factory = AppFactory()
