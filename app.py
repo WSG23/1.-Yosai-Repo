@@ -176,7 +176,6 @@ try:
     from ui.components.mapping_handlers import create_mapping_handlers
     from ui.components.classification_handlers import create_classification_handlers
     from ui.components.graph_handlers import create_graph_handlers
-    from ui.components.enhanced_stats_handlers import create_enhanced_stats_handlers
     from ui.components.graph import create_graph_container
 
     print(">> Handler factories imported")
@@ -186,7 +185,6 @@ except ImportError as e:
     create_mapping_handlers = None
     create_classification_handlers = None
     create_graph_handlers = None
-    create_enhanced_stats_handlers = None
     create_graph_container = None
 
 # Cytoscape for graphs
@@ -1345,15 +1343,7 @@ def register_all_callbacks_safely(app):
         classification_handlers.register_callbacks()
         print("   ✅ Classification callbacks registered (includes floor slider)")
 
-        if create_graph_handlers:
-            graph_handlers = create_graph_handlers(app)
-            graph_handlers.register_callbacks()
-            print("   ✅ Graph callbacks registered")
 
-        if create_enhanced_stats_handlers:
-            stats_handlers = create_enhanced_stats_handlers(app)
-            stats_handlers.register_callbacks()
-            print("   ✅ Enhanced stats callbacks registered")
 
         CALLBACKS_REGISTERED = True
         print("🎉 All callbacks registered successfully - no conflicts!")
