@@ -6,6 +6,7 @@ import io
 import pandas as pd
 import json
 import traceback
+import uuid
 from dash import Input, Output, State, html
 
 from ui.themes.style_config import UPLOAD_STYLES, get_interactive_setup_style, COLORS
@@ -14,7 +15,7 @@ from config.settings import REQUIRED_INTERNAL_COLUMNS
 
 
 from utils.logging_config import get_logger
-from utils.error_handler import ValidationError
+from utils.error_handler import ValidationError, DataProcessingError
 from utils.helpers import process_large_csv
 logger = get_logger(__name__)                 
 
@@ -69,11 +70,8 @@ class UploadHandlers:
             return self._process_upload(contents, filename, saved_col_mappings_json)
     
     def _process_upload(self, contents, filename, saved_col_mappings_json):
-        """Core upload processing logic"""
-        # Get styles from upload component
+        """Core upload processing logic with detailed error handling"""
         upload_styles = self.upload_component.get_upload_styles()
-
-        # Initial state values
         initial_values = self._get_initial_state_values(upload_styles)
 
         if contents is None:
@@ -81,8 +79,6 @@ class UploadHandlers:
 
         try:
             logger.info("Processing upload: %s", filename)
-
-            # Process the uploaded file
             result = self._process_csv_file(contents, filename, saved_col_mappings_json)
 
             if result['success']:
@@ -91,94 +87,186 @@ class UploadHandlers:
                 return self._create_error_response(result, upload_styles, filename)
 
         except FileNotFoundError:
-            return self._create_error_response({'error': 'File not found', 'success': False}, upload_styles, filename)
+            logger.warning("File not found during upload: %s", filename)
+            return self._create_error_response({
+                'error': f"File '{filename}' could not be found or accessed",
+                'success': False,
+                'error_type': 'file_not_found'
+            }, upload_styles, filename)
+        except PermissionError:
+            logger.error("Permission denied accessing file: %s", filename)
+            return self._create_error_response({
+                'error': f"Permission denied: Cannot access '{filename}'. Check file permissions.",
+                'success': False,
+                'error_type': 'permission_denied'
+            }, upload_styles, filename)
         except pd.errors.EmptyDataError:
-            return self._create_error_response({'error': 'Empty CSV file', 'success': False}, upload_styles, filename)
+            logger.warning("Empty CSV file uploaded: %s", filename)
+            return self._create_error_response({
+                'error': f"The file '{filename}' appears to be empty. Please upload a file with data.",
+                'success': False,
+                'error_type': 'empty_file'
+            }, upload_styles, filename)
+        except pd.errors.ParserError as e:
+            logger.error("CSV parsing error for %s: %s", filename, str(e))
+            return self._create_error_response({
+                'error': f"Unable to parse '{filename}'. Please ensure it's a valid CSV file with proper formatting.",
+                'success': False,
+                'error_type': 'parse_error'
+            }, upload_styles, filename)
+        except UnicodeDecodeError as e:
+            logger.error("Encoding error for %s: %s", filename, str(e))
+            return self._create_error_response({
+                'error': f"File encoding issue with '{filename}'. Please save as UTF-8 and try again.",
+                'success': False,
+                'error_type': 'encoding_error'
+            }, upload_styles, filename)
         except ValidationError as e:
-            return self._create_error_response({'error': str(e), 'success': False}, upload_styles, filename)
+            logger.warning("Validation error for %s: %s", filename, str(e))
+            return self._create_error_response({
+                'error': f"Data validation failed: {str(e)}",
+                'success': False,
+                'error_type': 'validation_error'
+            }, upload_styles, filename)
+        except MemoryError:
+            logger.error("Memory error processing %s: file too large", filename)
+            return self._create_error_response({
+                'error': f"File '{filename}' is too large to process. Please try a smaller file or contact support.",
+                'success': False,
+                'error_type': 'memory_error'
+            }, upload_styles, filename)
+        except ValueError as e:
+            error_msg = str(e)
+            if "too large" in error_msg.lower():
+                logger.warning("File size limit exceeded for %s", filename)
+                return self._create_error_response({
+                    'error': f"File '{filename}' exceeds the size limit. Please upload a smaller file.",
+                    'success': False,
+                    'error_type': 'file_too_large'
+                }, upload_styles, filename)
+            logger.error("Value error processing %s: %s", filename, error_msg)
+            return self._create_error_response({
+                'error': f"Invalid data in '{filename}': {error_msg}",
+                'success': False,
+                'error_type': 'invalid_data'
+            }, upload_styles, filename)
+        except json.JSONDecodeError as e:
+            logger.error("JSON parsing error for %s: %s", filename, str(e))
+            return self._create_error_response({
+                'error': f"Invalid JSON format in configuration. Line {e.lineno}: {e.msg}",
+                'success': False,
+                'error_type': 'json_error'
+            }, upload_styles, filename)
+        except TimeoutError as e:
+            logger.error("Timeout processing %s: %s", filename, str(e))
+            return self._create_error_response({
+                'error': f"Processing '{filename}' timed out. Please try again or use a smaller file.",
+                'success': False,
+                'error_type': 'timeout_error'
+            }, upload_styles, filename)
         except Exception as e:
-            logger.error("Upload error for %s: %s", filename, e)
-            traceback.print_exc()
-            error_result = {'error': str(e), 'success': False}
-            return self._create_error_response(error_result, upload_styles, filename)
+            error_id = str(uuid.uuid4())[:8]
+            logger.error(
+                "Unexpected error processing %s (ID: %s): %s",
+                filename, error_id, str(e),
+                extra={
+                    'error_id': error_id,
+                    'filename': filename,
+                    'error_type': type(e).__name__,
+                    'traceback': traceback.format_exc()
+                }
+            )
+            return self._create_error_response({
+                'error': f"An unexpected error occurred processing '{filename}'. Error ID: {error_id}. Please try again or contact support.",
+                'success': False,
+                'error_type': 'unexpected_error',
+                'error_id': error_id
+            }, upload_styles, filename)
     
     def _process_csv_file(self, contents, filename, saved_col_mappings_json):
-        """Process and validate uploaded CSV or JSON file"""
+        """Process and validate uploaded CSV or JSON file with improved error handling"""
+
         try:
-            # Decode the file
-            content_type, content_string = contents.split(',')
-            decoded = base64.b64decode(content_string)
+            if ',' not in contents:
+                raise ValueError("Invalid file format: missing data separator")
+
+            content_type, content_string = contents.split(',', 1)
+            try:
+                decoded = base64.b64decode(content_string)
+            except Exception as e:
+                raise ValueError("File encoding error: unable to decode file data") from e
+
             if self.secure and self.max_file_size and len(decoded) > self.max_file_size:
+                file_size_mb = len(decoded) / (1024 * 1024)
+                max_size_mb = self.max_file_size / (1024 * 1024)
                 raise ValueError(
-                    f"Uploaded file is too large ({len(decoded)} bytes > {self.max_file_size} bytes)."
+                    f"File too large: {file_size_mb:.1f}MB exceeds limit of {max_size_mb:.1f}MB"
                 )
-            # Determine file type and load accordingly
-            if filename.lower().endswith('.csv'):
-                # Stream large files to reduce memory footprint
-                if len(decoded) > 10 * 1024 * 1024:
-                    chunks = []
-                    for chunk in process_large_csv(io.BytesIO(decoded)):
-                        chunks.append(chunk)
-                    df_full_for_doors = pd.concat(chunks, ignore_index=True)
-                else:
-                    df_full_for_doors = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-            elif filename.lower().endswith('.json'):
-                df_full_for_doors = pd.read_json(io.StringIO(decoded.decode('utf-8')))
-            else:
-                raise ValueError("Uploaded file must be a CSV or JSON file.")
-            headers = df_full_for_doors.columns.tolist()
-            
-            if not headers:
-                raise ValueError("CSV or JSON has no headers.")
-            
-            # Process column mappings
-            mapping_result = self._process_column_mappings(
-                df_full_for_doors, headers, saved_col_mappings_json
-            )
-            
-            # Extract unique doors for classification
-            all_unique_doors = self._extract_unique_doors(df_full_for_doors, mapping_result)
-            
-            # Create mapping dropdowns
-            mapping_dropdowns = self._create_mapping_dropdowns(headers, mapping_result)
+
+            file_extension = filename.lower().split('.')[-1] if '.' in filename else ''
+            allowed_extensions = ['csv', 'txt']
+            if file_extension not in allowed_extensions:
+                raise ValueError(
+                    f"Unsupported file type: '.{file_extension}'. Please upload a CSV file."
+                )
+
+            try:
+                decoded_string = decoded.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    decoded_string = decoded.decode('latin1')
+                    logger.warning("File %s used latin1 encoding, converted to UTF-8", filename)
+                except UnicodeDecodeError as e:
+                    raise UnicodeDecodeError(e.encoding, e.object, e.start, e.end,
+                                             "Unable to decode file. Please save as UTF-8 encoding.")
+
+            try:
+                df = pd.read_csv(io.StringIO(decoded_string))
+            except pd.errors.EmptyDataError:
+                raise pd.errors.EmptyDataError("CSV file is empty or contains no data")
+            except pd.errors.ParserError as e:
+                raise pd.errors.ParserError(f"CSV format error: {str(e)}")
+            except Exception as e:
+                raise DataProcessingError(f"Unable to read CSV data: {str(e)}") from e
+
+            if df.empty:
+                raise ValidationError("CSV file contains no data rows")
+            if len(df.columns) == 0:
+                raise ValidationError("CSV file contains no columns")
+            if len(df.columns) > 1000:
+                raise ValidationError("CSV has too many columns (>1000). Please check file format.")
+
+            if len(df) > 1000000:
+                logger.warning("Large file detected: %d rows in %s", len(df), filename)
+
+            logger.info("Successfully processed %s: %d rows, %d columns", filename, len(df), len(df.columns))
+
+            mapping_result = self._process_column_mappings(df, df.columns.tolist(), saved_col_mappings_json)
+            all_unique_doors = self._extract_unique_doors(df, mapping_result)
+            mapping_dropdowns = self._create_mapping_dropdowns(df.columns.tolist(), mapping_result)
 
             processed_data = {
                 'filename': filename,
-                'dataframe': df_full_for_doors.to_dict('records'),
-                'columns': headers,
-                'row_count': len(df_full_for_doors),
+                'dataframe': df.to_dict('records'),
+                'columns': df.columns.tolist(),
+                'row_count': len(df),
                 'upload_timestamp': pd.Timestamp.now().isoformat(),
             }
 
             return {
                 'success': True,
                 'contents': contents,
-                'headers': headers,
+                'headers': df.columns.tolist(),
                 'mapping_dropdowns': mapping_dropdowns,
                 'all_unique_doors': all_unique_doors,
                 'processed_data': processed_data,
             }
-            
-        except FileNotFoundError:
-            return {
-                'success': False,
-                'error': 'File not found'
-            }
-        except pd.errors.EmptyDataError:
-            return {
-                'success': False,
-                'error': 'Empty CSV file'
-            }
-        except ValidationError as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
+
+        except (ValidationError, ValueError, pd.errors.EmptyDataError,
+                pd.errors.ParserError, UnicodeDecodeError):
+            raise
         except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
+            raise DataProcessingError(f"Unexpected error processing CSV: {str(e)}") from e
     
     def _process_column_mappings(self, df, headers, saved_col_mappings_json):
         """Process saved column mappings"""
@@ -288,30 +376,69 @@ class UploadHandlers:
         )
     
     def _create_error_response(self, result, upload_styles, filename):
-        """Create response for failed upload"""
+        """Create response for failed upload with user friendly message"""
         hide_style = {'display': 'none'}
         show_interactive_setup_style = get_interactive_setup_style(True)
         confirm_button_style_hidden = UPLOAD_STYLES['generate_button'].copy()
         confirm_button_style_hidden['display'] = 'none'
-        
-        error_message = result.get('error', 'Unknown error')
-        processing_status_msg = f"Error processing '{filename}': {error_message}"
-        
+
+        error_message = result.get('error', 'Unknown error occurred')
+        error_type = result.get('error_type', 'generic_error')
+        error_id = result.get('error_id', '')
+
+        user_messages = {
+            'file_not_found': "\ud83d\udcc1 File not found. Please try uploading again.",
+            'empty_file': "\ud83d\udccb The uploaded file is empty. Please upload a file with data.",
+            'parse_error': "\u26a0\ufe0f File format issue. Please ensure it's a valid CSV file.",
+            'encoding_error': "\ud83d\udd24 Text encoding issue. Please save your file as UTF-8.",
+            'file_too_large': "\ud83d\udccd File is too large. Please try a smaller file.",
+            'memory_error': "\ud83d\udcbe File too large for processing. Please use a smaller file.",
+            'validation_error': "\u2705 Data validation failed. Please check your data format.",
+            'permission_denied': "\ud83d\udd12 Permission denied. Please check file access rights.",
+            'timeout_error': "\u23f1\ufe0f Processing timed out. Please try again with a smaller file.",
+            'json_error': "\ud83d\udcc4 Invalid JSON format in configuration file.",
+            'unexpected_error': f"\u274c Unexpected error occurred. Error ID: {error_id}"
+        }
+
+        user_friendly_message = user_messages.get(error_type, error_message)
+
+        processing_status_msg = f"{user_friendly_message}"
+
+        logger.error(
+            "Error processing upload: %s (type: %s, file: %s)",
+            error_message, error_type, filename
+        )
+
         return (
-            None, None,  # file store, headers
-            [html.P(processing_status_msg, style={'color': 'red'})],  # dropdown area
-            confirm_button_style_hidden,  # confirm button style
-            hide_style,  # mapping-ui-section style (hidden)
-            show_interactive_setup_style,  # interactive setup container
-            processing_status_msg,  # status message store
-            self.icons['fail'],  # upload icon src
-            upload_styles['error'],  # upload box style
-            hide_style, hide_style, hide_style, hide_style,  # various containers
-            hide_style,  # yosai header
-            [],  # graph elements
-            None,  # all doors store
-            upload_icon_img_style,  # upload icon style
-            None  # processed data store
+            None, None,
+            [html.Div([
+                html.P(user_friendly_message, style={
+                    'color': COLORS['critical'],
+                    'fontWeight': 'bold',
+                    'marginBottom': '10px'
+                }),
+                html.P(f"File: {filename}", style={
+                    'color': COLORS['text_secondary'],
+                    'fontSize': '0.9em'
+                }),
+                html.P(f"Error ID: {error_id}", style={
+                    'color': COLORS['text_tertiary'],
+                    'fontSize': '0.8em',
+                    'fontFamily': 'monospace'
+                }) if error_id else html.Div()
+            ])],
+            confirm_button_style_hidden,
+            hide_style,
+            show_interactive_setup_style,
+            processing_status_msg,
+            self.icons['fail'],
+            upload_styles['error'],
+            hide_style, hide_style, hide_style, hide_style,
+            hide_style,
+            [],
+            None,
+            upload_icon_img_style,
+            None
 
         )
 
