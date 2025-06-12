@@ -105,11 +105,34 @@ from ui.themes.style_config import (
     SPACING,
     DEBUG_PANEL_STYLE,
 )
-from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
+from config.settings import (
+    DEFAULT_ICONS,
+    REQUIRED_INTERNAL_COLUMNS,
+    FILE_LIMITS,
+    get_config,
+)
 
 print(
     "🚀 Starting Yōsai Enhanced Analytics Dashboard (COMPLETE FIXED VERSION WITH TYPE SAFETY)..."
 )
+
+# Load and validate runtime configuration
+config = get_config()
+validation_report = config.validate_runtime_config()
+if not validation_report["valid"]:
+    print("❌ Configuration validation failed:")
+    for issue in validation_report["issues"]:
+        print(f"  - {issue}")
+    if any("does not exist" in issue for issue in validation_report["issues"]):
+        print("🚨 Critical configuration issues found. Exiting.")
+        exit(1)
+
+if validation_report["warnings"]:
+    print("⚠️ Configuration warnings:")
+    for warning in validation_report["warnings"]:
+        print(f"  - {warning}")
+
+print(f"✅ Configuration loaded: {config.host}:{config.port} (debug={config.debug})")
 
 # ============================================================================
 # ENHANCED IMPORTS WITH FALLBACK SUPPORT

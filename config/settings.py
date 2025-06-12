@@ -7,6 +7,10 @@ Replaces all other config files
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
 import os
+import re
+import socket
+from pathlib import Path
+import warnings
 from utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -52,6 +56,154 @@ FILE_LIMITS = {
 # CONFIGURATION CLASSES
 # ============================================================================
 
+# ---------------------------------------------------------------------------
+# Validation helpers
+# ---------------------------------------------------------------------------
+
+def validate_port(port_str: str, default: int = 8050) -> int:
+    """Validate port number from environment variable."""
+    try:
+        port = int(port_str)
+        if not 1024 <= port <= 65535:
+            raise ValueError(f"Port {port} out of valid range (1024-65535)")
+        return port
+    except (ValueError, TypeError) as e:
+        if port_str:
+            warnings.warn(
+                f"Invalid port '{port_str}': {e}. Using default {default}"
+            )
+        return default
+
+
+def validate_host(host_str: str, default: str = "127.0.0.1") -> str:
+    """Validate host address from environment variable."""
+    if not host_str:
+        return default
+
+    valid_patterns = [
+        r"^localhost$",
+        r"^127\.0\.0\.1$",
+        r"^0\.0\.0\.0$",
+        r"^(\d{1,3}\.){3}\d{1,3}$",
+        r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$",
+    ]
+
+    for pattern in valid_patterns:
+        if re.match(pattern, host_str):
+            if re.match(r"^(\d{1,3}\.){3}\d{1,3}$", host_str):
+                try:
+                    parts = host_str.split(".")
+                    if all(0 <= int(part) <= 255 for part in parts):
+                        return host_str
+                    warnings.warn(
+                        f"Invalid IP address '{host_str}'. Using default {default}"
+                    )
+                    return default
+                except ValueError:
+                    warnings.warn(
+                        f"Invalid IP address format '{host_str}'. Using default {default}"
+                    )
+                    return default
+            return host_str
+
+    warnings.warn(f"Invalid host format '{host_str}'. Using default {default}")
+    return default
+
+
+def validate_log_level(level_str: str, default: str = "INFO") -> str:
+    """Validate logging level from environment variable."""
+    if not level_str:
+        return default
+
+    valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+    level_upper = level_str.upper()
+
+    if level_upper in valid_levels:
+        return level_upper
+
+    warnings.warn(
+        f"Invalid log level '{level_str}'. Valid options: {', '.join(valid_levels)}. Using default {default}"
+    )
+    return default
+
+
+def validate_positive_int(
+    value_str: str,
+    name: str,
+    default: int,
+    min_val: int = 1,
+    max_val: int | None = None,
+) -> int:
+    """Validate positive integer from environment variable."""
+    if not value_str:
+        return default
+
+    try:
+        value = int(value_str)
+        if value < min_val:
+            raise ValueError(f"{name} must be at least {min_val}")
+        if max_val is not None and value > max_val:
+            raise ValueError(f"{name} must not exceed {max_val}")
+        return value
+    except (ValueError, TypeError) as e:
+        warnings.warn(
+            f"Invalid {name} '{value_str}': {e}. Using default {default}"
+        )
+        return default
+
+
+def validate_file_path(
+    path_str: str,
+    default: str | None = None,
+    create_dirs: bool = True,
+) -> str | None:
+    """Validate file path from environment variable."""
+    if not path_str:
+        return default
+
+    try:
+        path = Path(path_str)
+
+        if create_dirs:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        elif not path.parent.exists():
+            warnings.warn(
+                f"Parent directory for log file '{path_str}' does not exist. Using default {default}"
+            )
+            return default
+
+        if not os.access(path.parent, os.W_OK):
+            warnings.warn(
+                f"Cannot write to directory '{path.parent}'. Using default {default}"
+            )
+            return default
+
+        return str(path)
+
+    except Exception as e:
+        warnings.warn(f"Invalid file path '{path_str}': {e}. Using default {default}")
+        return default
+
+
+def validate_boolean(value_str: str, default: bool = False) -> bool:
+    """Validate boolean from environment variable."""
+    if not value_str:
+        return default
+
+    true_values = {"true", "1", "yes", "on", "enabled"}
+    false_values = {"false", "0", "no", "off", "disabled"}
+
+    value_lower = value_str.lower().strip()
+
+    if value_lower in true_values:
+        return True
+    if value_lower in false_values:
+        return False
+
+    warnings.warn(f"Invalid boolean value '{value_str}'. Using default {default}")
+    return default
+
+
 @dataclass
 class AppConfig:
     """Main application configuration"""
@@ -72,20 +224,118 @@ class AppConfig:
     # Logging settings
     log_level: str = 'INFO'
     log_file: Optional[str] = None
-    
+
     @classmethod
     def from_env(cls) -> 'AppConfig':
-        """Create configuration from environment variables"""
-        return cls(
-            debug=os.getenv('DEBUG', 'False').lower() == 'true',
-            port=int(os.getenv('PORT', '8050')),
-            host=os.getenv('HOST', '127.0.0.1'),
-            secret_key=os.getenv('SECRET_KEY'),
-            cache_timeout=int(os.getenv('CACHE_TIMEOUT', '3600')),
-            max_workers=int(os.getenv('MAX_WORKERS', '4')),
-            log_level=os.getenv('LOG_LEVEL', 'INFO'),
-            log_file=os.getenv('LOG_FILE')
-        )
+        """Create configuration from environment variables with validation."""
+
+        try:
+            debug = validate_boolean(os.getenv("DEBUG", ""), default=False)
+            port = validate_port(os.getenv("PORT", "8050"), default=8050)
+            host = validate_host(os.getenv("HOST", ""), default="127.0.0.1")
+            secret_key = os.getenv("SECRET_KEY")
+            csrf_protection = validate_boolean(
+                os.getenv("CSRF_PROTECTION", ""), default=False
+            )
+            cache_timeout = validate_positive_int(
+                os.getenv("CACHE_TIMEOUT", "3600"),
+                "CACHE_TIMEOUT",
+                default=3600,
+                min_val=60,
+                max_val=86400,
+            )
+            max_workers = validate_positive_int(
+                os.getenv("MAX_WORKERS", "4"),
+                "MAX_WORKERS",
+                default=4,
+                min_val=1,
+                max_val=32,
+            )
+            log_level = validate_log_level(os.getenv("LOG_LEVEL", ""), default="INFO")
+            log_file = validate_file_path(os.getenv("LOG_FILE", ""), default=None)
+            suppress_callback_exceptions = validate_boolean(
+                os.getenv("SUPPRESS_CALLBACK_EXCEPTIONS", "true"), default=True
+            )
+
+            assets_folder = os.getenv("ASSETS_FOLDER", "assets")
+            if not assets_folder or not assets_folder.replace("_", "").replace("-", "").isalnum():
+                warnings.warn(
+                    f"Invalid assets folder '{assets_folder}'. Using default 'assets'"
+                )
+                assets_folder = "assets"
+
+            logger.info("✅ Environment configuration loaded successfully")
+            if debug:
+                logger.debug(
+                    f"Configuration: debug={debug}, port={port}, host={host}, log_level={log_level}"
+                )
+
+            return cls(
+                debug=debug,
+                port=port,
+                host=host,
+                suppress_callback_exceptions=suppress_callback_exceptions,
+                assets_folder=assets_folder,
+                secret_key=secret_key,
+                csrf_protection=csrf_protection,
+                cache_timeout=cache_timeout,
+                max_workers=max_workers,
+                log_level=log_level,
+                log_file=log_file,
+            )
+
+        except Exception as e:
+            logger.error(f"❌ Failed to load environment configuration: {e}")
+            logger.info("🔄 Falling back to default configuration")
+            return cls()
+
+    def validate_runtime_config(self) -> Dict[str, Any]:
+        """Validate configuration at runtime and return a status report."""
+        issues: List[str] = []
+        warnings_list: List[str] = []
+
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((self.host, self.port))
+            sock.close()
+            if result == 0:
+                warnings_list.append(f"Port {self.port} is already in use")
+        except Exception as e:
+            warnings_list.append(f"Could not test port availability: {e}")
+
+        if not os.path.exists(self.assets_folder):
+            issues.append(f"Assets folder '{self.assets_folder}' does not exist")
+
+        if self.log_file:
+            try:
+                log_path = Path(self.log_file)
+                if not log_path.parent.exists():
+                    issues.append(
+                        f"Log file directory '{log_path.parent}' does not exist"
+                    )
+                elif not os.access(log_path.parent, os.W_OK):
+                    issues.append(
+                        f"Cannot write to log directory '{log_path.parent}'"
+                    )
+            except Exception as e:
+                issues.append(f"Invalid log file path: {e}")
+
+        if not self.debug and not self.secret_key:
+            warnings_list.append("No SECRET_KEY set in production mode")
+
+        return {
+            "valid": len(issues) == 0,
+            "issues": issues,
+            "warnings": warnings_list,
+            "config_summary": {
+                "debug": self.debug,
+                "port": self.port,
+                "host": self.host,
+                "log_level": self.log_level,
+                "max_workers": self.max_workers,
+            },
+        }
 
 @dataclass
 class UIConfig:
@@ -201,6 +451,94 @@ def get_settings() -> Settings:
     """Get complete settings"""
     return settings
 
+
+def get_environment_variable_docs() -> str:
+    """Return documentation string for supported environment variables."""
+    return """
+Environment Variables Documentation
+==================================
+
+Required Variables:
+  None - all variables have sensible defaults
+
+Optional Variables:
+  DEBUG                    - Enable debug mode (true/false, default: false)
+  PORT                     - Server port (1024-65535, default: 8050)
+  HOST                     - Server host (IP or hostname, default: 127.0.0.1)
+  SECRET_KEY               - Secret key for security (string, recommended for production)
+
+  CACHE_TIMEOUT            - Cache timeout in seconds (60-86400, default: 3600)
+  MAX_WORKERS              - Maximum worker threads (1-32, default: 4)
+
+  LOG_LEVEL                - Logging level (DEBUG/INFO/WARNING/ERROR/CRITICAL, default: INFO)
+  LOG_FILE                 - Log file path (string, default: console only)
+
+  SUPPRESS_CALLBACK_EXCEPTIONS - Suppress Dash callback exceptions (true/false, default: true)
+  ASSETS_FOLDER            - Assets directory name (string, default: assets)
+  CSRF_PROTECTION          - Enable CSRF protection (true/false, default: false)
+
+Example Usage:
+  export DEBUG=true
+  export PORT=8080
+  export LOG_LEVEL=DEBUG
+  export SECRET_KEY=your-secret-key-here
+  export LOG_FILE=/var/log/yosai/app.log
+
+  python app.py
+"""
+
+
+def test_environment_configuration() -> None:
+    """Test environment variable validation."""
+    print("\U0001F9EA Testing Environment Variable Validation")
+    print("=" * 50)
+
+    test_cases = [
+        ("DEBUG", "true", True),
+        ("DEBUG", "false", False),
+        ("DEBUG", "invalid", False),
+        ("PORT", "8080", 8080),
+        ("PORT", "80", 8050),
+        ("PORT", "99999", 8050),
+        ("PORT", "invalid", 8050),
+        ("LOG_LEVEL", "DEBUG", "DEBUG"),
+        ("LOG_LEVEL", "invalid", "INFO"),
+        ("MAX_WORKERS", "8", 8),
+        ("MAX_WORKERS", "0", 4),
+        ("MAX_WORKERS", "100", 4),
+    ]
+
+    original_env = dict(os.environ)
+
+    try:
+        for var_name, test_value, expected in test_cases:
+            os.environ[var_name] = test_value
+            config = AppConfig.from_env()
+            actual = getattr(config, var_name.lower())
+            status = "\u2705" if actual == expected else "\u274C"
+            print(f"{status} {var_name}='{test_value}' -> {actual} (expected: {expected})")
+            if var_name in os.environ:
+                del os.environ[var_name]
+
+        print("\n\uD83C\uDF20 Testing runtime validation...")
+        config = AppConfig.from_env()
+        validation_report = config.validate_runtime_config()
+        print(f"Configuration valid: {validation_report['valid']}")
+        if validation_report['issues']:
+            print("Issues found:")
+            for issue in validation_report['issues']:
+                print(f"  \u274C {issue}")
+
+        if validation_report['warnings']:
+            print("Warnings:")
+            for warning in validation_report['warnings']:
+                print(f"  \u26A0\uFE0F {warning}")
+    finally:
+        os.environ.clear()
+        os.environ.update(original_env)
+
+    print("\n\u2705 Environment validation testing complete")
+
 # Export everything for easy importing
 __all__ = [
     'REQUIRED_INTERNAL_COLUMNS',
@@ -215,7 +553,9 @@ __all__ = [
     'get_ui_config',
     'get_processing_config',
     'get_settings',
-    'settings'
+    'settings',
+    'get_environment_variable_docs',
+    'test_environment_configuration'
 ]
 
 logger.info(
