@@ -17,6 +17,7 @@ from config.settings import REQUIRED_INTERNAL_COLUMNS
 from utils.logging_config import get_logger
 from utils.error_handler import ValidationError, DataProcessingError
 from utils.helpers import process_large_csv
+from utils.secure_validator import validate_upload_security
 logger = get_logger(__name__)                 
 
 class UploadHandlers:
@@ -195,6 +196,12 @@ class UploadHandlers:
                 decoded = base64.b64decode(content_string)
             except Exception as e:
                 raise ValueError("File encoding error: unable to decode file data") from e
+
+            if self.secure:
+                validation = validate_upload_security(decoded, filename)
+                if not validation.get('is_valid'):
+                    reason = validation.get('errors', ['failed security validation'])[0]
+                    raise ValidationError(f"Security validation failed: {reason}")
 
             if self.secure and self.max_file_size and len(decoded) > self.max_file_size:
                 file_size_mb = len(decoded) / (1024 * 1024)
