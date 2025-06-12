@@ -2467,6 +2467,9 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
             if isinstance(device, dict):
                 device_name = device.get('device', f'Device {i+1}')
                 event_count = device.get('events', 0)
+            elif isinstance(device, (list, tuple)) and len(device) >= 2:
+                device_name = device[0]
+                event_count = device[1]
             else:
                 device_name = str(device)
                 event_count = 0
