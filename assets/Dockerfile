@@ -2,6 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV MODE=production
 
 WORKDIR /app
 
@@ -22,8 +23,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
+# Create logs directory
+RUN mkdir -p logs
+
 # Expose port
 EXPOSE 8050
 
-# Run the application
-CMD ["python", "app.py"]
+# Use the unified runner
+CMD ["python", "run.py", "production"]
