@@ -117,6 +117,7 @@ def run_development(app, host="127.0.0.1", port=8050, debug=True, **kwargs):
     print(f"🔧 Debug: {debug}")
     print("=" * 50)
     
+
     app.run_server(
         debug=debug,
         host=host,
@@ -209,3 +210,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
