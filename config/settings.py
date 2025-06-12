@@ -39,13 +39,21 @@ DEFAULT_ICONS = {
     'main_logo': '/assets/logo_white.png'
 }
 
+# Security configuration for file uploads
+SECURITY_CONFIG = {
+    'enable_file_validation': True,
+    'max_file_size': 50 * 1024 * 1024,  # 50MB
+    'allowed_extensions': {'.csv', '.txt'},
+    'allowed_mime_types': {'text/csv', 'text/plain', 'application/csv'},
+    'enable_content_scanning': True,
+    'log_security_events': True
+}
+
 # File processing limits
 FILE_LIMITS = {
-    # Increased to allow much larger uploads
-    'max_file_size': 100 * 1024 * 1024,  # 100MB
+    'max_file_size': SECURITY_CONFIG['max_file_size'],
     'max_rows': 1_000_000,
-    'allowed_extensions': ['.csv', '.json'],
-    'encoding': 'utf-8'
+    'allowed_extensions': SECURITY_CONFIG['allowed_extensions']
 }
 
 # ============================================================================
