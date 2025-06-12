@@ -72,21 +72,12 @@ def update_graph_elements(processed_data: dict | None, doors_data: list | None, 
 @callback(
     Output("graph-output-container", "style"),
     Input("onion-graph", "elements"),
-    prevent_initial_call=False,
+    prevent_initial_call=True,
 )
 def update_container_visibility(elements: list) -> dict:
-    if elements and len(elements) > 0:
-        return {
-            "display": "block",
-            "margin": "20px auto",
-            "padding": "20px",
-            "width": "100%",
-        }
-    return {
-        "display": "block",
-        "margin": "20px auto",
-        "padding": "20px",
-    }
+    if elements:
+        return {"display": "block", "margin": "20px auto", "padding": "20px"}
+    return {"display": "none"}
 
 
 @callback(

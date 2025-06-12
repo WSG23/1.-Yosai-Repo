@@ -85,20 +85,13 @@ class GraphHandlers:
             prevent_initial_call=True,
         )
         def generate_graph_from_data(n_clicks, processed_data, mappings, classifications):
-            print(
-                f"Graph generation triggered: clicks={n_clicks}, has_data={bool(processed_data)}"
-            )
-
             if not n_clicks or not processed_data:
-                print("Preventing update: no clicks or no data")
                 raise PreventUpdate
 
             try:
                 df = pd.DataFrame(processed_data.get("dataframe", []))
-                print(f"DataFrame created: {len(df)} rows")
                 if df.empty:
-                    print("DataFrame is empty")
-                    return [], {"display": "block"}, "No data to generate graph"
+                    return [], {"display": "none"}, "No data to generate graph"
 
                 door_col = "DoorID (Device Name)"
                 ts_col = "Timestamp (Event Time)"
@@ -147,11 +140,9 @@ class GraphHandlers:
                 unique_edges = {e["data"]["id"]: e for e in edges}
 
                 elements = nodes + list(unique_edges.values())
-                print(f"Generated {len(elements)} graph elements")
-                return elements, {"display": "block"}, f"Graph generated with {len(elements)} elements"
-            except Exception as e:
-                print(f"Error generating graph: {e}")
-                return [], {"display": "block"}, f"Error: {str(e)}"
+                return elements, {"display": "block"}, "Analysis complete"
+            except Exception:
+                return [], {"display": "none"}, "Failed to generate graph"
 
 
 # Factory function
