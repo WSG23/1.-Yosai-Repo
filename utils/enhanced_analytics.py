@@ -154,8 +154,8 @@ class EnhancedDataProcessor:
         if len(time_series) < 2:
             return 0.0
         
-        x = np.arange(len(time_series))
-        y = time_series.values
+        x = np.arange(len(time_series), dtype=float)
+        y = time_series.to_numpy(dtype=float)
         
         # Simple linear regression
         n = len(x)
@@ -164,7 +164,7 @@ class EnhancedDataProcessor:
     
     def _calculate_activity_intensity(self, hourly_counts: pd.Series) -> str:
         """Calculate activity intensity level"""
-        variance = hourly_counts.var()
+        variance = float(hourly_counts.var())
         
         if variance > 1000:
             return "High"
@@ -181,6 +181,7 @@ class EnhancedDataProcessor:
         # Group consecutive hours
         periods = []
         current_start = None
+        current_end = None
         
         for hour in sorted(rush_hours.index):
             if current_start is None:
@@ -193,7 +194,7 @@ class EnhancedDataProcessor:
                 current_start = hour
                 current_end = hour
         
-        if current_start is not None:
+        if current_start is not None and current_end is not None:
             periods.append((current_start, current_end))
         
         return periods
@@ -712,12 +713,12 @@ class EnhancedAnomalyDetector:
                 return anomalies
             
             # Check for users with unusually high activity
-            user_counts = df[userid_col].value_counts()
-            mean_activity = user_counts.mean()
-            std_activity = user_counts.std()
+            user_counts = df[userid_col].value_counts().astype(float)
+            mean_activity = float(user_counts.mean())
+            std_activity = float(user_counts.std())
             
             if std_activity > 0:
-                threshold = mean_activity + 3 * std_activity
+                threshold = float(mean_activity + 3 * std_activity)
                 high_activity_users = user_counts[user_counts > threshold]
                 
                 for user, count in high_activity_users.items():
