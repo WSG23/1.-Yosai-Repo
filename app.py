@@ -28,7 +28,7 @@ except Exception:  # pragma: no cover - optional dependency
     cyto = None  # type: ignore
     CYTOSCAPE_AVAILABLE = False
 
-from ui.themes.style_config import COLORS, DEBUG_PANEL_STYLE, CHART_HEIGHT
+from ui.themes.style_config import COLORS, DEBUG_PANEL_STYLE
 
 # Try to import optional components used by the layout helpers
 components_available = {"main_layout": False, "cytoscape": CYTOSCAPE_AVAILABLE}
@@ -311,93 +311,23 @@ def _create_fallback_analytics_section():
 
 
 def _create_fallback_charts_section():
-    """Create fallback charts section with styled charts"""
+    """Create fallback charts section"""
     return html.Div(
         id="charts-section",
         style={"display": "none"},
         children=[
-            html.H3(
-                "Visual Analytics",
-                style={
-                    "color": COLORS["text_primary"],
-                    "textAlign": "center",
-                    "marginBottom": "20px",
-                    "fontSize": "1.5rem",
-                },
-            ),
-            html.Div(
-                [
-                    dbc.ButtonGroup(
-                        [
-                            dbc.Button("Hourly Activity", id="chart-hourly-btn", color="primary", size="sm"),
-                            dbc.Button("Daily Trends", id="chart-daily-btn", color="outline-primary", size="sm"),
-                            dbc.Button("Security Levels", id="chart-security-btn", color="outline-primary", size="sm"),
-                            dbc.Button("Device Usage", id="chart-devices-btn", color="outline-primary", size="sm"),
-                        ],
-                        className="mb-3",
-                    )
+            html.H4("Data Visualization"),
+            dcc.Dropdown(
+                id="chart-type-selector",
+                options=[
+                    {"label": "Hourly Activity", "value": "hourly"},
+                    {"label": "Security Distribution", "value": "security"},
                 ],
-                style={"textAlign": "center", "marginBottom": "20px"},
+                value="hourly",
             ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            dcc.Graph(
-                                id="main-analytics-chart",
-                                style={"height": f"{CHART_HEIGHT}px"},
-                                config={"displayModeBar": True, "displaylogo": False},
-                            )
-                        ],
-                        style={
-                            "backgroundColor": COLORS["surface"],
-                            "borderRadius": "8px",
-                            "border": f"1px solid {COLORS['border']}",
-                            "padding": "15px",
-                            "marginBottom": "20px",
-                        },
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    dcc.Graph(
-                                        id="security-pie-chart",
-                                        style={"height": "300px"},
-                                        config={"displayModeBar": False},
-                                    )
-                                ],
-                                style={
-                                    "backgroundColor": COLORS["surface"],
-                                    "borderRadius": "8px",
-                                    "border": f"1px solid {COLORS['border']}",
-                                    "padding": "15px",
-                                    "flex": "1",
-                                    "marginRight": "10px",
-                                },
-                            ),
-                            html.Div(
-                                [
-                                    dcc.Graph(
-                                        id="device-heatmap-chart",
-                                        style={"height": "300px"},
-                                        config={"displayModeBar": False},
-                                    )
-                                ],
-                                style={
-                                    "backgroundColor": COLORS["surface"],
-                                    "borderRadius": "8px",
-                                    "border": f"1px solid {COLORS['border']}",
-                                    "padding": "15px",
-                                    "flex": "1",
-                                    "marginLeft": "10px",
-                                },
-                            ),
-                        ],
-                        style={"display": "flex", "gap": "20px"},
-                    ),
-                ]
-            ),
+            dcc.Graph(id="main-analytics-chart"),
+            dcc.Graph(id="security-pie-chart"),
+            dcc.Graph(id="heatmap-chart"),
         ],
     )
 
@@ -577,11 +507,7 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
         "anomaly-alerts",
         "main-analytics-chart",
         "security-pie-chart",
-        "device-heatmap-chart",
-        "chart-hourly-btn",
-        "chart-daily-btn",
-        "chart-security-btn",
-        "chart-devices-btn",
+        "heatmap-chart",
         "chart-type-selector",
         "export-stats-csv",
         "export-charts-png",
@@ -619,13 +545,9 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
                 "refresh-analytics",
                 "export-graph-png",
                 "export-graph-json",
-                "chart-hourly-btn",
-                "chart-daily-btn",
-                "chart-security-btn",
-                "chart-devices-btn",
             ]:
                 element = html.Button(id=element_id, style={"display": "none"})
-            elif element_id in ["main-analytics-chart", "security-pie-chart", "device-heatmap-chart"]:
+            elif element_id in ["main-analytics-chart", "security-pie-chart", "heatmap-chart"]:
                 element = dcc.Graph(id=element_id, style={"display": "none"})
             elif element_id in [
                 "download-stats-csv",
@@ -921,224 +843,6 @@ def populate_enhanced_stats_store(processed_data, generate_clicks, doors_data, c
         }
 
         return fallback_metrics, {"display": "none"}
-
-
-@app.callback(
-    Output("security-pie-chart", "figure"),
-    [
-        Input("enhanced-stats-data-store", "data"),
-        Input("chart-security-btn", "n_clicks"),
-    ],
-    [
-        State("manual-door-classifications-store", "data"),
-        State("all-doors-from-csv-store", "data"),
-    ],
-    prevent_initial_call=True,
-)
-def update_security_pie_chart(enhanced_metrics, security_clicks, classifications, doors_data):
-    """Update the security level distribution pie chart"""
-    import plotly.graph_objects as go
-
-    try:
-        security_counts = {"green": 0, "yellow": 0, "red": 0, "unclassified": 0}
-
-        if classifications and isinstance(classifications, dict):
-            for door_id, classification in classifications.items():
-                if isinstance(classification, dict):
-                    security_level = classification.get("security_level", 0)
-                    if security_level >= 8:
-                        security_counts["red"] += 1
-                    elif security_level >= 5:
-                        security_counts["yellow"] += 1
-                    elif security_level >= 1:
-                        security_counts["green"] += 1
-                    else:
-                        security_counts["unclassified"] += 1
-        else:
-            security_counts = {"unclassified": len(doors_data) if doors_data else 1}
-
-        security_counts = {k: v for k, v in security_counts.items() if v > 0}
-
-        colors = {
-            "green": "#4CAF50",
-            "yellow": "#FFC107",
-            "red": "#F44336",
-            "unclassified": "gray",
-        }
-
-        fig = go.Figure(
-            data=[
-                go.Pie(
-                    labels=list(security_counts.keys()),
-                    values=list(security_counts.values()),
-                    marker_colors=[colors.get(level, "gray") for level in security_counts.keys()],
-                    textinfo="label+percent",
-                    textfont_size=12,
-                    hole=0.3,
-                )
-            ]
-        )
-
-        fig.update_layout(
-            title="Security Level Distribution",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="white",
-            height=300,
-            margin=dict(l=20, r=20, t=40, b=20),
-        )
-
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating security pie chart: {e}")
-
-        fig = go.Figure()
-        fig.update_layout(
-            annotations=[
-                dict(
-                    text="No security data available",
-                    xref="paper",
-                    yref="paper",
-                    x=0.5,
-                    y=0.5,
-                    showarrow=False,
-                    font=dict(size=16, color="white"),
-                )
-            ],
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="white",
-            height=300,
-        )
-        return fig
-
-
-@app.callback(
-    Output("device-heatmap-chart", "figure"),
-    [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
-    prevent_initial_call=True,
-)
-def update_device_heatmap_chart(enhanced_metrics, processed_data):
-    """Update the device activity heatmap chart"""
-    import plotly.graph_objects as go
-    import pandas as pd
-    import numpy as np
-
-    try:
-        if not processed_data:
-            return create_empty_heatmap("No data available")
-
-        if isinstance(processed_data, dict) and "dataframe" in processed_data:
-            df_data = processed_data["dataframe"]
-            if isinstance(df_data, list) and len(df_data) > 0:
-                df = pd.DataFrame(df_data)
-            else:
-                return create_empty_heatmap("No events data")
-        else:
-            return create_empty_heatmap("Invalid data format")
-
-        timestamp_cols = [col for col in df.columns if "timestamp" in col.lower() or "time" in col.lower()]
-        device_cols = [col for col in df.columns if "door" in col.lower() or "device" in col.lower()]
-
-        if not timestamp_cols or not device_cols:
-            return create_empty_heatmap("Missing timestamp or device data")
-
-        timestamp_col = timestamp_cols[0]
-        device_col = device_cols[0]
-
-        df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors="coerce")
-        df = df.dropna(subset=[timestamp_col])
-
-        if df.empty:
-            return create_empty_heatmap("No valid timestamp data")
-
-        df["hour"] = df[timestamp_col].dt.hour
-        df["day"] = df[timestamp_col].dt.day_name()
-
-        heatmap_data = df.groupby(["day", "hour"]).size().reset_index(name="count")
-
-        heatmap_pivot = heatmap_data.pivot(index="day", columns="hour", values="count").fillna(0)
-        days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        hours_range = list(range(24))
-
-        heatmap_pivot = heatmap_pivot.reindex(index=days_order, columns=hours_range, fill_value=0)
-
-        fig = go.Figure(
-            data=go.Heatmap(
-                z=heatmap_pivot.values,
-                x=heatmap_pivot.columns,
-                y=heatmap_pivot.index,
-                colorscale="Blues",
-                text=heatmap_pivot.values,
-                texttemplate="%{text}",
-                textfont={"size": 8},
-                showscale=True,
-            )
-        )
-
-        fig.update_layout(
-            title="Activity Heatmap (Day vs Hour)",
-            xaxis_title="Hour of Day",
-            yaxis_title="Day of Week",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="white",
-            height=300,
-            margin=dict(l=80, r=20, t=40, b=40),
-        )
-
-        return fig
-
-    except Exception as e:
-        print(f"❌ Error creating heatmap: {e}")
-        return create_empty_heatmap(f"Error: {str(e)}")
-
-
-def create_empty_heatmap(message):
-    """Create empty heatmap with message"""
-    import plotly.graph_objects as go
-
-    fig = go.Figure()
-    fig.update_layout(
-        annotations=[
-            dict(
-                text=message,
-                xref="paper",
-                yref="paper",
-                x=0.5,
-                y=0.5,
-                showarrow=False,
-                font=dict(size=14, color="white"),
-            )
-        ],
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font_color="white",
-        height=300,
-        margin=dict(l=20, r=20, t=40, b=20),
-    )
-    return fig
-
-
-@app.callback(
-    Output("charts-section", "style"),
-    [Input("enhanced-stats-data-store", "data"), Input("processed-data-store", "data")],
-    prevent_initial_call=True,
-)
-def show_charts_section(enhanced_metrics, processed_data):
-    """Show the charts section when data is available"""
-    if enhanced_metrics and processed_data:
-        return {
-            "display": "block",
-            "backgroundColor": "#1a1a1a",
-            "padding": "20px",
-            "borderRadius": "8px",
-            "border": "1px solid #333",
-            "margin": "20px 0",
-        }
-    else:
-        return {"display": "none"}
 
 
 import warnings

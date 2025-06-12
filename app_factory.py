@@ -319,7 +319,6 @@ class AppFactory:
     
     def _create_fallback_layout(self, asset_urls: Dict[str, str]):
         """Create a simple fallback layout when main layout fails"""
-        from app import _create_fallback_charts_section
         # Try to use the original graph container even in fallback
         graph_container = None
         if CYTOSCAPE_AVAILABLE:
@@ -347,9 +346,6 @@ class AppFactory:
             dcc.Store(id="column-mapping-store", storage_type="local"),
             dcc.Store(id="processed-data-store"),
             dcc.Store(id="enhanced-stats-data-store"),
-
-            # Charts section with original styling
-            _create_fallback_charts_section(),
 
             # Graph container with original styling
             graph_container,
