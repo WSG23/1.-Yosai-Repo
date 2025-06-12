@@ -4,7 +4,7 @@ Enhanced data validation with detailed error reporting
 """
 
 import pandas as pd
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, Union, Callable
 import re
 import uuid
 
@@ -24,7 +24,7 @@ MAX_STRING_LENGTH_THRESHOLD = 1000
 class EnhancedDataValidator:
     """Enhanced data validation with detailed reporting"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.csv_validator = CSVValidator()
         self.mapping_validator = MappingValidator()
         self.validation_errors: List[str] = []
@@ -218,7 +218,7 @@ class EnhancedDataValidator:
 class DataQualityAnalyzer:
     """Analyze data quality and provide recommendations"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.quality_metrics: Dict[str, Any] = {}
     
     def analyze_dataframe_quality(self, df: pd.DataFrame) -> Dict[str, Any]:
