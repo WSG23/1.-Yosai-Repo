@@ -8,6 +8,8 @@ FIXED: Removed duplicate callback that conflicts with classification_handlers.py
 import json
 from dash import Input, Output, State, no_update
 from dash.dependencies import ALL
+from typing import Dict, List, Tuple, Any, Optional, Union, Callable
+import pandas as pd
 
 from utils.logging_config import get_logger
 
@@ -19,20 +21,20 @@ from ui.themes.style_config import COLORS
 class MappingHandlers:
     """Handles all mapping-related callbacks and business logic"""
     
-    def __init__(self, app, mapping_component=None):
+    def __init__(self, app: Any, mapping_component: Optional[Any] = None) -> None:
         self.app = app
         self.mapping_component = mapping_component or create_mapping_component()
         self.validator = create_mapping_validator()
         self.logger = get_logger(__name__)
         
-    def register_callbacks(self):
+    def register_callbacks(self) -> None:
         """Register ONLY mapping callbacks"""
         # Dropdown creation is now handled in UploadHandlers to avoid duplicate outputs
         self._register_mapping_confirmation_handler()
         # REMOVED: Any callback that outputs to 'door-classification-table-container'
 
     
-    def _register_mapping_confirmation_handler(self):
+    def _register_mapping_confirmation_handler(self) -> None:
         """Mapping confirmation - NO classification outputs"""
         @self.app.callback(
             [
@@ -82,7 +84,13 @@ class MappingHandlers:
     # REMOVED: _register_classification_toggle_handler method
     # This is now handled exclusively by classification_handlers.py to avoid conflicts
     
-    def _process_mapping_confirmation(self, values, ids, csv_headers, existing_json):
+    def _process_mapping_confirmation(
+        self,
+        values: List[str],
+        ids: List[Dict[str, str]],
+        csv_headers: List[str],
+        existing_json: Union[str, Dict[str, Any], None]
+    ) -> Dict[str, Any]:
         """Process the mapping confirmation logic"""
         try:
             # Create mapping dictionary
@@ -138,7 +146,12 @@ class MappingHandlers:
                 'error': f"Mapping operation failed: {str(e)}"
             }
     
-    def _update_stored_mappings(self, mapping, csv_headers, existing_json):
+    def _update_stored_mappings(
+        self,
+        mapping: Dict[str, str],
+        csv_headers: List[str],
+        existing_json: Union[str, Dict[str, Any], None]
+    ) -> Dict[str, Any]:
         """Update the stored column mappings"""
         if isinstance(existing_json, str):
             updated_mappings = json.loads(existing_json)
@@ -153,7 +166,9 @@ class MappingHandlers:
         
         return updated_mappings
     
-    def _create_mapping_success_response(self, result):
+    def _create_mapping_success_response(
+        self, result: Dict[str, Any]
+    ) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, Any], str, Dict[str, str]]:
         """Create response for successful mapping confirmation"""
         hide_mapping_style = {'display': 'none'}
         
@@ -178,7 +193,7 @@ class MappingHandlers:
             hide_button_style                      # Hide confirm button
         )
     
-    def _create_mapping_error_response(self, result):
+    def _create_mapping_error_response(self, result: Dict[str, Any]) -> Tuple[Any, Any, Any, str, Any]:
         """Create response for mapping errors"""
         # Keep current states but update status
         error_message = f"Mapping Error: {result.get('error', 'Unknown error')}"
@@ -193,6 +208,6 @@ class MappingHandlers:
 
 
 # Factory functions for easy handler creation
-def create_mapping_handlers(app, mapping_component=None):
+def create_mapping_handlers(app: Any, mapping_component: Optional[Any] = None) -> MappingHandlers:
     """Factory function to create mapping handlers"""
     return MappingHandlers(app, mapping_component)

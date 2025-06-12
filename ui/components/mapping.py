@@ -7,6 +7,8 @@ FIXED: Corrected import statement
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+from typing import Dict, List, Tuple, Any, Optional, Union, Callable
+import pandas as pd
 
 from ui.themes.style_config import COLORS, MAPPING_STYLES, get_validation_message_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
@@ -15,10 +17,10 @@ from config.settings import REQUIRED_INTERNAL_COLUMNS
 class MappingComponent:
     """Centralized mapping component with all related UI elements and consistent widths"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.required_columns = REQUIRED_INTERNAL_COLUMNS
-    
-    def create_mapping_section(self):
+
+    def create_mapping_section(self) -> html.Div:
         """Creates the Step 1: Map CSV Headers section with reduced width"""
         return html.Div(
             id='mapping-ui-section',
@@ -32,7 +34,7 @@ class MappingComponent:
             ]
         )
     
-    def create_mapping_header(self):
+    def create_mapping_header(self) -> html.H4:
         """Creates the mapping section header with smaller font"""
         return html.H4(
             "Step 1: Map CSV Headers", 
@@ -40,11 +42,11 @@ class MappingComponent:
             style={'color': COLORS['text_primary'], 'fontSize': '1.3rem', 'marginBottom': '1rem'}  # Reduced font size and margin
         )
     
-    def create_mapping_area(self):
+    def create_mapping_area(self) -> html.Div:
         """Creates the dropdown mapping area container"""
         return html.Div(id='dropdown-mapping-area')
     
-    def create_confirm_button(self):
+    def create_confirm_button(self) -> html.Button:
         """Creates the confirm header mapping button with reduced size"""
         return html.Button(
             'Confirm Header Mapping & Proceed',
@@ -53,7 +55,9 @@ class MappingComponent:
             style=MAPPING_STYLES['confirm_button']
         )
     
-    def _create_mapping_dropdowns(self, headers, loaded_col_map_prefs=None):
+    def _create_mapping_dropdowns(
+        self, headers: List[str], loaded_col_map_prefs: Optional[Dict[str, str]] = None
+    ) -> List[html.Div]:
         """
         Creates dropdown components for column mapping with improved layout
         
@@ -87,7 +91,9 @@ class MappingComponent:
         
         return mapping_dropdowns_children
     
-    def create_mapping_validation_message(self, missing_columns=None, status="info"):
+    def create_mapping_validation_message(
+        self, missing_columns: Optional[List[str]] = None, status: str = "info"
+    ) -> html.Div:
         """
         Creates validation message for mapping status
         
@@ -108,7 +114,7 @@ class MappingComponent:
             style=get_validation_message_style(status)
         )
     
-    def create_mapping_help_text(self):
+    def create_mapping_help_text(self) -> html.Div:
         """Creates help text for the mapping process with smaller fonts"""
         return html.Div([
             html.P([
@@ -132,7 +138,7 @@ class MappingComponent:
             ])
         ], style={'marginBottom': '12px'})  # Reduced margin
     
-    def get_mapping_styles(self):
+    def get_mapping_styles(self) -> Dict[str, Dict[str, Any]]:
         """Returns all mapping-related styles"""
         return {
             'section': MAPPING_STYLES['section'],
@@ -142,7 +148,9 @@ class MappingComponent:
             'label': MAPPING_STYLES['label']
         }
     
-    def _find_preselected_value(self, internal_name, headers, loaded_col_map_prefs):
+    def _find_preselected_value(
+        self, internal_name: str, headers: List[str], loaded_col_map_prefs: Dict[str, str]
+    ) -> Optional[str]:
         """Find preselected value for dropdown based on saved preferences"""
         pre_sel = None
         if loaded_col_map_prefs:
@@ -152,7 +160,9 @@ class MappingComponent:
                     break
         return pre_sel
     
-    def _create_single_dropdown(self, internal_name, headers, pre_sel):
+    def _create_single_dropdown(
+        self, internal_name: str, headers: List[str], pre_sel: Optional[str]
+    ) -> dcc.Dropdown:
         """Create a single dropdown for column mapping with improved styling"""
         return dcc.Dropdown(
             id={'type': 'mapping-dropdown', 'index': internal_name},
@@ -163,7 +173,7 @@ class MappingComponent:
             className="mapping-dropdown"
         )
     
-    def _create_dropdown_container(self, display_text, dropdown):
+    def _create_dropdown_container(self, display_text: str, dropdown: Any) -> html.Div:
         """Create container for label and dropdown with improved layout"""
         return html.Div([
             html.Label(
@@ -173,26 +183,26 @@ class MappingComponent:
             dropdown
         ], className="mapping-row", style={'marginBottom': '12px'})  # Reduced margin
     
-    def _get_mapping_section_style(self):
+    def _get_mapping_section_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for section style"""
         return MAPPING_STYLES['section']
     
-    def _get_confirm_button_style(self, visible=True):
+    def _get_confirm_button_style(self, visible: bool = True) -> Dict[str, Any]:
         """Backward-compatible wrapper for button style"""
         style = MAPPING_STYLES['confirm_button'].copy()
         if not visible:
             style['display'] = 'none'
         return style
     
-    def _get_dropdown_style(self):
+    def _get_dropdown_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for dropdown style"""
         return MAPPING_STYLES['dropdown']
     
-    def _get_label_style(self):
+    def _get_label_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for label style"""
         return MAPPING_STYLES['label']
     
-    def _get_validation_message_style(self, status="info"):
+    def _get_validation_message_style(self, status: str = "info") -> Dict[str, Any]:
         """Backward-compatible wrapper for validation message style"""
         return get_validation_message_style(status)
 
@@ -200,10 +210,10 @@ class MappingComponent:
 class MappingValidator:
     """Validates mapping completeness and correctness"""
     
-    def __init__(self, required_columns):
+    def __init__(self, required_columns: Dict[str, str]) -> None:
         self.required_columns = required_columns
     
-    def validate_mapping(self, mapping_dict):
+    def validate_mapping(self, mapping_dict: Dict[str, str]) -> Dict[str, Any]:
         """
         Validates that all required columns are mapped
 
@@ -293,7 +303,7 @@ class MappingValidator:
             'message': 'All required columns mapped successfully'
         }
 
-    def validate_single_mapping(self, csv_column, internal_key):
+    def validate_single_mapping(self, csv_column: str, internal_key: str) -> Dict[str, Any]:
         """
         Validate a single mapping entry
 
@@ -335,7 +345,7 @@ class MappingValidator:
             'message': f'Valid mapping: {csv_column} -> {internal_key}'
         }
     
-    def suggest_mappings(self, csv_headers):
+    def suggest_mappings(self, csv_headers: List[str]) -> Dict[str, str]:
         """
         Suggests automatic mappings based on fuzzy matching
         
@@ -381,21 +391,23 @@ class MappingValidator:
 
 
 # Factory functions for easy component creation
-def create_mapping_component():
+def create_mapping_component() -> MappingComponent:
     """Factory function to create mapping component instance"""
     return MappingComponent()
 
-def create_mapping_validator():
+def create_mapping_validator() -> MappingValidator:
     """Factory function to create mapping validator instance"""
     return MappingValidator(REQUIRED_INTERNAL_COLUMNS)
 
 # Convenience functions for individual elements (backward compatibility)
-def create_mapping_section():
+def create_mapping_section() -> html.Div:
     """Create the mapping section"""
     component = MappingComponent()
     return component.create_mapping_section()
 
-def _create_mapping_dropdowns(headers, saved_preferences=None):
+def _create_mapping_dropdowns(
+    headers: List[str], saved_preferences: Optional[Dict[str, str]] = None
+) -> List[html.Div]:
     """Create mapping dropdowns"""
     component = MappingComponent()
     return component._create_mapping_dropdowns(headers, saved_preferences)
