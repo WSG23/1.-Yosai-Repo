@@ -861,7 +861,7 @@ def _create_complete_fixed_layout(
                     create_graph_container()
                     if create_graph_container
                     else html.Div(
-                        id="graph-output-container", style={"display": "block"}
+                        id="graph-output-container", style={"display": "none"}
                     )
                 ),
                 _create_mini_graph_container(),
@@ -1121,7 +1121,7 @@ def _add_missing_elements_to_existing_layout(
             "graph-output-container": (
                 create_graph_container()
                 if create_graph_container
-                else html.Div(id="graph-output-container", style={"display": "block"})
+                else html.Div(id="graph-output-container", style={"display": "none"})
             ),
             "mini-graph-container": _create_mini_graph_container(),
             "debug-panel": create_debug_panel(),
