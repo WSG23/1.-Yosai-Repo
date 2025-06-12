@@ -1,3 +1,0 @@
-Timestamp (Event Time),UserID (Person Identifier),DoorID (Device Name),EventType (Access Result)
-2021-01-01 09:00:00,User1,DoorA,ACCESS GRANTED
-2021-01-01 09:05:00,User2,DoorB,ACCESS GRANTED
