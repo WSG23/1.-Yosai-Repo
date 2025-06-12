@@ -25,5 +25,5 @@ COPY . .
 # Expose port
 EXPOSE 8050
 
-# Run the application
-CMD ["python", "app.py"]
+# Run the application using the unified runner
+CMD ["python", "run.py", "prod"]
