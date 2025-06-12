@@ -497,7 +497,6 @@ def _create_mini_graph_container():
             id="mini-onion-graph",
             style={"width": "100%", "height": "300px"},
             elements=[],
-            wheelSensitivity=1,
         )
 
     return html.Div(
