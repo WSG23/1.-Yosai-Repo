@@ -2374,6 +2374,10 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
 
     metrics = enhanced_metrics or {}
 
+    stats_component = component_instances.get("enhanced_stats")
+    if not stats_component and create_enhanced_stats_component:
+        stats_component = create_enhanced_stats_component()
+
     total_events = f"{metrics.get('total_events', 0):,}"
     date_range = metrics.get('date_range', 'No data available')
 
@@ -2476,15 +2480,16 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
     [
         Output("main-analytics-chart", "figure"),
         Output("security-pie-chart", "figure"),
-        Output("device-distribution-chart", "figure"),
+        Output("heatmap-chart", "figure"),
     ],
     [
         Input("enhanced-stats-data-store", "data"),
         Input("chart-type-selector", "value"),
     ],
+    State("processed-data-store", "data"),
     prevent_initial_call=True,
 )
-def update_consolidated_charts(enhanced_metrics, chart_type):
+def update_consolidated_charts(enhanced_metrics, chart_type, processed_data):
     """Update all charts in the consolidated container"""
 
     if not enhanced_metrics:
@@ -2540,13 +2545,42 @@ def update_consolidated_charts(enhanced_metrics, chart_type):
         security_fig.add_trace(go.Pie(labels=list(security_distribution.keys()), values=list(security_distribution.values()), hole=.3, marker_colors=[COLORS["success"], COLORS["warning"], COLORS["critical"]]))
     security_fig.update_layout(title="Security Levels", template="plotly_dark", paper_bgcolor=COLORS["surface"], plot_bgcolor=COLORS["background"], font_color=COLORS["text_primary"], height=180, margin=dict(l=20, r=20, t=30, b=20))
 
-    device_fig = go.Figure()
-    device_types = metrics.get('device_type_distribution', {})
-    if device_types:
-        device_fig.add_trace(go.Pie(labels=list(device_types.keys()), values=list(device_types.values()), hole=.3, marker_colors=[COLORS["accent"], COLORS["accent_light"], COLORS["success"]]))
-    device_fig.update_layout(title="Device Types", template="plotly_dark", paper_bgcolor=COLORS["surface"], plot_bgcolor=COLORS["background"], font_color=COLORS["text_primary"], height=180, margin=dict(l=20, r=20, t=30, b=20))
+    heatmap_fig = go.Figure()
+    if chart_type == "heatmap":
+        df = pd.DataFrame()
+        if (
+            processed_data
+            and isinstance(processed_data, dict)
+            and "dataframe" in processed_data
+        ):
+            df = pd.DataFrame(processed_data["dataframe"])
+            ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
+            if ts_col in df.columns:
+                df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
 
-    return main_fig, security_fig, device_fig
+        heatmap_fig = stats_component.create_activity_heatmap(df)
+    else:
+        device_types = metrics.get('device_type_distribution', {})
+        if device_types:
+            heatmap_fig.add_trace(
+                go.Pie(
+                    labels=list(device_types.keys()),
+                    values=list(device_types.values()),
+                    hole=.3,
+                    marker_colors=[COLORS["accent"], COLORS["accent_light"], COLORS["success"]]
+                )
+            )
+        heatmap_fig.update_layout(
+            title="Device Types",
+            template="plotly_dark",
+            paper_bgcolor=COLORS["surface"],
+            plot_bgcolor=COLORS["background"],
+            font_color=COLORS["text_primary"],
+            height=180,
+            margin=dict(l=20, r=20, t=30, b=20),
+        )
+
+    return main_fig, security_fig, heatmap_fig
 
 
 # Export callbacks for consolidated container
