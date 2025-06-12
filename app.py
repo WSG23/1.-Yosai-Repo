@@ -937,7 +937,7 @@ def register_all_callbacks_safely(app):
     try:
         print("🔄 Registering callbacks...")
 
-        # ===== UPLOAD HANDLERS - ADD THIS SECTION =====
+        # ===== SECURE UPLOAD HANDLERS - UPDATED SECTION =====
         from ui.components.upload_handlers import UploadHandlers
         from ui.components.upload import create_enhanced_upload_component
 
@@ -953,7 +953,13 @@ def register_all_callbacks_safely(app):
             "fail": ICON_UPLOAD_FAIL,
         }
 
-        upload_handlers = UploadHandlers(app, upload_component, icon_paths)
+        upload_handlers = UploadHandlers(
+            app,
+            upload_component,
+            icon_paths,
+            secure=True,
+            max_file_size=50 * 1024 * 1024,
+        )
         upload_handlers.register_callbacks()
         print("   ✅ Upload callbacks registered")
         # ===== END UPLOAD HANDLERS =====
