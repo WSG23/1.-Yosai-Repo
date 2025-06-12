@@ -982,36 +982,169 @@ def _create_complete_fixed_layout(
 # ============================================================================
 
 
+def _create_base_layout(app_instance, main_logo_path: str, icon_upload_default: str):
+    """Return the initial layout either from main layout or a complete fallback."""
+
+    if components_available.get("main_layout") and create_main_layout:
+        try:
+            layout = create_main_layout(app_instance, main_logo_path, icon_upload_default)
+            print(">> Base main layout loaded successfully")
+            return layout
+        except Exception as e:
+            print(f"!! Error loading main layout: {e}")
+
+    # Fallback to creating a fully-populated layout
+    return _create_complete_fixed_layout(app_instance, main_logo_path, icon_upload_default)
+
+
+def _collect_existing_ids(element, existing_ids: set) -> None:
+    """Recursively collect all IDs from a Dash component tree."""
+
+    if hasattr(element, "id") and element.id:
+        existing_ids.add(element.id)
+    if hasattr(element, "children"):
+        children = (
+            element.children
+            if isinstance(element.children, list)
+            else [element.children] if element.children else []
+        )
+        for child in children:
+            _collect_existing_ids(child, existing_ids)
+
+
+def _get_missing_callback_elements(layout) -> list:
+    """Return placeholders for callback targets missing from the base layout."""
+
+    base_children = (
+        list(layout.children) if hasattr(layout, "children") else []
+    )
+    existing_ids: set = set()
+    for child in base_children:
+        _collect_existing_ids(child, existing_ids)
+
+    callback_targets = [
+        "stats-unique-users",
+        "stats-avg-events-per-user",
+        "stats-most-active-user",
+        "stats-devices-per-user",
+        "stats-peak-hour",
+        "total-devices-count",
+        "entrance-devices-count",
+        "high-security-devices",
+        "traffic-pattern-insight",
+        "security-score-insight",
+        "efficiency-insight",
+        "anomaly-insight",
+        "peak-hour-display",
+        "peak-day-display",
+        "busiest-floor",
+        "entry-exit-ratio",
+        "weekend-vs-weekday",
+        "security-level-breakdown",
+        "compliance-score",
+        "security-compliance-score",
+        "anomaly-alerts",
+        "main-analytics-chart",
+        "security-pie-chart",
+        "heatmap-chart",
+        "chart-type-selector",
+        "export-stats-csv",
+        "export-charts-png",
+        "generate-pdf-report",
+        "refresh-analytics",
+        "download-stats-csv",
+        "download-charts",
+        "download-report",
+        "export-status",
+        "stats-refresh-interval",
+        "export-graph-png",
+        "export-graph-json",
+        "download-graph-png",
+        "download-graph-json",
+        "enhanced-total-access-events-H1",
+        "enhanced-event-date-range-P",
+        "events-trend-indicator",
+        "avg-events-per-day",
+        "most-active-user",
+        "avg-user-activity",
+        "unique-users-today",
+        "core-row-with-sidebar",
+        "peak-activity-events",
+    ]
+
+    missing_elements = []
+    for element_id in callback_targets:
+        if element_id not in existing_ids:
+            if element_id == "stats-refresh-interval":
+                element = dcc.Interval(id=element_id, disabled=True, interval=99999999)
+            elif element_id in [
+                "export-stats-csv",
+                "export-charts-png",
+                "generate-pdf-report",
+                "refresh-analytics",
+                "export-graph-png",
+                "export-graph-json",
+            ]:
+                element = html.Button(id=element_id, style={"display": "none"})
+            elif element_id in [
+                "main-analytics-chart",
+                "security-pie-chart",
+                "heatmap-chart",
+            ]:
+                element = dcc.Graph(id=element_id, style={"display": "none"})
+            elif element_id in [
+                "download-stats-csv",
+                "download-charts",
+                "download-report",
+                "download-graph-png",
+                "download-graph-json",
+            ]:
+                element = dcc.Download(id=element_id)
+            elif "store" in element_id:
+                element = dcc.Store(id=element_id)
+            elif "chart-type-selector" in element_id:
+                element = dcc.Dropdown(id=element_id, style={"display": "none"})
+            else:
+                element = html.Div(id=element_id, style={"display": "none"})
+            missing_elements.append(element)
+
+    return missing_elements
+
+
+def _build_final_layout(base_layout, missing_elements):
+    """Attach any missing elements and return the completed layout."""
+
+    if not missing_elements:
+        return base_layout
+
+    base_children = (
+        list(base_layout.children) if hasattr(base_layout, "children") else []
+    )
+    base_children.extend(missing_elements)
+
+    style = (
+        base_layout.style
+        if hasattr(base_layout, "style")
+        else {
+            "backgroundColor": COLORS["background"],
+            "minHeight": "100vh",
+            "fontFamily": "Inter, sans-serif",
+        }
+    )
+
+    return html.Div(base_children, style=style)
+
+
 def create_fixed_layout_with_required_elements(
     app_instance, main_logo_path: str, icon_upload_default: str
 ):
-    """Create layout that maintains current design but includes all required callback elements"""
+    """Create layout that maintains current design and includes all callback elements."""
 
     print(">> Creating FIXED layout with all required elements...")
 
-    # First try to use the main layout if available
-    base_layout = None
-    if components_available["main_layout"] and create_main_layout:
-        try:
-            # FIXED: Pass all required arguments to create_main_layout
-            base_layout = create_main_layout(
-                app_instance, main_logo_path, icon_upload_default
-            )
-            print(">> Base main layout loaded successfully")
-        except Exception as e:
-            print(f"!! Error loading main layout: {e}")
-            base_layout = None
-
-    if base_layout:
-        # FIXED: Add missing elements to existing layout
-        return _add_missing_elements_to_existing_layout(
-            base_layout, main_logo_path, icon_upload_default
-        )
-    else:
-        # Create complete layout from scratch with all required elements
-        return _create_complete_fixed_layout(
-            app_instance, main_logo_path, icon_upload_default
-        )
+    base_layout = _create_base_layout(app_instance, main_logo_path, icon_upload_default)
+    missing_elements = _get_missing_callback_elements(base_layout)
+    return _build_final_layout(base_layout, missing_elements)
 
 
 def _add_missing_elements_to_existing_layout(
