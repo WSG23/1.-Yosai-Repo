@@ -103,6 +103,7 @@ from ui.themes.style_config import (
     COLORS,
     TYPOGRAPHY,
     SPACING,
+    DEBUG_PANEL_STYLE,
 )
 from config.settings import DEFAULT_ICONS, REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
@@ -624,15 +625,12 @@ def create_debug_panel():
             ),
         ],
         style={
+            **DEBUG_PANEL_STYLE,
             "position": "fixed",
             "top": "10px",
             "right": "10px",
-            "backgroundColor": "#333",
-            "padding": "15px",
-            "borderRadius": "8px",
             "zIndex": "9999",
             "maxWidth": "300px",
-            "border": "1px solid #555",
         },
     )
 
