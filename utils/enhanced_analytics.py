@@ -164,7 +164,10 @@ class EnhancedDataProcessor:
     
     def _calculate_activity_intensity(self, hourly_counts: pd.Series) -> str:
         """Calculate activity intensity level"""
-        variance = float(hourly_counts.var())
+        # pandas returns a "Scalar" type here which Pylance flags as not directly
+        # convertible to ``float``. Convert the series to ``numpy`` explicitly
+        # before calculating the variance to keep the static type checkers happy.
+        variance = float(np.var(hourly_counts.to_numpy(dtype=float)))
         
         if variance > 1000:
             return "High"
@@ -187,7 +190,7 @@ class EnhancedDataProcessor:
             if current_start is None:
                 current_start = hour
                 current_end = hour
-            elif hour == current_end + 1:
+            elif current_end is not None and hour == current_end + 1:
                 current_end = hour
             else:
                 periods.append((current_start, current_end))
