@@ -242,6 +242,7 @@ class EnhancedStatsComponent:
                     html.P(id="stats-avg-events-per-user", children="Avg: 0 events/user", style={"margin": "8px 0", "color": COLORS["text_secondary"]}),
                     html.P(id="stats-most-active-user", children="Most active: N/A", style={"margin": "8px 0", "color": COLORS["text_secondary"]}),
                     html.P(id="stats-devices-per-user", children="Avg: 0 users/device", style={"margin": "8px 0", "color": COLORS["text_secondary"]}),
+                    html.P(id="security-events-count", children="Security events: 0", style={"margin": "8px 0", "color": COLORS["text_secondary"]}),
                 ]),
             ]
         )

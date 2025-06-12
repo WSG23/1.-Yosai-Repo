@@ -44,8 +44,10 @@ def main_data_orchestrator(
     if trigger_id == "upload-data":
         return processors.handle_file_upload(upload_contents, filename, column_mapping)
     if trigger_id == "confirm-and-generate-button":
-        processors.handle_graph_generation(current_data, generate_clicks)
-        return no_update, no_update, no_update, no_update
+        _, _, _, status = processors.handle_graph_generation(
+            current_data, generate_clicks
+        )
+        return no_update, no_update, no_update, status
     if trigger_id == "confirm-header-map-button":
         return processors.handle_mapping_confirmation(mapping_clicks, column_mapping)
 
