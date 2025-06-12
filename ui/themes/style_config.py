@@ -445,6 +445,26 @@ CLASSIFICATION_STYLES = {
     }
 }
 
+# Styles for displaying error messages in the UI
+ERROR_STYLES = {
+    'error_container': {
+        'backgroundColor': f"{COLORS['critical']}20",
+        'border': f"1px solid {COLORS['critical']}",
+        'borderRadius': '8px',
+        'padding': '15px',
+        'margin': '10px 0'
+    },
+    'error_title': {
+        'color': COLORS['critical'],
+        'fontWeight': 'bold',
+        'marginBottom': '5px'
+    },
+    'error_details': {
+        'color': COLORS['text_secondary'],
+        'fontSize': '0.9em'
+    }
+}
+
 # Enhanced Component Styles - Building on existing card styles
 ENHANCED_COMPONENT_STYLES = {
     **COMPONENT_STYLES,
@@ -700,6 +720,7 @@ __all__ = [
     'UPLOAD_STYLES',
     'MAPPING_STYLES',
     'CLASSIFICATION_STYLES',
+    'ERROR_STYLES',
     'UI_VISIBILITY',
     'UI_COMPONENTS',
     'LAYOUT_CONFIG',

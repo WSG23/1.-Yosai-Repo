@@ -9,6 +9,8 @@ import json
 from dash import Input, Output, State, no_update
 from dash.dependencies import ALL
 
+from utils.logging_config import get_logger
+
 # Import UI components
 from ui.components.mapping import create_mapping_component, create_mapping_validator
 from ui.themes.style_config import COLORS
@@ -21,6 +23,7 @@ class MappingHandlers:
         self.app = app
         self.mapping_component = mapping_component or create_mapping_component()
         self.validator = create_mapping_validator()
+        self.logger = get_logger(__name__)
         
     def register_callbacks(self):
         """Register ONLY mapping callbacks"""
@@ -111,10 +114,21 @@ class MappingHandlers:
                 'csv_headers': csv_headers
             }
             
-        except Exception as e:
+        except KeyError as e:
             return {
                 'success': False,
-                'error': f"Error processing mapping: {str(e)}"
+                'error': f"Missing required mapping key: {str(e)}"
+            }
+        except TypeError as e:
+            return {
+                'success': False,
+                'error': f"Invalid mapping data type: {str(e)}"
+            }
+        except Exception as e:
+            self.logger.error("Mapping error: %s", str(e))
+            return {
+                'success': False,
+                'error': f"Mapping operation failed: {str(e)}"
             }
     
     def _update_stored_mappings(self, mapping, csv_headers, existing_json):

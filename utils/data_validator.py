@@ -6,11 +6,16 @@ Enhanced data validation with detailed error reporting
 import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional
 import re
+import uuid
+
+from utils.logging_config import get_logger
 
 from utils.error_handler import ValidationError, DataProcessingError
 from utils.csv_validator import CSVValidator
 from ui.components.mapping import MappingValidator
 from config.settings import REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
+
+logger = get_logger(__name__)
 
 # Thresholds used across validation routines
 MAX_MISSING_PERCENTAGE_THRESHOLD = 50
@@ -393,8 +398,25 @@ def quick_validate_csv(file_path: str) -> Dict[str, Any]:
         
         return validator.validate_upload(filename, file_size, encoded_contents)
         
-    except Exception as e:
+    except pd.errors.EmptyDataError:
         return {
             'success': False,
-            'error': f"Failed to validate file: {str(e)}"
+            'error': 'File is empty - no data to validate'
+        }
+    except pd.errors.ParserError as e:
+        return {
+            'success': False,
+            'error': f"File format error: {str(e)}"
+        }
+    except MemoryError:
+        return {
+            'success': False,
+            'error': 'File too large to validate - please use a smaller file'
+        }
+    except Exception as e:
+        error_id = str(uuid.uuid4())[:8]
+        logger.error("Validation error (ID: %s): %s", error_id, str(e))
+        return {
+            'success': False,
+            'error': f"Validation failed (Error ID: {error_id})"
         }
