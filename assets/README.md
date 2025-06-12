@@ -136,7 +136,7 @@ The tests rely on packages such as `pandas` which are included in
 **Phase 2** will extract:
 - Mapping components (`ui/components/mapping.py`)
 - Classification components (`ui/components/classification.py`)
-- Stats components (`ui/components/stats.py`)
+- Enhanced stats components (`ui/components/enhanced_stats.py`)
 
 **Phase 3** will extract:
 - Graph components (`ui/components/graph.py`)
