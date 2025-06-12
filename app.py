@@ -2037,23 +2037,23 @@ def update_enhanced_stats_store_fixed(status_message, processed_data, device_cla
 def update_consolidated_analytics(enhanced_metrics, generate_clicks):
     """Update ALL analytics in the consolidated container"""
 
-    if not enhanced_metrics or not generate_clicks:
+    if enhanced_metrics and generate_clicks:
+        show_style = {
+            "display": "block",  # Make visible
+            "width": "95%",
+            "margin": "20px auto",
+            "backgroundColor": COLORS["background"],
+            "borderRadius": "12px",
+            "padding": "20px",
+            "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+        }
+    else:
         hide_style = {"display": "none"}
         # Return placeholders matching the number of outputs
         # There are 31 outputs besides the style, with the last
         # being the most-active-devices table rows.
         empty_values = ["N/A"] * 30
         return [hide_style] + empty_values + [[]]
-
-    show_style = {
-        "display": "block",
-        "width": "95%",
-        "margin": "20px auto",
-        "backgroundColor": COLORS["background"],
-        "borderRadius": "12px",
-        "padding": "20px",
-        "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
-    }
 
     metrics = enhanced_metrics or {}
 
