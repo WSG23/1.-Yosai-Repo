@@ -206,24 +206,77 @@ class MappingValidator:
     def validate_mapping(self, mapping_dict):
         """
         Validates that all required columns are mapped
-        
+
         Args:
             mapping_dict: Dict of {csv_column: internal_key}
-            
+
         Returns:
             Dict with 'is_valid', 'missing_columns', 'message'
+
+        Raises:
+            TypeError: If mapping_dict is not a dictionary
+            ValueError: If mapping_dict contains invalid data types
         """
+
+        # INPUT VALIDATION - NEW SECTION
+        # 1. Check if input is a dictionary
+        if not isinstance(mapping_dict, dict):
+            raise TypeError(
+                f"mapping_dict must be a dictionary, got {type(mapping_dict).__name__}"
+            )
+
+        # 2. Check for None input (explicit check)
+        if mapping_dict is None:
+            return {
+                'is_valid': False,
+                'missing_columns': list(self.required_columns.keys()),
+                'message': 'No mapping provided'
+            }
+
+        # 3. Check if dictionary is empty
         if not mapping_dict:
             return {
                 'is_valid': False,
                 'missing_columns': list(self.required_columns.keys()),
                 'message': 'No columns mapped'
             }
-        
+
+        # 4. Validate dictionary keys and values are strings
+        for key, value in mapping_dict.items():
+            if not isinstance(key, str):
+                raise ValueError(
+                    f"All mapping keys must be strings, got {type(key).__name__}: {key}"
+                )
+            if not isinstance(value, str):
+                raise ValueError(
+                    f"All mapping values must be strings, got {type(value).__name__}: {value}"
+                )
+            if not key.strip():
+                raise ValueError("Mapping keys cannot be empty or whitespace-only")
+            if not value.strip():
+                raise ValueError("Mapping values cannot be empty or whitespace-only")
+
+        # 5. Check for None or empty values in the dictionary
+        invalid_entries = [
+            key for key, value in mapping_dict.items()
+            if value is None or (isinstance(value, str) and not value.strip())
+        ]
+        if invalid_entries:
+            return {
+                'is_valid': False,
+                'missing_columns': invalid_entries,
+                'message': f'Invalid mapping values for: {", ".join(invalid_entries)}'
+            }
+
+        # 6. Validate that required_columns exists and is properly initialized
+        if not hasattr(self, 'required_columns') or not self.required_columns:
+            raise ValueError("MappingValidator not properly initialized: missing required_columns")
+
+        # EXISTING VALIDATION LOGIC (unchanged)
         mapped_internal_keys = set(mapping_dict.values())
         required_internal_keys = set(self.required_columns.keys())
         missing_keys = required_internal_keys - mapped_internal_keys
-        
+
         if missing_keys:
             missing_display_names = [
                 self.required_columns[key] for key in missing_keys
@@ -233,11 +286,53 @@ class MappingValidator:
                 'missing_columns': missing_display_names,
                 'message': f'Missing required mappings: {", ".join(missing_display_names)}'
             }
-        
+
         return {
             'is_valid': True,
             'missing_columns': [],
             'message': 'All required columns mapped successfully'
+        }
+
+    def validate_single_mapping(self, csv_column, internal_key):
+        """
+        Validate a single mapping entry
+
+        Args:
+            csv_column: CSV column name
+            internal_key: Internal key to map to
+
+        Returns:
+            Dict with validation result
+
+        Raises:
+            TypeError: If inputs are not strings
+            ValueError: If inputs are invalid
+        """
+
+        # Input validation for single entries
+        if not isinstance(csv_column, str):
+            raise TypeError(f"csv_column must be a string, got {type(csv_column).__name__}")
+
+        if not isinstance(internal_key, str):
+            raise TypeError(f"internal_key must be a string, got {type(internal_key).__name__}")
+
+        if not csv_column.strip():
+            raise ValueError("csv_column cannot be empty or whitespace-only")
+
+        if not internal_key.strip():
+            raise ValueError("internal_key cannot be empty or whitespace-only")
+
+        # Check if internal_key is valid
+        if internal_key not in self.required_columns:
+            valid_keys = list(self.required_columns.keys())
+            return {
+                'is_valid': False,
+                'error': f'Invalid internal key "{internal_key}". Valid keys: {", ".join(valid_keys)}'
+            }
+
+        return {
+            'is_valid': True,
+            'message': f'Valid mapping: {csv_column} -> {internal_key}'
         }
     
     def suggest_mappings(self, csv_headers):
