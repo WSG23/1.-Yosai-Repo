@@ -13,24 +13,25 @@ if Version(cyto.__version__) < Version("0.3.0"):
         "Please run 'pip install -r requirements.txt'"
     )
 
-MODE = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("MODE", "dev")).lower()
+from app_factory import create_app
+
+MODE = (sys.argv[1] if len(sys.argv) > 1 else os.getenv("MODE", "development")).lower()
+
+app = create_app(MODE)
 
 if MODE in ("prod", "production"):
-    from app_production import create_production_app
     from waitress import serve
-
-    app = create_production_app()
     serve(app.server, host="0.0.0.0", port=8050)
 else:
-    from app import app
-
+    port = int(os.getenv("PORT", "8050"))
+    host = os.getenv("HOST", "127.0.0.1")
+    debug = MODE in ("dev", "development")
     # Use Dash's run_server for proper type hints (expects int port)
     app.run_server(
-        debug=True,
-        host="127.0.0.1",
-        port=8050,
+        debug=debug,
+        host=host,
+        port=port,
         dev_tools_hot_reload=True,
         dev_tools_ui=True,
         dev_tools_props_check=False,
     )
-
