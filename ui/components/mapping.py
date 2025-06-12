@@ -7,18 +7,22 @@ FIXED: Corrected import statement
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+from typing import Dict, List, Tuple, Any, Optional, Union, Callable
+import pandas as pd
 
 from ui.themes.style_config import COLORS, MAPPING_STYLES, get_validation_message_style
 from config.settings import REQUIRED_INTERNAL_COLUMNS
+from functools import lru_cache
+from typing import List, Dict, Tuple
 
 
 class MappingComponent:
     """Centralized mapping component with all related UI elements and consistent widths"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.required_columns = REQUIRED_INTERNAL_COLUMNS
-    
-    def create_mapping_section(self):
+
+    def create_mapping_section(self) -> html.Div:
         """Creates the Step 1: Map CSV Headers section with reduced width"""
         return html.Div(
             id='mapping-ui-section',
@@ -32,7 +36,7 @@ class MappingComponent:
             ]
         )
     
-    def create_mapping_header(self):
+    def create_mapping_header(self) -> html.H4:
         """Creates the mapping section header with smaller font"""
         return html.H4(
             "Step 1: Map CSV Headers", 
@@ -40,11 +44,11 @@ class MappingComponent:
             style={'color': COLORS['text_primary'], 'fontSize': '1.3rem', 'marginBottom': '1rem'}  # Reduced font size and margin
         )
     
-    def create_mapping_area(self):
+    def create_mapping_area(self) -> html.Div:
         """Creates the dropdown mapping area container"""
         return html.Div(id='dropdown-mapping-area')
     
-    def create_confirm_button(self):
+    def create_confirm_button(self) -> html.Button:
         """Creates the confirm header mapping button with reduced size"""
         return html.Button(
             'Confirm Header Mapping & Proceed',
@@ -53,7 +57,9 @@ class MappingComponent:
             style=MAPPING_STYLES['confirm_button']
         )
     
-    def _create_mapping_dropdowns(self, headers, loaded_col_map_prefs=None):
+    def _create_mapping_dropdowns(
+        self, headers: List[str], loaded_col_map_prefs: Optional[Dict[str, str]] = None
+    ) -> List[html.Div]:
         """
         Creates dropdown components for column mapping with improved layout
         
@@ -87,7 +93,9 @@ class MappingComponent:
         
         return mapping_dropdowns_children
     
-    def create_mapping_validation_message(self, missing_columns=None, status="info"):
+    def create_mapping_validation_message(
+        self, missing_columns: Optional[List[str]] = None, status: str = "info"
+    ) -> html.Div:
         """
         Creates validation message for mapping status
         
@@ -108,7 +116,7 @@ class MappingComponent:
             style=get_validation_message_style(status)
         )
     
-    def create_mapping_help_text(self):
+    def create_mapping_help_text(self) -> html.Div:
         """Creates help text for the mapping process with smaller fonts"""
         return html.Div([
             html.P([
@@ -132,7 +140,7 @@ class MappingComponent:
             ])
         ], style={'marginBottom': '12px'})  # Reduced margin
     
-    def get_mapping_styles(self):
+    def get_mapping_styles(self) -> Dict[str, Dict[str, Any]]:
         """Returns all mapping-related styles"""
         return {
             'section': MAPPING_STYLES['section'],
@@ -142,7 +150,9 @@ class MappingComponent:
             'label': MAPPING_STYLES['label']
         }
     
-    def _find_preselected_value(self, internal_name, headers, loaded_col_map_prefs):
+    def _find_preselected_value(
+        self, internal_name: str, headers: List[str], loaded_col_map_prefs: Dict[str, str]
+    ) -> Optional[str]:
         """Find preselected value for dropdown based on saved preferences"""
         pre_sel = None
         if loaded_col_map_prefs:
@@ -152,7 +162,9 @@ class MappingComponent:
                     break
         return pre_sel
     
-    def _create_single_dropdown(self, internal_name, headers, pre_sel):
+    def _create_single_dropdown(
+        self, internal_name: str, headers: List[str], pre_sel: Optional[str]
+    ) -> dcc.Dropdown:
         """Create a single dropdown for column mapping with improved styling"""
         return dcc.Dropdown(
             id={'type': 'mapping-dropdown', 'index': internal_name},
@@ -163,7 +175,7 @@ class MappingComponent:
             className="mapping-dropdown"
         )
     
-    def _create_dropdown_container(self, display_text, dropdown):
+    def _create_dropdown_container(self, display_text: str, dropdown: Any) -> html.Div:
         """Create container for label and dropdown with improved layout"""
         return html.Div([
             html.Label(
@@ -173,26 +185,26 @@ class MappingComponent:
             dropdown
         ], className="mapping-row", style={'marginBottom': '12px'})  # Reduced margin
     
-    def _get_mapping_section_style(self):
+    def _get_mapping_section_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for section style"""
         return MAPPING_STYLES['section']
     
-    def _get_confirm_button_style(self, visible=True):
+    def _get_confirm_button_style(self, visible: bool = True) -> Dict[str, Any]:
         """Backward-compatible wrapper for button style"""
         style = MAPPING_STYLES['confirm_button'].copy()
         if not visible:
             style['display'] = 'none'
         return style
     
-    def _get_dropdown_style(self):
+    def _get_dropdown_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for dropdown style"""
         return MAPPING_STYLES['dropdown']
     
-    def _get_label_style(self):
+    def _get_label_style(self) -> Dict[str, Any]:
         """Backward-compatible wrapper for label style"""
         return MAPPING_STYLES['label']
     
-    def _get_validation_message_style(self, status="info"):
+    def _get_validation_message_style(self, status: str = "info") -> Dict[str, Any]:
         """Backward-compatible wrapper for validation message style"""
         return get_validation_message_style(status)
 
@@ -229,7 +241,10 @@ class MappingValidator:
             raise TypeError("required_columns must be a dictionary")
         if not required_columns:
             raise ValueError("required_columns cannot be empty")
+
         self.required_columns = required_columns
+        # Initialize cache for fuzzy matching results
+        self._fuzzy_cache = {}
     
     def validate_mapping(self, mapping_dict):
         """Validate that all required columns are properly mapped.
@@ -237,6 +252,7 @@ class MappingValidator:
         Checks that the provided mapping dictionary contains valid mappings for all
         required internal columns. Returns detailed validation results including
         any missing mappings and appropriate error messages.
+
 
         Args:
             mapping_dict: Dictionary mapping CSV column names to internal column keys.
@@ -334,7 +350,7 @@ class MappingValidator:
             'message': 'All required columns mapped successfully'
         }
 
-    def validate_single_mapping(self, csv_column, internal_key):
+    def validate_single_mapping(self, csv_column: str, internal_key: str) -> Dict[str, Any]:
         """
         Validate a single mapping entry
 
@@ -393,6 +409,7 @@ class MappingValidator:
             csv_headers: List of column header names from the uploaded CSV file.
                 Must be non-empty and contain only string values.
 
+
         Returns:
             Dictionary mapping CSV headers to suggested internal keys.
             Example: ``{'user_id_col': 'UserID', 'door_name': 'DoorID'}``
@@ -412,56 +429,81 @@ class MappingValidator:
             with similar header sets. Cache can be cleared using ``clear_fuzzy_cache()``.
         """
         from difflib import get_close_matches
-        
-        suggestions = {}
-        
+
+        suggestions: Dict[str, str] = {}
+
         for internal_key, display_name in self.required_columns.items():
-            # Try exact match first
+            # Try exact match first (no caching needed - this is fast)
             if display_name in csv_headers:
                 suggestions[display_name] = internal_key
                 continue
-                
+
             if internal_key in csv_headers:
                 suggestions[internal_key] = internal_key
                 continue
-            
-            # Fuzzy match on display name
-            matches = get_close_matches(display_name.lower(), 
-                                      [h.lower() for h in csv_headers], 
-                                      n=1, cutoff=0.6)
-            if matches:
-                # Find original case header
-                original_header = next(h for h in csv_headers if h.lower() == matches[0])
+
+            # OPTIMIZATION: Cache expensive fuzzy matching operations
+            display_matches = self._get_cached_fuzzy_matches(
+                display_name.lower(),
+                tuple(h.lower() for h in csv_headers),
+                cutoff=0.6
+            )
+            if display_matches:
+                original_header = next(h for h in csv_headers if h.lower() == display_matches[0])
                 suggestions[original_header] = internal_key
                 continue
-            
-            # Fuzzy match on internal key
-            matches = get_close_matches(internal_key.lower(), 
-                                      [h.lower() for h in csv_headers], 
-                                      n=1, cutoff=0.6)
-            if matches:
-                original_header = next(h for h in csv_headers if h.lower() == matches[0])
+
+            internal_matches = self._get_cached_fuzzy_matches(
+                internal_key.lower(),
+                tuple(h.lower() for h in csv_headers),
+                cutoff=0.6
+            )
+            if internal_matches:
+                original_header = next(h for h in csv_headers if h.lower() == internal_matches[0])
                 suggestions[original_header] = internal_key
-        
+
         return suggestions
+
+    @lru_cache(maxsize=256)
+    def _get_cached_fuzzy_matches(self, target: str, candidates_tuple: Tuple[str, ...], cutoff: float = 0.6) -> List[str]:
+        """Cached fuzzy matching to avoid recomputing expensive string comparisons"""
+        from difflib import get_close_matches
+
+        return get_close_matches(target, list(candidates_tuple), n=1, cutoff=cutoff)
+
+    def clear_fuzzy_cache(self) -> None:
+        """Clear the fuzzy matching cache (useful for testing or memory management)"""
+        self._get_cached_fuzzy_matches.cache_clear()
+
+    def get_cache_stats(self) -> Dict[str, int]:
+        """Get cache performance statistics"""
+        cache_info = self._get_cached_fuzzy_matches.cache_info()
+        return {
+            'hits': cache_info.hits,
+            'misses': cache_info.misses,
+            'current_size': cache_info.currsize,
+            'max_size': cache_info.maxsize
+        }
 
 
 # Factory functions for easy component creation
-def create_mapping_component():
+def create_mapping_component() -> MappingComponent:
     """Factory function to create mapping component instance"""
     return MappingComponent()
 
-def create_mapping_validator():
+def create_mapping_validator() -> MappingValidator:
     """Factory function to create mapping validator instance"""
     return MappingValidator(REQUIRED_INTERNAL_COLUMNS)
 
 # Convenience functions for individual elements (backward compatibility)
-def create_mapping_section():
+def create_mapping_section() -> html.Div:
     """Create the mapping section"""
     component = MappingComponent()
     return component.create_mapping_section()
 
-def _create_mapping_dropdowns(headers, saved_preferences=None):
+def _create_mapping_dropdowns(
+    headers: List[str], saved_preferences: Optional[Dict[str, str]] = None
+) -> List[html.Div]:
     """Create mapping dropdowns"""
     component = MappingComponent()
     return component._create_mapping_dropdowns(headers, saved_preferences)

@@ -3,6 +3,8 @@
 
 import os
 import re
+from typing import Dict, List, Tuple, Any, Optional, Union, Callable
+import pandas as pd
 
 
 def find_callback_registrations():
@@ -39,6 +41,7 @@ def find_callback_registrations():
         This function is primarily used for debugging and should not be called
         in production code paths due to file system scanning overhead.
     """
+
     print("🔍 Searching for callback registrations...")
     search_files = []
     for root, dirs, files in os.walk('.'):
@@ -75,7 +78,7 @@ def find_callback_registrations():
     return findings
 
 
-def analyze_floor_callbacks(findings):
+def analyze_floor_callbacks(findings: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
     """Highlight floor-slider callback references."""
     print("\n🎯 Analyzing floor slider callbacks...")
     floor_files = []
@@ -99,7 +102,7 @@ def analyze_floor_callbacks(findings):
     return floor_files
 
 
-def suggest_fixes(findings):
+def suggest_fixes(findings: Dict[str, List[Dict[str, Any]]]) -> None:
     """Offer potential resolutions for callback conflicts."""
     print("\n🔧 Suggested Fixes:")
     callback_files = []
@@ -123,7 +126,7 @@ def suggest_fixes(findings):
     print("   It should be handled in ui/components/classification_handlers.py")
 
 
-def main():
+def main() -> None:
     """Run callback diagnostics."""
     print("🔍 Dash Callback Conflict Diagnostic")
     print("=" * 50)
