@@ -1793,8 +1793,6 @@ def process_uploaded_data(
                 .sum()
             )
             security_score = round(100 - ((denied / len(df)) * 100), 2)
-        else:
-            denied = 0
 
         devices_active_today = 0
         if (
@@ -1837,9 +1835,6 @@ def process_uploaded_data(
             weekend = df[df["Timestamp (Event Time)"].dt.weekday >= 5]
             weekday = df[df["Timestamp (Event Time)"].dt.weekday < 5]
             weekend_vs_weekday = f"{len(weekday)} weekday / {len(weekend)} weekend"
-            weekend_ratio = weekend_vs_weekday
-        else:
-            weekend_ratio = "N/A"
 
         busiest_floor = "N/A"
         security_breakdown = {}
@@ -1852,35 +1847,6 @@ def process_uploaded_data(
                 security_breakdown = (
                     device_attrs["SecurityLevel"].value_counts().to_dict()
                 )
-            entrance_devices_count = int(device_attrs.get("IsOfficialEntrance", pd.Series(dtype=int)).sum())
-            high_security_devices = (
-                device_attrs.get("SecurityLevel", pd.Series(dtype=str))
-                .astype(str)
-                .str.lower()
-                .str.contains("red")
-                .sum()
-            )
-        
-        else:
-            entrance_devices_count = 0
-            high_security_devices = 0
-
-        avg_users_per_device = unique_users / max(total_devices_count, 1)
-        device_utilization_rate = (
-            (devices_active_today / total_devices_count) * 100
-            if total_devices_count > 0
-            else 0
-        )
-        efficiency_score = device_utilization_rate
-        anomaly_count = 0
-        try:
-            from utils.enhanced_analytics import create_enhanced_anomaly_detector
-
-            detector = create_enhanced_anomaly_detector()
-            anomalies = detector.detect_anomalies(df, {})
-            anomaly_count = len(anomalies)
-        except Exception:
-            pass
 
         enhanced_metrics = {
             "total_events": total_events,
@@ -1905,15 +1871,6 @@ def process_uploaded_data(
             "date_range": date_range,
             "security_breakdown": security_breakdown,
             "security_score": security_score,
-            "avg_users_per_device": avg_users_per_device,
-            "security_events_count": int(denied),
-            "entrance_devices_count": entrance_devices_count,
-            "high_security_devices": high_security_devices,
-            "device_utilization_rate": round(device_utilization_rate, 1),
-            "weekend_vs_weekday_ratio": weekend_ratio,
-            "anomaly_count": anomaly_count,
-            "efficiency_score": round(efficiency_score, 1),
-            "num_devices": total_devices_count,
         }
 
         print(f"✅ Simple analytics calculated: {len(enhanced_metrics)} metrics")
