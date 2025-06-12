@@ -314,6 +314,15 @@ LAYOUT_CONFIG = {
     }
 }
 
+# Style for the debug information panel used in the application
+DEBUG_PANEL_STYLE = {
+    "backgroundColor": COLORS["surface"],
+    "border": f"1px solid {COLORS['border']}",
+    "borderRadius": "8px",
+    "padding": "15px",
+    "marginTop": "20px",
+}
+
 # Centralized style definitions for UI components
 UPLOAD_STYLES = {
     'icon': {
@@ -694,6 +703,7 @@ __all__ = [
     'UI_VISIBILITY',
     'UI_COMPONENTS',
     'LAYOUT_CONFIG',
+    'DEBUG_PANEL_STYLE',
     'CSS_ANIMATIONS',
     
     # Enhanced style constants

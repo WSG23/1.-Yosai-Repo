@@ -12,6 +12,10 @@ from utils.csv_validator import CSVValidator
 from ui.components.mapping import MappingValidator
 from config.settings import REQUIRED_INTERNAL_COLUMNS, FILE_LIMITS
 
+# Thresholds used across validation routines
+MAX_MISSING_PERCENTAGE_THRESHOLD = 50
+MAX_STRING_LENGTH_THRESHOLD = 1000
+
 class EnhancedDataValidator:
     """Enhanced data validation with detailed reporting"""
     
@@ -191,7 +195,7 @@ class EnhancedDataValidator:
             if df[col].dtype == 'object':
                 # Check for very long strings (possible data corruption)
                 max_length = df[col].astype(str).str.len().max()
-                if max_length > 1000:
+                if max_length > MAX_STRING_LENGTH_THRESHOLD:
                     self.validation_warnings.append(f"Column '{col}' has very long values (max: {max_length} chars)")
                 
                 # Check for unusual characters
@@ -327,7 +331,7 @@ class DataQualityAnalyzer:
         missing_data = analysis['missing_data']
         high_missing_columns = [
             col for col, stats in missing_data['by_column'].items()
-            if stats['missing_percentage'] > 50
+            if stats['missing_percentage'] > MAX_MISSING_PERCENTAGE_THRESHOLD
         ]
         
         if high_missing_columns:
