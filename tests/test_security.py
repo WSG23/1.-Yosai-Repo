@@ -21,3 +21,4 @@ def test_basic_security():
     valid_json = '{"user_id": 1, "door_id": 101}'
     result = validate_upload_security(valid_json.encode('utf-8'), 'data.json')
     assert result['is_valid']
+    
