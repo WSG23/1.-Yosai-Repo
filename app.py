@@ -543,6 +543,7 @@ def register_all_callbacks_safely(app: dash.Dash) -> None:
     try:
         print("🔄 Registering callbacks...")
 
+        # Upload handlers
         from ui.components.upload_handlers import UploadHandlers
         from ui.components.upload import create_enhanced_upload_component
 
@@ -565,20 +566,39 @@ def register_all_callbacks_safely(app: dash.Dash) -> None:
         upload_handlers.register_callbacks()
         print("   ✅ Upload callbacks registered")
 
+        # Orchestrator callbacks
         from ui.orchestrator import main_data_orchestrator  # noqa: F401
         from ui.orchestrator import update_graph_elements  # noqa: F401
         from ui.orchestrator import update_container_visibility  # noqa: F401
         from ui.orchestrator import update_status_display  # noqa: F401
-        from ui.components.mapping_handlers import MappingHandlers
-        from ui.components.classification_handlers import ClassificationHandlers
+        print("   ✅ Orchestrator callbacks imported")
 
+        # Mapping handlers
+        from ui.components.mapping_handlers import MappingHandlers
         mapping_handlers = MappingHandlers(app)
         mapping_handlers.register_callbacks()
         print("   ✅ Mapping callbacks registered")
 
+        # Classification handlers
+        from ui.components.classification_handlers import ClassificationHandlers
         classification_handlers = ClassificationHandlers(app)
         classification_handlers.register_callbacks()
         print("   ✅ Classification callbacks registered (includes floor slider)")
+
+        # Enhanced Stats handlers - THIS IS THE NEW ADDITION!
+        from ui.components.enhanced_stats_handlers import EnhancedStatsHandlers
+        stats_handlers = EnhancedStatsHandlers(app)
+        stats_handlers.register_callbacks()
+        print("   ✅ Enhanced stats callbacks registered")
+
+        # Graph handlers
+        try:
+            from ui.components.graph_handlers import GraphHandlers
+            graph_handlers = GraphHandlers(app)
+            graph_handlers.register_callbacks()
+            print("   ✅ Graph callbacks registered")
+        except Exception as e:
+            print(f"   ⚠️ Graph callbacks failed: {e}")
 
         CALLBACKS_REGISTERED = True
         print("🎉 All callbacks registered successfully - no conflicts!")
@@ -592,6 +612,178 @@ def register_all_callbacks_safely(app: dash.Dash) -> None:
 def register_enhanced_callbacks_once(app: dash.Dash) -> None:
     """Compatibility wrapper for production imports."""
     register_all_callbacks_safely(app)
+
+
+# ENHANCED STATS DATA POPULATOR - ADD THIS CALLBACK
+@app.callback(
+    [
+        Output("enhanced-stats-data-store", "data"),
+        Output("stats-panels-container", "style"),
+    ],
+    [
+        Input("processed-data-store", "data"),
+        Input("confirm-and-generate-button", "n_clicks"),
+    ],
+    [
+        State("all-doors-from-csv-store", "data"),
+        State("manual-door-classifications-store", "data"),
+    ],
+    prevent_initial_call=True,
+)
+def populate_enhanced_stats_store(processed_data, generate_clicks, doors_data, classifications):
+    """Populate the enhanced stats store with calculated metrics"""
+    from dash import ctx
+    import pandas as pd
+    from datetime import datetime
+
+    # Only proceed if we have processed data
+    if not processed_data:
+        return {}, {"display": "none"}
+
+    try:
+        # Convert processed data to DataFrame
+        if isinstance(processed_data, dict) and "dataframe" in processed_data:
+            df_data = processed_data["dataframe"]
+            if isinstance(df_data, list) and len(df_data) > 0:
+                df = pd.DataFrame(df_data)
+            else:
+                return {}, {"display": "none"}
+        else:
+            return {}, {"display": "none"}
+
+        if df.empty:
+            return {}, {"display": "none"}
+
+        print(f"📊 Calculating enhanced metrics for {len(df)} events...")
+
+        # Basic metrics
+        total_events = len(df)
+
+        # Try to find the timestamp column
+        timestamp_cols = [col for col in df.columns if 'timestamp' in col.lower() or 'time' in col.lower()]
+        if timestamp_cols:
+            timestamp_col = timestamp_cols[0]
+            try:
+                df[timestamp_col] = pd.to_datetime(df[timestamp_col], errors='coerce')
+                date_range = f"{df[timestamp_col].min().strftime('%Y-%m-%d')} to {df[timestamp_col].max().strftime('%Y-%m-%d')}"
+
+                # Calculate events per day
+                df['date'] = df[timestamp_col].dt.date
+                events_per_day = df.groupby('date').size().mean()
+
+                # Peak hour analysis
+                df['hour'] = df[timestamp_col].dt.hour
+                peak_hour = df['hour'].mode().iloc[0] if not df['hour'].mode().empty else 12
+
+            except Exception as e:
+                print(f"⚠️ Error processing timestamps: {e}")
+                date_range = "Unknown date range"
+                events_per_day = total_events
+                peak_hour = 12
+        else:
+            date_range = "No timestamp data"
+            events_per_day = total_events
+            peak_hour = 12
+
+        # User metrics
+        user_cols = [col for col in df.columns if 'user' in col.lower() or 'person' in col.lower()]
+        if user_cols:
+            user_col = user_cols[0]
+            unique_users = df[user_col].nunique()
+            avg_events_per_user = total_events / unique_users if unique_users > 0 else 0
+            most_active_user = df[user_col].value_counts().index[0] if not df[user_col].value_counts().empty else "N/A"
+        else:
+            unique_users = 0
+            avg_events_per_user = 0
+            most_active_user = "N/A"
+
+        # Device metrics
+        device_cols = [col for col in df.columns if 'door' in col.lower() or 'device' in col.lower()]
+        if device_cols:
+            device_col = device_cols[0]
+            total_devices_count = df[device_col].nunique()
+            most_active_devices = df[device_col].value_counts().head(5).to_dict()
+
+            # Convert to list of dicts for the UI
+            most_active_devices_list = [
+                {"device": device, "events": count}
+                for device, count in most_active_devices.items()
+            ]
+        else:
+            total_devices_count = 0
+            most_active_devices_list = []
+
+        # Classification-based metrics
+        entrance_devices_count = 0
+        high_security_devices = 0
+        security_score = 75  # Default security score
+
+        if classifications and isinstance(classifications, dict):
+            for door_id, classification in classifications.items():
+                if isinstance(classification, dict):
+                    if classification.get("is_ee", False):
+                        entrance_devices_count += 1
+                    if classification.get("security_level", 0) >= 7:
+                        high_security_devices += 1
+
+        # Activity analysis
+        if total_events > 1000:
+            activity_intensity = "High"
+        elif total_events > 100:
+            activity_intensity = "Medium"
+        else:
+            activity_intensity = "Low"
+
+        # Compile enhanced metrics
+        enhanced_metrics = {
+            "total_events": total_events,
+            "date_range": date_range,
+            "events_per_day": round(events_per_day, 2),
+            "unique_users": unique_users,
+            "avg_events_per_user": round(avg_events_per_user, 2),
+            "most_active_user": most_active_user,
+            "total_devices_count": total_devices_count,
+            "entrance_devices_count": entrance_devices_count,
+            "high_security_devices": high_security_devices,
+            "peak_hour": peak_hour,
+            "peak_day": "Monday",  # Placeholder
+            "activity_intensity": activity_intensity,
+            "security_score": security_score,
+            "most_active_devices": most_active_devices_list,
+            "avg_users_per_device": round(unique_users / total_devices_count if total_devices_count > 0 else 0, 2),
+            "efficiency_score": round((total_events / total_devices_count) if total_devices_count > 0 else 0, 2),
+        }
+
+        print(f"✅ Enhanced metrics calculated: {len(enhanced_metrics)} metrics")
+
+        # Show the stats panel
+        stats_panel_style = {"display": "flex", "justifyContent": "space-around", "marginBottom": "30px"}
+
+        return enhanced_metrics, stats_panel_style
+
+    except Exception as e:
+        print(f"❌ Error calculating enhanced metrics: {e}")
+        import traceback
+        traceback.print_exc()
+
+        # Return minimal data to prevent crashes
+        fallback_metrics = {
+            "total_events": 0,
+            "date_range": "Error calculating",
+            "events_per_day": 0,
+            "unique_users": 0,
+            "avg_events_per_user": 0,
+            "most_active_user": "N/A",
+            "total_devices_count": 0,
+            "entrance_devices_count": 0,
+            "high_security_devices": 0,
+            "peak_hour": 12,
+            "activity_intensity": "N/A",
+            "security_score": 0,
+            "most_active_devices": [],
+        }
+
+        return fallback_metrics, {"display": "none"}
 
 
 import warnings
