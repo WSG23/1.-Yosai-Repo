@@ -460,7 +460,9 @@ def _add_missing_callback_elements(base_children: List[Any], existing_ids: set) 
         # FIXED: Add Enhanced Stats Handler targets
         'enhanced-total-access-events-H1', 'enhanced-event-date-range-P',
         'events-trend-indicator', 'avg-events-per-day', 'most-active-user',
-        'avg-user-activity', 'unique-users-today'
+        'avg-user-activity', 'unique-users-today',
+        # Add IDs referenced by enhanced stats callbacks
+        'core-row-with-sidebar', 'peak-activity-events'
     ]
     
     for element_id in callback_targets:
