@@ -233,7 +233,6 @@ class UploadHandlers:
     def _get_initial_state_values(self, upload_styles):
         """Get initial state values for all outputs"""
         hide_style = {'display': 'none'}
-        show_graph_style = {'display': 'block'}
         show_interactive_setup_style = get_interactive_setup_style(True)
         confirm_button_style_hidden = UPLOAD_STYLES['generate_button'].copy()
         confirm_button_style_hidden['display'] = 'none'
@@ -246,8 +245,7 @@ class UploadHandlers:
             "",  # status message store
             self.icons['default'],  # upload icon src
             upload_styles['initial'],  # upload box style
-            hide_style, hide_style, show_graph_style, hide_style,  # various containers
-
+            hide_style, hide_style, hide_style, hide_style,  # various containers (entrance, table, graph, analytic stats)
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store
@@ -259,7 +257,6 @@ class UploadHandlers:
     def _create_success_response(self, result, upload_styles, filename):
         """Create response for successful upload"""
         hide_style = {'display': 'none'}
-        show_graph_style = {'display': 'block'}
         show_interactive_setup_style = get_interactive_setup_style(True)
         confirm_button_style_visible = UPLOAD_STYLES['generate_button']
         
@@ -281,8 +278,7 @@ class UploadHandlers:
             processing_status_msg,  # status message store
             self.icons['success'],  # upload icon src
             upload_styles['success'],  # upload box style
-            hide_style, hide_style, show_graph_style, hide_style,  # various containers
-
+            hide_style, hide_style, hide_style, hide_style,  # various containers (entrance, table, graph, analytic stats)
             hide_style,  # yosai header
             [],  # graph elements
             result['all_unique_doors'],  # all doors store
@@ -294,7 +290,6 @@ class UploadHandlers:
     def _create_error_response(self, result, upload_styles, filename):
         """Create response for failed upload"""
         hide_style = {'display': 'none'}
-        show_graph_style = {'display': 'block'}
         show_interactive_setup_style = get_interactive_setup_style(True)
         confirm_button_style_hidden = UPLOAD_STYLES['generate_button'].copy()
         confirm_button_style_hidden['display'] = 'none'
@@ -311,8 +306,7 @@ class UploadHandlers:
             processing_status_msg,  # status message store
             self.icons['fail'],  # upload icon src
             upload_styles['error'],  # upload box style
-            hide_style, hide_style, show_graph_style, hide_style,  # various containers
-
+            hide_style, hide_style, hide_style, hide_style,  # various containers (entrance, table, graph, analytic stats)
             hide_style,  # yosai header
             [],  # graph elements
             None,  # all doors store

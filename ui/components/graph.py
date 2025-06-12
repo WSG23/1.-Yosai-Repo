@@ -41,7 +41,7 @@ class GraphComponent:
         """Creates the complete graph visualization container"""
         return html.Div(
             id='graph-output-container',
-            style={'display': 'block'},
+            style={'display': 'none'},
             children=[
                 self.create_graph_title(),
                 self.create_graph_area(),
@@ -88,7 +88,7 @@ class GraphComponent:
         return html.Pre(
             id='tap-node-data-output',
             style=tap_node_data_centered_style,
-            children="Awaiting data…"
+            children="Upload a file, map headers, (optionally classify doors), then Confirm & Generate. Tap a node for its details."
         )
     
     def create_graph_controls(self):
