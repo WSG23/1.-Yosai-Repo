@@ -207,6 +207,68 @@ class EnhancedStatsComponent:
             ]
         )
 
+
+    # ------------------------------------------------------------------
+    # Chart helper methods
+    # ------------------------------------------------------------------
+
+    def _create_empty_chart(self, message):
+        """Return a blank figure with a message."""
+        fig = go.Figure()
+        fig.update_layout(
+            annotations=[
+                dict(
+                    text=message,
+                    xref="paper",
+                    yref="paper",
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                    font=dict(size=16, color=COLORS["text_secondary"]),
+                )
+            ],
+            **self.chart_theme["layout"],
+        )
+        return fig
+
+    def create_activity_heatmap(self, df):
+        """Create day/hour activity heatmap."""
+        if df is None or df.empty:
+            return self._create_empty_chart("No data for heatmap")
+
+        ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
+        if ts_col not in df.columns:
+            return self._create_empty_chart("Timestamp data not available")
+
+        dfc = df.copy()
+        dfc["Hour"] = dfc[ts_col].dt.hour
+        dfc["DayOfWeek"] = dfc[ts_col].dt.day_name()
+
+        heatmap_data = dfc.groupby(["DayOfWeek", "Hour"]).size().unstack(fill_value=0)
+        days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        heatmap_data = heatmap_data.reindex(days_order)
+
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=heatmap_data.values,
+                x=list(range(24)),
+                y=days_order,
+                colorscale="Blues",
+                text=heatmap_data.values,
+                texttemplate="%{text}",
+                textfont={"size": 10},
+            )
+        )
+
+        fig.update_layout(
+            title="Activity Heatmap (Day vs Hour)",
+            xaxis_title="Hour of Day",
+            yaxis_title="Day of Week",
+            **self.chart_theme["layout"],
+        )
+
+        return fig
+
     def create_access_events_panel(self):
         """Access Events Panel - Core Statistics"""
         return html.Div(
@@ -324,6 +386,7 @@ class EnhancedStatsComponent:
                             {"label": "📈 Hourly Distribution", "value": "hourly"},
                             {"label": "📅 Daily Patterns", "value": "daily"},
                             {"label": "🏢 Floor Activity", "value": "floor"},
+                            {"label": "🔥 Activity Heatmap", "value": "heatmap"},
                         ],
                         value="timeline",
                         style={"marginBottom": "15px", "color": COLORS["text_primary"]},
@@ -354,7 +417,7 @@ class EnhancedStatsComponent:
                         config={"displayModeBar": False}
                     ),
                     dcc.Graph(
-                        id="device-distribution-chart",
+                        id="heatmap-chart",
                         style={"height": "180px"},
                         config={"displayModeBar": False}
                     ),
