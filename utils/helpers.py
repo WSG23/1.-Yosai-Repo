@@ -119,3 +119,12 @@ def parse_boolean(value: Any) -> bool:
     if isinstance(value, (int, float)):
         return bool(value)
     return False
+
+
+def process_large_csv(file_obj: Any, chunk_size: int = 10000):
+    """Yield DataFrame chunks from a CSV-like object."""
+    import pandas as pd
+
+    for chunk in pd.read_csv(file_obj, chunksize=chunk_size):
+        yield chunk
+
