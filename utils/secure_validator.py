@@ -250,3 +250,16 @@ class SecureFileValidator:
 
 # Export for easier importing
 __all__ = ['SecureFileValidator', 'SecurityError']
+
+# Convenience wrapper used by upload handlers
+_validator_instance = SecureFileValidator()
+
+def validate_upload_security(file_content: bytes, filename: str) -> Dict[str, Any]:
+    """Validate uploaded file content and return simplified result."""
+    result = _validator_instance.validate_upload(file_content, filename)
+    return {
+        'is_valid': result.get('valid', False),
+        'errors': result.get('errors', []),
+        'warnings': result.get('warnings', []),
+        'file_info': result.get('file_info', {})
+    }
