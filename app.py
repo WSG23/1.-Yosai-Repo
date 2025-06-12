@@ -1815,6 +1815,16 @@ def process_uploaded_data(
                 security_level_distribution = device_attrs["SecurityLevel"].value_counts().to_dict()
             if "door_type" in device_attrs.columns:
                 device_type_distribution = device_attrs["door_type"].value_counts().to_dict()
+        else:
+            # Fallback to event dataframe if no device attributes provided
+            for col in ["security", "SecurityLevel", "Security Level", "security_level"]:
+                if col in df.columns:
+                    security_level_distribution = df[col].value_counts().to_dict()
+                    break
+            for col in ["door_type", "Door Type", "Device Type", "device_type"]:
+                if col in df.columns:
+                    device_type_distribution = df[col].value_counts().to_dict()
+                    break
 
         enhanced_metrics = {
             "total_events": total_events,
