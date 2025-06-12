@@ -729,13 +729,15 @@ def _create_complete_fixed_layout(
                     className="controls-panel",
                     children=[
                         dcc.Dropdown(
-                            id="chart-type-dropdown",
+                            id="chart-type-selector",
                             options=[
-                                {"label": "Overview", "value": "overview"},
                                 {"label": "Timeline", "value": "timeline"},
-                                {"label": "Heatmap", "value": "heatmap"},
+                                {"label": "Hourly Activity", "value": "hourly"},
+                                {"label": "Daily Patterns", "value": "daily"},
+                                {"label": "Floor Activity", "value": "floor"},
+                                {"label": "Activity Heatmap", "value": "heatmap"},
                             ],
-                            value="overview",
+                            value="timeline",
                         ),
                         html.Button("Apply Filters", id="filter-button"),
                         html.Button("Time Range", id="timerange-button"),
@@ -2482,10 +2484,13 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
         Input("enhanced-stats-data-store", "data"),
         Input("chart-type-selector", "value"),
     ],
+    State("processed-data-store", "data"),
     prevent_initial_call=True,
 )
-def update_consolidated_charts(enhanced_metrics, chart_type):
+def update_consolidated_charts(enhanced_metrics, chart_type, processed_data):
     """Update all charts in the consolidated container"""
+
+    import pandas as pd
 
     if not enhanced_metrics:
         empty_fig = go.Figure()
@@ -2499,6 +2504,12 @@ def update_consolidated_charts(enhanced_metrics, chart_type):
         return empty_fig, empty_fig, empty_fig
 
     metrics = enhanced_metrics or {}
+    df = pd.DataFrame()
+    if processed_data and isinstance(processed_data, dict) and "dataframe" in processed_data:
+        df = pd.DataFrame(processed_data["dataframe"])
+        ts_col = REQUIRED_INTERNAL_COLUMNS["Timestamp"]
+        if ts_col in df.columns:
+            df[ts_col] = pd.to_datetime(df[ts_col], errors="coerce")
 
     main_fig = go.Figure()
 
@@ -2524,6 +2535,12 @@ def update_consolidated_charts(enhanced_metrics, chart_type):
         if floor_data:
             main_fig.add_trace(go.Bar(x=list(floor_data.keys()), y=list(floor_data.values()), marker_color=COLORS["warning"], name='Floor Activity'))
             main_fig.update_layout(title="Floor Activity", xaxis_title="Floor", yaxis_title="Events")
+    elif chart_type == "heatmap":
+        stats_component = component_instances.get("enhanced_stats")
+        if stats_component is not None and not df.empty:
+            main_fig = stats_component.create_activity_heatmap(df)
+        else:
+            main_fig.update_layout(title="Activity Heatmap")
 
     main_fig.update_layout(
         template="plotly_dark",
