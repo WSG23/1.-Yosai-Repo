@@ -1860,29 +1860,13 @@ def generate_enhanced_analysis_updated(n_clicks, file_data, processed_data, devi
             return show_style, "Analysis complete! Enhanced metrics calculated."
 
         else:
-            show_style = {
-                "display": "block",
-                "width": "95%",
-                "margin": "20px auto",
-                "backgroundColor": COLORS["background"],
-                "borderRadius": "12px",
-                "padding": "20px",
-                "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
-            }
-            return show_style, "Error: Invalid processed data format"
+            hide_style = {"display": "none"}
+            return hide_style, "Error: Invalid processed data format"
 
     except Exception as e:
         print(f"Error in analysis: {e}")
-        show_style = {
-            "display": "block",
-            "width": "95%",
-            "margin": "20px auto",
-            "backgroundColor": COLORS["background"],
-            "borderRadius": "12px",
-            "padding": "20px",
-            "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
-        }
-        return show_style, f"Error: {str(e)}"
+        hide_style = {"display": "none"}
+        return hide_style, f"Error: {str(e)}"
 
 
 # Store enhanced stats data for consolidated container
@@ -1966,8 +1950,6 @@ def update_enhanced_stats_store_fixed(status_message, processed_data, device_cla
         Output("maintenance-alerts", "children"),
         Output("system-uptime", "children"),
         Output("most-active-devices-table-body", "children"),
-        Output("analytics-error-message", "children"),
-        Output("analytics-error-message", "style"),
     ],
     [
         Input("enhanced-stats-data-store", "data"),
@@ -1978,6 +1960,14 @@ def update_enhanced_stats_store_fixed(status_message, processed_data, device_cla
 def update_consolidated_analytics(enhanced_metrics, generate_clicks):
     """Update ALL analytics in the consolidated container"""
 
+    if not enhanced_metrics or not generate_clicks:
+        hide_style = {"display": "none"}
+        # Return placeholders matching the number of outputs
+        # There are 31 outputs besides the style, with the last
+        # being the most-active-devices table rows.
+        empty_values = ["N/A"] * 30
+        return [hide_style] + empty_values + [[]]
+
     show_style = {
         "display": "block",
         "width": "95%",
@@ -1987,26 +1977,6 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
         "padding": "20px",
         "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
     }
-
-    error_style = {"display": "none"}
-    error_message = ""
-
-    if not enhanced_metrics and generate_clicks:
-        error_style = {
-            "display": "block",
-            "color": COLORS["critical"],
-            "textAlign": "center",
-            "marginBottom": "10px",
-        }
-        error_message = "Analytics data unavailable"
-        # Return placeholders
-        empty_values = ["N/A"] * 30
-        return [show_style] + empty_values + [[]] + [error_message, error_style]
-    elif not generate_clicks:
-        hide_style = {"display": "none"}
-        empty_values = ["N/A"] * 30
-        return [hide_style] + empty_values + [[]] + [error_message, error_style]
-
 
     metrics = enhanced_metrics or {}
 
@@ -2104,8 +2074,6 @@ def update_consolidated_analytics(enhanced_metrics, generate_clicks):
         traffic_pattern, behavioral, efficiency, trend,
         card_holders, session_duration, concurrent_users, security_events, maintenance, uptime,
         table_rows,
-        error_message,
-        error_style,
     ]
 
 
