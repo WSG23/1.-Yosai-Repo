@@ -1,4 +1,12 @@
-# app_modular.py - FIXED html.Style error
+#!/usr/bin/env python3
+"""
+Quick fix for html.Style error - remove inline CSS injection
+"""
+
+def fix_html_style_error():
+    """Fix the html.Style error in app_modular.py"""
+    
+    fixed_app_content = '''# app_modular.py - FIXED html.Style error
 """
 Modular Dash application with logo and enforced dark theme
 """
@@ -197,3 +205,17 @@ if __name__ == '__main__':
     print("🎨 Starting Yōsai Dashboard with logo and dark theme...")
     print("Visit: http://localhost:8050")
     app.run_server(debug=True)
+'''
+    
+    with open('app_modular.py', 'w') as f:
+        f.write(fixed_app_content)
+    
+    print("✅ Fixed html.Style error in app_modular.py")
+
+if __name__ == '__main__':
+    print("🔧 Fixing html.Style error...")
+    fix_html_style_error()
+    print("✅ Error fixed - removed inline CSS injection")
+    print("🎨 Dark theme will now rely on custom.css")
+    print("🧪 Test with: python3 run.py")
+    

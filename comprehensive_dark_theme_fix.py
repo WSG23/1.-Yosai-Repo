@@ -1,4 +1,28 @@
-# app_modular.py - FIXED html.Style error
+#!/usr/bin/env python3
+"""
+FINAL COMPLETE FIX: Dark theme + logo + eliminate ALL white backgrounds
+"""
+
+def apply_final_complete_fix():
+    """Apply the comprehensive fix for dark theme and logo"""
+    
+    print("🎨 Applying FINAL complete dark theme + logo fix...")
+    
+    # 1. Update app_modular.py with logo and dark wrappers
+    apply_app_modular_fix()
+    
+    # 2. Update custom.css with aggressive overrides
+    apply_aggressive_css_fix()
+    
+    print("✅ FINAL COMPLETE FIX APPLIED!")
+    print("🏛️ Yosai logo added to header")
+    print("🎨 ALL white backgrounds eliminated")
+    print("🧪 Test with: python3 run.py")
+
+def apply_app_modular_fix():
+    """Apply app_modular.py fix with logo and dark wrappers"""
+    
+    fixed_app_content = '''# app_modular.py - FINAL COMPLETE FIX
 """
 Modular Dash application with logo and enforced dark theme
 """
@@ -49,8 +73,11 @@ def create_dark_layout():
     registry = get_registry()
     
     return html.Div([
-        # Main application container
+        # Force dark background on everything
         html.Div([
+            # Inject aggressive CSS
+            html.Style(children=get_aggressive_dark_css()),
+            
             # Header WITH LOGO
             create_header_with_logo(),
             
@@ -94,6 +121,45 @@ def create_dark_component_wrapper(component):
         'border': f'1px solid {COLORS["border"]}',
         'minHeight': '200px'
     }, className="dark-component-wrapper")
+
+def get_aggressive_dark_css():
+    """Aggressive CSS to eliminate ALL white backgrounds"""
+    return f"""
+    /* ELIMINATE ALL WHITE BACKGROUNDS */
+    html, body, #_dash-app-content {{
+        background-color: {COLORS['background']} !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    
+    /* Force dark on ALL component containers */
+    div, span {{
+        background-color: inherit !important;
+    }}
+    
+    .dark-component-wrapper, .dark-component-wrapper * {{
+        background-color: {COLORS['surface']} !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    
+    /* Override any white backgrounds */
+    [style*="background-color: white"], 
+    [style*="background-color: #fff"],
+    [style*="background: white"] {{
+        background-color: {COLORS['surface']} !important;
+    }}
+    
+    /* Force dark on specific components */
+    [id*="upload"], [id*="mapping"], [id*="stats"], [id*="graph"] {{
+        background-color: {COLORS['surface']} !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    
+    .dash-upload, .dash-upload-area {{
+        background-color: {COLORS['surface']} !important;
+        color: {COLORS['text_primary']} !important;
+        border-color: {COLORS['border']} !important;
+    }}
+    """
 
 def create_header_with_logo():
     """Create header with Yosai logo"""
@@ -197,3 +263,118 @@ if __name__ == '__main__':
     print("🎨 Starting Yōsai Dashboard with logo and dark theme...")
     print("Visit: http://localhost:8050")
     app.run_server(debug=True)
+'''
+    
+    with open('app_modular.py', 'w') as f:
+        f.write(fixed_app_content)
+    
+    print("✅ Updated app_modular.py with logo and dark wrappers")
+
+def apply_aggressive_css_fix():
+    """Apply aggressive CSS fix to eliminate white backgrounds"""
+    
+    # Read current custom.css
+    try:
+        with open('assets/custom.css', 'r') as f:
+            current_css = f.read()
+    except FileNotFoundError:
+        current_css = ""
+    
+    # Aggressive CSS overrides
+    aggressive_css = """
+/* AGGRESSIVE DARK THEME ENFORCEMENT - ELIMINATE ALL WHITE */
+
+/* Force dark on everything */
+html, body, #_dash-app-content, ._dash-app-content, .dash-app-content {
+  background-color: #0F1419 !important;
+  color: #F7FAFC !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Force dark on ALL divs and containers */
+div, span, section, article, main {
+  background-color: inherit !important;
+}
+
+/* Force dark on ALL component wrappers */
+.dark-component-wrapper {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+.dark-component-wrapper * {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+/* Override any component that might be white */
+[class*="component"], [id*="component"], 
+[class*="upload"], [id*="upload"],
+[class*="mapping"], [id*="mapping"],
+[class*="stats"], [id*="stats"],
+[class*="graph"], [id*="graph"] {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+/* Force dark on Dash Upload components */
+.dash-upload, .dash-upload-area, .dash-upload-content {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+  border-color: #2D3748 !important;
+}
+
+/* Force dark on forms */
+input, textarea, select, .form-control, .form-select {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+  border-color: #2D3748 !important;
+}
+
+/* Force dark on Bootstrap */
+.container, .container-fluid, .row, .col {
+  background-color: #0F1419 !important;
+}
+
+.card, .card-body, .card-header {
+  background-color: #1A2332 !important;
+  border-color: #2D3748 !important;
+  color: #F7FAFC !important;
+}
+
+.btn {
+  border-color: #2D3748 !important;
+  color: #F7FAFC !important;
+}
+
+.btn-primary {
+  background-color: #2196F3 !important;
+  border-color: #2196F3 !important;
+}
+
+.alert {
+  border-color: #2D3748 !important;
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+/* Override any inline white backgrounds */
+[style*="background-color: white"], 
+[style*="background-color: #fff"],
+[style*="background-color: #ffffff"],
+[style*="background: white"],
+[style*="background: #fff"],
+[style*="background: #ffffff"] {
+  background-color: #1A2332 !important;
+}
+
+""" + current_css
+    
+    with open('assets/custom.css', 'w') as f:
+        f.write(aggressive_css)
+    
+    print("✅ Updated custom.css with aggressive dark theme overrides")
+
+if __name__ == '__main__':
+    apply_final_complete_fix()

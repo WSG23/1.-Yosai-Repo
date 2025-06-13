@@ -1,3 +1,91 @@
+
+/* AGGRESSIVE DARK THEME ENFORCEMENT - ELIMINATE ALL WHITE */
+
+/* Force dark on everything */
+html, body, #_dash-app-content, ._dash-app-content, .dash-app-content {
+  background-color: #0F1419 !important;
+  color: #F7FAFC !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Force dark on ALL divs and containers */
+div, span, section, article, main {
+  background-color: inherit !important;
+}
+
+/* Force dark on ALL component wrappers */
+.dark-component-wrapper {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+.dark-component-wrapper * {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+/* Override any component that might be white */
+[class*="component"], [id*="component"], 
+[class*="upload"], [id*="upload"],
+[class*="mapping"], [id*="mapping"],
+[class*="stats"], [id*="stats"],
+[class*="graph"], [id*="graph"] {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+/* Force dark on Dash Upload components */
+.dash-upload, .dash-upload-area, .dash-upload-content {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+  border-color: #2D3748 !important;
+}
+
+/* Force dark on forms */
+input, textarea, select, .form-control, .form-select {
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+  border-color: #2D3748 !important;
+}
+
+/* Force dark on Bootstrap */
+.container, .container-fluid, .row, .col {
+  background-color: #0F1419 !important;
+}
+
+.card, .card-body, .card-header {
+  background-color: #1A2332 !important;
+  border-color: #2D3748 !important;
+  color: #F7FAFC !important;
+}
+
+.btn {
+  border-color: #2D3748 !important;
+  color: #F7FAFC !important;
+}
+
+.btn-primary {
+  background-color: #2196F3 !important;
+  border-color: #2196F3 !important;
+}
+
+.alert {
+  border-color: #2D3748 !important;
+  background-color: #1A2332 !important;
+  color: #F7FAFC !important;
+}
+
+/* Override any inline white backgrounds */
+[style*="background-color: white"], 
+[style*="background-color: #fff"],
+[style*="background-color: #ffffff"],
+[style*="background: white"],
+[style*="background: #fff"],
+[style*="background: #ffffff"] {
+  background-color: #1A2332 !important;
+}
+
 /* ---------------------------------------------
    PROFESSIONAL DASHBOARD CSS - Enhanced Styling
    --------------------------------------------- */
