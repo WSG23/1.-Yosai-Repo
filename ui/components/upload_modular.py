@@ -29,8 +29,10 @@ class ModularUploadComponent(StatefulComponent):
         
     def _validate_config(self) -> None:
         """Validate required configuration"""
-        # Don't raise errors, just use defaults
-        pass
+        required_settings = ['max_file_size', 'allowed_extensions', 'secure_validation', 'upload_timeout']
+        for setting in required_settings:
+            if not self.get_setting(setting):
+                print(f"Warning: Missing setting '{setting}', using defaults")
     
     def render(self, **props) -> html.Div:
         """Render the upload component"""
@@ -220,17 +222,10 @@ class ModularUploadComponent(StatefulComponent):
 def create_modular_upload_component(component_id: Optional[str] = None, **props) -> ModularUploadComponent:
     """Factory function to create modular upload component"""
     config = get_component_config('upload')
-    return ModularUploadComponent(config, component_id, **props)
+    return ModularUploadComponent(config, component_id)
 
 def register_modular_upload_component():
     """Register modular upload component with global registry"""
     from ui.core.component_registry import register_component
     
-    register_component(
-        'upload_modular',
-        ModularUploadComponent,
-        default_props={
-            'max_file_size': 10 * 1024 * 1024,
-            'accepted_types': ['.csv', '.json']
-        }
-    )
+    register_component('upload_modular', ModularUploadComponent)
