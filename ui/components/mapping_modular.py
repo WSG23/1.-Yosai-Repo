@@ -29,7 +29,7 @@ class ModularMappingComponent(StatefulComponent):
         required_settings = ['auto_suggest', 'fuzzy_threshold']
         for setting in required_settings:
             if not self.get_setting(setting):
-                print(f"Warning: Missing mapping setting '{setting}', using defaults")
+                raise ValueError(f"Missing required setting: {setting}")
     
     def render(self, **props) -> html.Div:
         """Render the mapping component"""
@@ -153,18 +153,10 @@ class ModularMappingComponent(StatefulComponent):
 def create_modular_mapping_component(component_id: Optional[str] = None, **props):
     """Factory function to create modular mapping component"""
     config = get_component_config('mapping')
-    return ModularMappingComponent(config, component_id, **props)
+    return ModularMappingComponent(config, component_id)
 
 # Registration function
 def register_modular_mapping_component():
     """Register modular mapping component with global registry"""
     from ui.core.component_registry import register_component
-    
-    register_component(
-        'mapping_modular',
-        ModularMappingComponent,
-        default_props={
-            'auto_suggest': True,
-            'fuzzy_threshold': 0.6
-        }
-    )
+    register_component('mapping_modular', ModularMappingComponent)
