@@ -1,0 +1,54 @@
+{
+  "colors": {
+    "primary": "#1f2937",
+    "secondary": "#6b7280",
+    "accent": "#3b82f6",
+    "surface": "#ffffff",
+    "background": "#f9fafb",
+    "border": "#e5e7eb",
+    "text_primary": "#111827",
+    "text_secondary": "#6b7280",
+    "text_on_accent": "#ffffff",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "error": "#ef4444"
+  },
+  "typography": {
+    "font_family": "Inter, sans-serif",
+    "font_size_base": "14px",
+    "font_size_sm": "12px",
+    "font_size_lg": "16px",
+    "font_size_xl": "20px",
+    "font_weight_normal": "400",
+    "font_weight_medium": "500",
+    "font_weight_semibold": "600"
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "2xl": "48px",
+    "3xl": "64px"
+  },
+  "components": {
+    "upload": {
+      "border_radius": "8px",
+      "min_height": "200px",
+      "border_color": "#e5e7eb",
+      "hover_border_color": "#3b82f6"
+    },
+    "graph": {
+      "default_height": "600px",
+      "background_color": "#ffffff"
+    },
+    "mapping": {
+      "dropdown_height": "40px"
+    },
+    "stats": {
+      "card_padding": "16px",
+      "chart_height": "300px"
+    }
+  }
+}

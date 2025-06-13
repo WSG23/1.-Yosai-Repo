@@ -1,0 +1,32 @@
+{
+  "actions": {
+    "upload": "📤",
+    "download": "📥",
+    "refresh": "🔄",
+    "delete": "🗑️",
+    "edit": "✏️",
+    "save": "💾",
+    "cancel": "❌"
+  },
+  "status": {
+    "success": "✅",
+    "error": "❌",
+    "warning": "⚠️",
+    "info": "ℹ️",
+    "loading": "🔄"
+  },
+  "data": {
+    "file": "📄",
+    "csv": "📊",
+    "json": "📋",
+    "folder": "📁",
+    "database": "🗃️"
+  },
+  "navigation": {
+    "next": "➡️",
+    "previous": "⬅️",
+    "home": "🏠",
+    "up": "⬆️",
+    "down": "⬇️"
+  }
+}

@@ -488,40 +488,39 @@ class AppFactory:
                     },
                     children=[
                         cyto.Cytoscape(
-                            id="onion-graph",
-                            style={
-                                'width': '100%',
-                                'height': '100%',
-                                'background-color': '#1a1a1a',
-                                'border-radius': '6px'
-                            },
-                            elements=[],
-                            layout={'name': 'cose'},
-                            stylesheet=[
-                                {
-                                    'selector': 'node',
-                                    'style': {
-                                        'background-color': '#2a2a2a',
-                                        'border-color': '#444',
-                                        'border-width': 2,
-                                        'label': 'data(label)',
-                                        'text-valign': 'center',
-                                        'text-halign': 'center',
-                                        'font-size': '12px',
-                                        'color': 'white',
-                                        'width': 60,
-                                        'height': 60,
-                                    }
-                                },
-                                {
-                                    'selector': 'edge',
-                                    'style': {
-                                        'width': 3,
-                                        'line-color': '#666',
-                                        'target-arrow-color': '#666',
-                                        'target-arrow-shape': 'triangle',
-                                        'curve-style': 'bezier'
-                                    }
+                    id="onion-graph",
+                    style={
+                        'width': '100%',
+                        'height': '100%',
+                        'background-color': '#1a1a1a',
+                        'border-radius': '6px'
+                    },
+                    elements=[],
+                    layout={'name': 'cose'},
+                    stylesheet=[
+                        {
+                            'selector': 'node',
+                            'style': {
+                                'background-color': '#2a2a2a',
+                                'border-color': '#444',
+                                'border-width': 2,
+                                'label': 'data(label)',
+                                'text-valign': 'center',
+                                'text-halign': 'center',
+                                'font-size': '12px',
+                                'color': 'white',
+                                'width': 60,
+                                'height': 60,
+                            }
+                        },
+                        {
+                            'selector': 'edge',
+                            'style': {
+                                'width': 3,
+                                'line-color': '#666',
+                                'target-arrow-color': '#666',
+                                'target-arrow-shape': 'triangle',
+                                'curve-style': 'bezier'                                    }
                                 }
                             ],
                             wheelSensitivity=1
