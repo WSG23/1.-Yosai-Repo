@@ -79,8 +79,7 @@ class GraphComponent:
             layout=self.default_layout,
             style=cytoscape_inside_box_style,
             elements=[],
-            stylesheet=actual_default_stylesheet_for_graph,
-            wheelSensitivity=1
+            stylesheet=actual_default_stylesheet_for_graph
         )
     
     def create_node_info_display(self):

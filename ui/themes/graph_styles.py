@@ -151,7 +151,6 @@ GRAPH_STYLES = [
         'style': {
             'border-width': 5,
             'border-color': COLORS['accent'],
-            'box-shadow': '0 0 20px rgba(33, 150, 243, 0.4)',  # Fixed: use rgba instead of hex+alpha
             'z-index': 1000
         }
     },
