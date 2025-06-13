@@ -27,8 +27,10 @@ class ModularEnhancedStatsComponent(StatefulComponent):
         
     def _validate_config(self) -> None:
         """Validate required configuration"""
-        # Don't raise errors, just use defaults
-        pass
+        required_settings = ['chart_height', 'show_advanced', 'refresh_interval']
+        for setting in required_settings:
+            if not self.get_setting(setting):
+                print(f"Warning: Missing setting '{setting}', using defaults")
     
     def render(self, **props) -> html.Div:
         """Render the enhanced stats component"""
