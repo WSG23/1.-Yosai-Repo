@@ -109,3 +109,4 @@ def register_template_component():
         TemplateComponent,
         default_props={}
     )
+    
