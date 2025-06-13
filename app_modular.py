@@ -12,6 +12,9 @@ from ui.core.component_registry import get_registry
 
 # Component registrations
 from ui.components.upload_modular import register_modular_upload_component
+from ui.components.mapping_modular import register_modular_mapping_component
+from ui.components.enhanced_stats_modular import register_modular_enhanced_stats_component
+from ui.components.graph_modular import register_modular_graph_component
 
 def create_modular_app():
     """Create Dash application with modular components"""
@@ -29,7 +32,9 @@ def create_modular_app():
     
     # Register components
     register_modular_upload_component()
-    # TODO: Register other components as they are migrated
+    register_modular_mapping_component()
+    register_modular_enhanced_stats_component()
+    register_modular_graph_component()
     
     # Set layout
     app.layout = create_modular_layout()
@@ -46,17 +51,29 @@ def create_modular_layout():
             html.H1("Modular Dashboard", style={'textAlign': 'center', 'margin': '20px 0'})
         ]),
         
-        # Upload Section (using modular component)
+        # Upload Section
         html.Div([
             html.H2("File Upload"),
             registry.render('upload_modular', 'main-upload')
         ], style={'margin': '20px 0'}),
-        
-        # Placeholder for other sections
+
+        # Mapping Section
         html.Div([
-            html.H2("Other Components"),
-            html.P("Other components will be added here as they are migrated...")
-        ], style={'margin': '20px 0', 'padding': '20px', 'backgroundColor': '#f8f9fa'})
+            html.H2("Column Mapping"),
+            registry.render('mapping_modular', 'main-mapping')
+        ], style={'margin': '20px 0'}),
+
+        # Stats Section
+        html.Div([
+            html.H2("Statistics"),
+            registry.render('enhanced_stats_modular', 'main-stats')
+        ], style={'margin': '20px 0'}),
+
+        # Graph Section
+        html.Div([
+            html.H2("Graph Visualization"),
+            registry.render('graph_modular', 'main-graph')
+        ], style={'margin': '20px 0'})
         
     ], style={'maxWidth': '1200px', 'margin': '0 auto', 'padding': '20px'})
 
