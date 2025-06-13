@@ -672,7 +672,6 @@ def register_enhanced_callbacks_once(app: dash.Dash) -> None:
     """Compatibility wrapper for production imports."""
     register_all_callbacks_safely(app)
 
-
     # ENHANCED STATS DATA POPULATOR - ADD THIS CALLBACK
     @app.callback(
         [
@@ -689,6 +688,7 @@ def register_enhanced_callbacks_once(app: dash.Dash) -> None:
         ],
         prevent_initial_call=True,
     )
+    
 def populate_enhanced_stats_store(processed_data, generate_clicks, doors_data, classifications):
     """Populate the enhanced stats store with calculated metrics"""
     from dash import ctx
