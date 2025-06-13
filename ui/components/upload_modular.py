@@ -190,8 +190,9 @@ class ModularUploadComponent(StatefulComponent):
                 'data': processed_data
             })
             
+            row_count = processed_data.get('row_count', 0)
             return (
-                self._create_success_status(filename, len(processed_data.get('data', []))),
+                self._create_success_status(filename, row_count),
                 self._create_data_preview(processed_data)
             )
             
@@ -215,29 +216,98 @@ class ModularUploadComponent(StatefulComponent):
         return {'valid': True}
     
     def _process_file(self, contents: str, filename: str) -> Dict[str, Any]:
-        """Process uploaded file"""
-        content_type, content_string = contents.split(',')
-        decoded = base64.b64decode(content_string)
-        
-        if filename.lower().endswith('.csv'):
-            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+        """Process uploaded file with comprehensive error handling and validation"""
+        try:
+            # Validate input
+            if ',' not in contents:
+                raise ValueError("Invalid file format: missing data separator")
+
+            # Decode base64 content
+            content_type, content_string = contents.split(',', 1)
+            try:
+                decoded = base64.b64decode(content_string)
+            except Exception as e:
+                raise ValueError("File encoding error: unable to decode file data") from e
+
+            # Determine file extension
+            file_extension = filename.lower().split('.')[-1] if '.' in filename else ''
+            allowed_extensions = ['csv', 'txt', 'json']
+
+            if file_extension not in allowed_extensions:
+                raise ValueError(f"Unsupported file type: '.{file_extension}'. Please upload a CSV or JSON file.")
+
+            # Try different encodings for decoding
+            encoding_fallbacks = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+            decoded_string = None
+            used_encoding = None
+
+            for encoding in encoding_fallbacks:
+                try:
+                    decoded_string = decoded.decode(encoding)
+                    used_encoding = encoding
+                    break
+                except UnicodeDecodeError:
+                    continue
+
+            if decoded_string is None:
+                raise ValueError("Unable to decode file. Please save as UTF-8 encoding.")
+
+            # Parse file based on extension
+            try:
+                if file_extension == 'json':
+                    # Handle JSON files
+                    data = json.loads(decoded_string)
+
+                    # Convert to DataFrame if it's a list of objects
+                    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                        df = pd.DataFrame(data)
+                    else:
+                        # For other JSON structures, create a simple DataFrame
+                        df = pd.DataFrame([data] if not isinstance(data, list) else data)
+
+                else:  # CSV or TXT
+                    df = pd.read_csv(io.StringIO(decoded_string))
+
+            except pd.errors.EmptyDataError:
+                raise ValueError(f"{file_extension.upper()} file is empty or contains no data")
+            except pd.errors.ParserError as e:
+                if file_extension == 'json':
+                    raise ValueError(f"JSON format error: {str(e)}")
+                else:
+                    raise ValueError(f"CSV format error: {str(e)}")
+            except json.JSONDecodeError as e:
+                raise ValueError(f"JSON format error: {str(e)}")
+            except Exception as e:
+                raise ValueError(f"Unable to read {file_extension.upper()} data: {str(e)}")
+
+            # Validate parsed data
+            if df.empty:
+                raise ValueError("File contains no data rows")
+
+            if len(df.columns) == 0:
+                raise ValueError("File contains no columns")
+
+            if len(df.columns) > 1000:
+                raise ValueError("File has too many columns (>1000). Please check file format.")
+
+            # Log success
+            print(f"Successfully processed {filename}: {len(df)} rows, {len(df.columns)} columns")
+
+            # Return processed data in consistent format
             return {
-                'type': 'csv',
                 'filename': filename,
-                'data': df.to_dict('records'),
+                'dataframe': df.to_dict('records'),
                 'columns': df.columns.tolist(),
-                'row_count': len(df)
+                'row_count': len(df),
+                'column_count': len(df.columns),
+                'upload_timestamp': pd.Timestamp.now().isoformat(),
+                'encoding_used': used_encoding,
+                'file_type': file_extension,
+                'success': True
             }
-        elif filename.lower().endswith('.json'):
-            data = json.loads(decoded.decode('utf-8'))
-            return {
-                'type': 'json',
-                'filename': filename,
-                'data': data,
-                'row_count': len(data) if isinstance(data, list) else 1
-            }
-        else:
-            raise ValueError(f"Unsupported file type: {filename}")
+
+        except Exception as e:
+            raise ValueError(f"Processing failed: {str(e)}")
     
     def _create_success_status(self, filename: str, row_count: int):
         """Create success status message"""
