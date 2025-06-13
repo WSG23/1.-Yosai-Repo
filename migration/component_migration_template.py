@@ -19,12 +19,35 @@ class TemplateComponent(StatefulComponent):
         self.content_id = f"{self.component_id}-content"
         self.props = kwargs
         
-    def _validate_config(self) -> None:
-        """Validate required configuration"""
-        required_settings = ['setting1', 'setting2']
-        for setting in required_settings:
-            if not self.get_setting(setting):
-                print(f"Warning: Missing setting '{setting}', using defaults")
+        def _validate_config(self) -> None:
+
+        
+            """Validate required configuration - Fixed to handle missing settings gracefully"""
+
+        
+            required_settings = ['setting1', 'setting2']
+        
+
+        
+            for setting in required_settings:
+
+        
+                if self.get_setting(setting) is None:
+
+        
+                    print(f"Warning: Missing setting '{setting}', using defaults")
+
+        
+                    # Set default values instead of raising errors
+
+        
+                    defaults = {'setting1': 'default_value1', 'setting2': 'default_value2'}
+
+        
+                    if setting in defaults:
+
+        
+                        self.config.settings[setting] = defaults[setting]
     
     def render(self, **props):
         """Render the component"""

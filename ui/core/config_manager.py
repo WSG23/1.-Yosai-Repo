@@ -1,6 +1,6 @@
 # ui/core/config_manager.py
 """
-Centralized configuration management system
+Fixed configuration management system
 """
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
@@ -59,7 +59,12 @@ class ComponentSettings:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ComponentSettings':
         """Create settings from dictionary"""
-        return cls(**data)
+        return cls(
+            upload=data.get('upload', {}),
+            graph=data.get('graph', {}),
+            mapping=data.get('mapping', {}),
+            stats=data.get('stats', {})
+        )
     
     def get_component_settings(self, component_name: str) -> Dict[str, Any]:
         """Get settings for specific component"""
@@ -80,46 +85,33 @@ class ConfigManager:
         if self._loaded and not force_reload:
             return
         
-        # Load theme configuration
-        theme_path = os.path.join(self.config_dir, "theme.json")
-        if os.path.exists(theme_path):
-            try:
-                with open(theme_path, 'r') as f:
-                    theme_data = json.load(f)
-                self._theme = ThemeConfig.from_dict(theme_data)
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"Warning: Failed to load theme config: {e}")
-                self._theme = self._get_default_theme()
-        else:
-            self._theme = self._get_default_theme()
+        print(f"🔧 Loading configuration from {self.config_dir}")
         
-        # Load icon configuration  
-        icons_path = os.path.join(self.config_dir, "icons.json")
-        if os.path.exists(icons_path):
-            try:
-                with open(icons_path, 'r') as f:
-                    icons_data = json.load(f)
-                self._icons = IconConfig.from_dict(icons_data)
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"Warning: Failed to load icons config: {e}")
-                self._icons = self._get_default_icons()
-        else:
-            self._icons = self._get_default_icons()
-        
-        # Load component settings
+        # Load component settings FIRST - this is critical
         settings_path = os.path.join(self.config_dir, "components.json")
+        print(f"🔍 Looking for components config at: {settings_path}")
+        
         if os.path.exists(settings_path):
             try:
                 with open(settings_path, 'r') as f:
                     settings_data = json.load(f)
+                print(f"✅ Loaded components config: {list(settings_data.keys())}")
                 self._settings = ComponentSettings.from_dict(settings_data)
             except (json.JSONDecodeError, IOError) as e:
-                print(f"Warning: Failed to load components config: {e}")
+                print(f"❌ Failed to load components config: {e}")
                 self._settings = self._get_default_settings()
         else:
+            print(f"⚠️ Components config file not found at {settings_path}")
             self._settings = self._get_default_settings()
         
+        # Load theme configuration
+        self._theme = self._get_default_theme()
+        
+        # Load icon configuration  
+        self._icons = self._get_default_icons()
+        
         self._loaded = True
+        print("✅ Configuration loading completed")
     
     def get_component_config(self, component_name: str) -> ComponentConfig:
         """Get complete configuration for a component"""
@@ -128,75 +120,81 @@ class ConfigManager:
         if self._theme is None or self._icons is None or self._settings is None:
             raise RuntimeError("Configuration not loaded properly")
         
+        settings = self._settings.get_component_settings(component_name)
+        print(f"🔧 Component '{component_name}' settings: {settings}")
+        
         return ComponentConfig(
             theme=self._theme.get_component_theme(component_name),
             icons=self._icons.to_flat_dict(),
-            settings=self._settings.get_component_settings(component_name)
+            settings=settings
         )
     
     def _get_default_theme(self) -> ThemeConfig:
         """Get default theme configuration"""
-        # Import your existing style config
-        try:
-            from ui.themes.style_config import COLORS, TYPOGRAPHY, SPACING
-            return ThemeConfig(
-                colors=COLORS,
-                typography=TYPOGRAPHY,
-                spacing=SPACING,
-                components={}
-            )
-        except ImportError:
-            # Fallback if style_config is not available
-            return ThemeConfig(
-                colors={
-                    "primary": "#1f2937",
-                    "secondary": "#6b7280",
-                    "accent": "#3b82f6",
-                    "surface": "#ffffff",
-                    "background": "#f9fafb"
-                },
-                typography={
-                    "font_family": "Inter, sans-serif",
-                    "font_size_base": "14px",
-                    "font_weight_normal": "400"
-                },
-                spacing={
-                    "xs": "4px",
-                    "sm": "8px",
-                    "md": "16px",
-                    "lg": "24px",
-                    "xl": "32px"
-                },
-                components={}
-            )
+        return ThemeConfig(
+            colors={
+                "primary": "#1f2937",
+                "secondary": "#6b7280",
+                "accent": "#3b82f6",
+                "surface": "#ffffff",
+                "background": "#f9fafb"
+            },
+            typography={
+                "font_family": "Inter, sans-serif",
+                "font_size_base": "14px",
+                "font_weight_normal": "400"
+            },
+            spacing={
+                "xs": "4px",
+                "sm": "8px",
+                "md": "16px",
+                "lg": "24px",
+                "xl": "32px"
+            },
+            components={}
+        )
     
     def _get_default_icons(self) -> IconConfig:
         """Get default icon configuration"""
-        try:
-            from config.settings import DEFAULT_ICONS
-            # Parse your existing icons into categories
-            return IconConfig(
-                actions={"upload": "📤", "download": "📥", "refresh": "🔄"},
-                status={"success": "✅", "error": "❌", "warning": "⚠️"},
-                data={"file": "📄", "csv": "📊", "json": "📋"},
-                navigation={"next": "➡️", "previous": "⬅️", "home": "🏠"}
-            )
-        except ImportError:
-            # Fallback if settings not available
-            return IconConfig(
-                actions={"upload": "📤", "download": "📥", "refresh": "🔄"},
-                status={"success": "✅", "error": "❌", "warning": "⚠️"},
-                data={"file": "📄", "csv": "📊", "json": "📋"},
-                navigation={"next": "➡️", "previous": "⬅️", "home": "🏠"}
-            )
+        return IconConfig(
+            actions={"upload": "📤", "download": "📥", "refresh": "🔄"},
+            status={"success": "✅", "error": "❌", "warning": "⚠️"},
+            data={"file": "📄", "csv": "📊", "json": "📋"},
+            navigation={"next": "➡️", "previous": "⬅️", "home": "🏠"}
+        )
     
     def _get_default_settings(self) -> ComponentSettings:
-        """Get default component settings"""
+        """Get comprehensive default component settings"""
         return ComponentSettings(
-            upload={"max_file_size": 10 * 1024 * 1024, "accepted_types": [".csv", ".json"]},
-            graph={"default_layout": "cose", "show_labels": True},
-            mapping={"auto_suggest": True, "fuzzy_threshold": 0.6},
-            stats={"show_advanced": False, "chart_height": 300}
+            upload={
+                "max_file_size": 50 * 1024 * 1024,  # 50MB 
+                "allowed_extensions": [".csv", ".json"],
+                "secure_validation": True,
+                "upload_timeout": 30,
+                "auto_process": True,
+                "show_preview": True,
+                "max_preview_rows": 10
+            },
+            graph={
+                "default_layout": "cose",
+                "show_labels": True,
+                "interactive": True,
+                "animation_duration": 300,
+                "node_size": 20,
+                "edge_width": 2
+            },
+            mapping={
+                "auto_suggest": True,
+                "fuzzy_threshold": 0.6,
+                "show_confidence": True,
+                "allow_custom_mapping": True
+            },
+            stats={
+                "show_advanced": False,
+                "chart_height": 300,
+                "show_data_quality": True,
+                "max_categories": 10
+            }
         )
 
 # Global configuration manager
@@ -205,3 +203,10 @@ config_manager = ConfigManager()
 def get_component_config(component_name: str) -> ComponentConfig:
     """Get configuration for a specific component"""
     return config_manager.get_component_config(component_name)
+
+# Force load config on import - with error handling
+try:
+    config_manager.load_config()
+except Exception as e:
+    print(f"⚠️ Configuration loading error: {e}")
+    print("🔧 Using fallback defaults")

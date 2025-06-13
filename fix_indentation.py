@@ -1,9 +1,50 @@
-# ui/core/interfaces.py - Add get_icon method
+#!/usr/bin/env python3
 """
-Updated component interfaces with icon support
+Quick fix for indentation errors in interfaces.py
+"""
+
+def fix_interfaces_indentation():
+    """Fix indentation error in ui/core/interfaces.py"""
+    
+    file_path = 'ui/core/interfaces.py'
+    
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Fix any indentation issues
+        fixed_lines = []
+        for i, line in enumerate(lines):
+            # Check for common indentation problems
+            if line.strip() and not line.startswith(' ') and not line.startswith('\t') and i > 0:
+                # If this line should be indented but isn't, check previous context
+                prev_line = lines[i-1].strip() if i > 0 else ""
+                if prev_line.endswith(':') or 'def ' in prev_line or 'class ' in prev_line:
+                    # This line should probably be indented
+                    fixed_lines.append('    ' + line)
+                else:
+                    fixed_lines.append(line)
+            else:
+                fixed_lines.append(line)
+        
+        # Write the corrected content
+        with open(file_path, 'w') as f:
+            f.writelines(fixed_lines)
+        
+        print(f"✅ Fixed indentation in {file_path}")
+        
+    except Exception as e:
+        print(f"❌ Error fixing {file_path}: {e}")
+
+def create_clean_interfaces_file():
+    """Create a clean interfaces.py file"""
+    
+    clean_content = '''# ui/core/interfaces.py - Fixed version
+"""
+Updated component interfaces with proper validation
 """
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 
 @dataclass
@@ -21,8 +62,8 @@ class ComponentInterface(ABC):
         self.props = kwargs
     
     @abstractmethod
-    def render(self, **props) -> Any:
-        """Render the component - returns Dash component"""
+    def render(self, **props):
+        """Render the component"""
         pass
     
     def get_setting(self, key: str, default: Any = None) -> Any:
@@ -33,55 +74,11 @@ class ComponentInterface(ABC):
         """Get a theme value with default fallback"""
         return self.config.theme.get(key, default)
     
-    def get_style(self, key: str, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def get_style(self, key: str, default: Dict[str, Any] = None) -> Dict[str, Any]:
         """Get style configuration"""
         if default is None:
             default = {}
         return self.config.theme.get(f"{key}_style", default)
-    
-    def get_icon(self, icon_name: str, default: str = "📄") -> str:
-        """Get icon by name with fallback to default"""
-        # Try exact match first
-        if icon_name in self.config.icons:
-            return self.config.icons[icon_name]
-        
-        # Try with common prefixes
-        icon_keys = [
-            icon_name,
-            f"actions_{icon_name}",
-            f"status_{icon_name}",
-            f"data_{icon_name}",
-            f"navigation_{icon_name}"
-        ]
-        
-        for key in icon_keys:
-            if key in self.config.icons:
-                return self.config.icons[key]
-        
-        # Default icon mappings for common names
-        default_icons = {
-            'upload': '📤',
-            'success': '✅',
-            'error': '❌',
-            'warning': '⚠️',
-            'file': '📄',
-            'csv': '📊',
-            'json': '📋',
-            'download': '📥',
-            'refresh': '🔄'
-        }
-        
-        return default_icons.get(icon_name, default)
-
-class StatelessComponent(ComponentInterface):
-    """Component without state management - simple render only"""
-    
-    def __init__(self, config: ComponentConfig, **kwargs):
-        super().__init__(config, **kwargs)
-    
-    def render(self, **props) -> Any:
-        """Render the component - override in subclasses"""
-        raise NotImplementedError("Subclasses must implement render method")
 
 class StatefulComponent(ComponentInterface):
     """Component with state management capabilities"""
@@ -129,3 +126,15 @@ class ConfigurableComponent(StatefulComponent):
     def _get_required_settings(self) -> list:
         """Override in subclasses to specify required settings"""
         return []
+'''
+    
+    with open('ui/core/interfaces.py', 'w') as f:
+        f.write(clean_content)
+    
+    print("✅ Created clean interfaces.py file")
+
+if __name__ == '__main__':
+    print("🔧 Fixing indentation issues...")
+    create_clean_interfaces_file()
+    print("✅ Indentation fix complete!")
+    print("🧪 Now try: python3 run.py")

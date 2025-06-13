@@ -48,12 +48,35 @@ class ModularGraphComponent(StatefulComponent):
             'minTemp': 1.0
         }
 
-    def _validate_config(self) -> None:
-        """Validate required configuration"""
-        required_settings = ['layout_algorithm', 'node_size', 'edge_style', 'physics_enabled']
-        for setting in required_settings:
-            if not self.get_setting(setting):
-                print(f"Warning: Missing setting '{setting}', using defaults")
+        def _validate_config(self) -> None:
+
+
+            """Validate required configuration - Fixed to handle missing settings gracefully"""
+
+
+            required_settings = ['default_layout', 'show_labels', 'interactive', 'node_size']
+        
+
+
+            for setting in required_settings:
+
+
+                if self.get_setting(setting) is None:
+
+
+                    print(f"Warning: Missing setting '{setting}', using defaults")
+
+
+                    # Set default values instead of raising errors
+
+
+                    defaults = {'default_layout': 'cose', 'show_labels': True, 'interactive': True, 'node_size': 20}
+
+
+                    if setting in defaults:
+
+
+                        self.config.settings[setting] = defaults[setting]
 
     def render(self, **props) -> html.Div:
         """Render the graph component"""

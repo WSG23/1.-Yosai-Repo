@@ -1,4 +1,12 @@
-# ui/core/interfaces.py - Add get_icon method
+#!/usr/bin/env python3
+"""
+Apply the get_icon method fix to resolve ModularUploadComponent error
+"""
+
+def apply_icon_method_fix():
+    """Add get_icon method to interfaces.py"""
+    
+    fixed_interfaces_content = '''# ui/core/interfaces.py - Fixed with get_icon method
 """
 Updated component interfaces with icon support
 """
@@ -129,3 +137,36 @@ class ConfigurableComponent(StatefulComponent):
     def _get_required_settings(self) -> list:
         """Override in subclasses to specify required settings"""
         return []
+'''
+    
+    with open('ui/core/interfaces.py', 'w') as f:
+        f.write(fixed_interfaces_content)
+    
+    print("✅ Added get_icon method to interfaces.py")
+
+def test_icon_access():
+    """Test that icon access works"""
+    try:
+        from ui.core.config_manager import get_component_config
+        from ui.core.interfaces import ComponentInterface
+        
+        # Create a test component config
+        config = get_component_config('upload')
+        
+        # Create a dummy component to test icon access
+        class TestComponent(ComponentInterface):
+            def render(self, **props):
+                return None
+        
+        test_comp = TestComponent(config)
+        upload_icon = test_comp.get_icon('upload')
+        print(f"✅ Icon access test passed: upload = {upload_icon}")
+        
+    except Exception as e:
+        print(f"⚠️ Icon access test error: {e}")
+
+if __name__ == '__main__':
+    print("🔧 Applying get_icon method fix...")
+    apply_icon_method_fix()
+    test_icon_access()
+    print("🧪 Try again: python3 run.py")

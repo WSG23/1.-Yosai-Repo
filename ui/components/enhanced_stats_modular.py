@@ -25,12 +25,35 @@ class ModularEnhancedStatsComponent(StatefulComponent):
         # Store additional props
         self.props = kwargs
         
-    def _validate_config(self) -> None:
-        """Validate required configuration"""
-        required_settings = ['chart_height', 'show_advanced', 'refresh_interval']
-        for setting in required_settings:
-            if not self.get_setting(setting):
-                print(f"Warning: Missing setting '{setting}', using defaults")
+        def _validate_config(self) -> None:
+
+        
+            """Validate required configuration - Fixed to handle missing settings gracefully"""
+
+        
+            required_settings = ['chart_height', 'show_advanced', 'max_categories', 'show_data_quality']
+        
+
+        
+            for setting in required_settings:
+
+        
+                if self.get_setting(setting) is None:
+
+        
+                    print(f"Warning: Missing setting '{setting}', using defaults")
+
+        
+                    # Set default values instead of raising errors
+
+        
+                    defaults = {'chart_height': 300, 'show_advanced': False, 'max_categories': 10, 'show_data_quality': True}
+
+        
+                    if setting in defaults:
+
+        
+                        self.config.settings[setting] = defaults[setting]
     
     def render(self, **props) -> html.Div:
         """Render the enhanced stats component"""

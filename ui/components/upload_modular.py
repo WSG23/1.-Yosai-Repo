@@ -27,12 +27,55 @@ class ModularUploadComponent(StatefulComponent):
         # Store any additional props
         self.props = kwargs
         
-    def _validate_config(self) -> None:
-        """Validate required configuration"""
-        required_settings = ['max_file_size', 'allowed_extensions', 'secure_validation', 'upload_timeout']
-        for setting in required_settings:
-            if not self.get_setting(setting):
-                print(f"Warning: Missing setting '{setting}', using defaults")
+        def _validate_config(self) -> None:
+
+        
+            """Validate required configuration - Fixed to handle missing settings gracefully"""
+
+        
+            required_settings = ['max_file_size', 'allowed_extensions', 'secure_validation', 'upload_timeout']
+        
+
+        
+            for setting in required_settings:
+
+        
+                value = self.get_setting(setting)
+            
+
+        
+                # Handle field name compatibility
+
+        
+                if value is None and setting == 'allowed_extensions':
+
+        
+                    value = self.get_setting('accepted_types')  # Try alternative name
+
+        
+                    if value is not None:
+
+        
+                        self.config.settings[setting] = value
+            
+
+        
+                if value is None:
+
+        
+                    print(f"Warning: Missing setting '{setting}', using defaults")
+
+        
+                    # Set default values instead of raising errors
+
+        
+                    defaults = {'max_file_size': 52428800, 'allowed_extensions': ['.csv', '.json'], 'secure_validation': True, 'upload_timeout': 30}
+
+        
+                    if setting in defaults:
+
+        
+                        self.config.settings[setting] = defaults[setting]
     
     def render(self, **props) -> html.Div:
         """Render the upload component"""

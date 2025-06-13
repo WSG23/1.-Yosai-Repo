@@ -45,12 +45,35 @@ class ModularClassificationComponent(StatefulComponent):
         }
         self.reverse_security_map = {v['value']: k for k, v in self.security_levels_map.items()}
 
-    def _validate_config(self) -> None:
-        """Validate required configuration"""
-        required_settings = ['security_levels', 'door_types', 'default_floor', 'classification_mode']
-        for setting in required_settings:
-            if not self.get_setting(setting):
-                print(f"Warning: Missing setting '{setting}', using defaults")
+        def _validate_config(self) -> None:
+
+
+            """Validate required configuration - Fixed to handle missing settings gracefully"""
+
+
+            required_settings = ['security_levels', 'classification_method', 'auto_classify']
+        
+
+
+            for setting in required_settings:
+
+
+                if self.get_setting(setting) is None:
+
+
+                    print(f"Warning: Missing setting '{setting}', using defaults")
+
+
+                    # Set default values instead of raising errors
+
+
+                    defaults = {'security_levels': [0, 1, 2, 3], 'classification_method': 'manual', 'auto_classify': False}
+
+
+                    if setting in defaults:
+
+
+                        self.config.settings[setting] = defaults[setting]
 
     def render(self, **props) -> html.Div:
         """Render the classification component"""
